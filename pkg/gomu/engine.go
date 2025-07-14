@@ -142,12 +142,17 @@ func (e *Engine) Run(path string) error {
 		e.history.UpdateFile(file, mutants, results)
 	}
 
-	// 4. Save history
+	// 4. Cleanup execution engine
+	if err := e.executor.Close(); err != nil {
+		log.Printf("Warning: failed to cleanup execution engine: %v", err)
+	}
+
+	// 5. Save history
 	if err := e.history.Save(); err != nil {
 		log.Printf("Warning: failed to save history: %v", err)
 	}
 
-	// 5. Generate report
+	// 6. Generate report
 	summary := &report.Summary{
 		TotalFiles:      len(files),
 		TotalMutants:    totalMutants,

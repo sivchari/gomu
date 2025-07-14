@@ -2,7 +2,9 @@ package execution
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -12,14 +14,29 @@ import (
 
 // Engine handles test execution
 type Engine struct {
-	config *config.Config
+	config      *config.Config
+	mutator     *SourceMutator
 }
 
 // New creates a new execution engine
 func New(cfg *config.Config) (*Engine, error) {
+	mutator, err := NewSourceMutator()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create source mutator: %w", err)
+	}
+
 	return &Engine{
-		config: cfg,
+		config:  cfg,
+		mutator: mutator,
 	}, nil
+}
+
+// Close cleans up the execution engine
+func (e *Engine) Close() error {
+	if e.mutator != nil {
+		return e.mutator.Cleanup()
+	}
+	return nil
 }
 
 // RunMutations executes tests for all mutants in parallel
@@ -76,30 +93,43 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 		Status: mutation.StatusError,
 	}
 
-	// For now, we'll simulate mutation testing by running the original tests
-	// In a full implementation, we would:
 	// 1. Apply the mutation to the source code
-	// 2. Run the tests
-	// 3. Restore the original code
-	// 4. Analyze the test results
+	if err := e.mutator.ApplyMutation(mutant); err != nil {
+		result.Error = fmt.Sprintf("Failed to apply mutation: %v", err)
+		return result
+	}
 
+	// 2. Run the tests
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(e.config.TestTimeout)*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "go", "test", "-run", ".*", "./...")
+	// Get the directory containing the mutated file for running tests
+	testDir := filepath.Dir(mutant.FilePath)
+	cmd := exec.CommandContext(ctx, "go", "test", "./...")
+	cmd.Dir = testDir
+
 	output, err := cmd.CombinedOutput()
 
+	// 3. Always restore the original code
+	restoreErr := e.mutator.RestoreOriginal(mutant.FilePath)
+	if restoreErr != nil {
+		result.Error = fmt.Sprintf("Failed to restore original file: %v", restoreErr)
+		return result
+	}
+
+	// 4. Analyze the test results
 	if ctx.Err() == context.DeadlineExceeded {
 		result.Status = mutation.StatusTimedOut
 		result.Error = "Test execution timed out"
 		return result
 	}
 
+	result.Output = string(output)
+
 	if err != nil {
-		// Tests failed - this could mean the mutant was killed or there's an error
-		result.Output = string(output)
-		if cmd.ProcessState.ExitCode() != 0 {
-			// For now, assume any test failure means the mutant was killed
+		// Tests failed - check if it's because the mutant was killed
+		if cmd.ProcessState != nil && cmd.ProcessState.ExitCode() != 0 {
+			// Test failure likely means the mutant was detected (killed)
 			result.Status = mutation.StatusKilled
 		} else {
 			result.Status = mutation.StatusError
@@ -108,25 +138,8 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 	} else {
 		// Tests passed - mutant survived
 		result.Status = mutation.StatusSurvived
-		result.Output = string(output)
 	}
 
 	return result
 }
 
-// TODO: Implement actual mutation application
-// This would involve:
-// 1. Reading the source file
-// 2. Applying the specific mutation
-// 3. Writing the mutated file
-// 4. Running tests
-// 5. Restoring the original file
-func (e *Engine) applyMutation(mutant mutation.Mutant) error {
-	// Placeholder for mutation application logic
-	return nil
-}
-
-func (e *Engine) restoreOriginal(filePath string) error {
-	// Placeholder for file restoration logic
-	return nil
-}

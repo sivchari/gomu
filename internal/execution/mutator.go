@@ -1,0 +1,291 @@
+package execution
+
+import (
+	"fmt"
+	"go/ast"
+	"go/format"
+	"go/parser"
+	"go/token"
+	"os"
+	"path/filepath"
+
+	"github.com/sivchari/gomu/internal/mutation"
+)
+
+// SourceMutator handles actual source code mutation
+type SourceMutator struct {
+	backupDir string
+}
+
+// NewSourceMutator creates a new source mutator
+func NewSourceMutator() (*SourceMutator, error) {
+	// Create backup directory
+	backupDir := filepath.Join(os.TempDir(), "gomu_backup")
+	if err := os.MkdirAll(backupDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create backup directory: %w", err)
+	}
+
+	return &SourceMutator{
+		backupDir: backupDir,
+	}, nil
+}
+
+// ApplyMutation applies a mutation to the source file
+func (sm *SourceMutator) ApplyMutation(mutant mutation.Mutant) error {
+	// 1. Backup original file
+	if err := sm.backupFile(mutant.FilePath); err != nil {
+		return fmt.Errorf("failed to backup file: %w", err)
+	}
+
+	// 2. Apply mutation
+	if err := sm.mutateFile(mutant); err != nil {
+		// Restore original if mutation fails
+		sm.RestoreOriginal(mutant.FilePath)
+		return fmt.Errorf("failed to apply mutation: %w", err)
+	}
+
+	return nil
+}
+
+// RestoreOriginal restores the original file from backup
+func (sm *SourceMutator) RestoreOriginal(filePath string) error {
+	backupPath := sm.getBackupPath(filePath)
+	
+	// Read backup content
+	content, err := os.ReadFile(backupPath)
+	if err != nil {
+		return fmt.Errorf("failed to read backup file: %w", err)
+	}
+
+	// Write back to original location
+	if err := os.WriteFile(filePath, content, 0644); err != nil {
+		return fmt.Errorf("failed to restore original file: %w", err)
+	}
+
+	return nil
+}
+
+// Cleanup removes backup files
+func (sm *SourceMutator) Cleanup() error {
+	return os.RemoveAll(sm.backupDir)
+}
+
+// backupFile creates a backup of the original file
+func (sm *SourceMutator) backupFile(filePath string) error {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	backupPath := sm.getBackupPath(filePath)
+	backupDir := filepath.Dir(backupPath)
+	
+	if err := os.MkdirAll(backupDir, 0755); err != nil {
+		return err
+	}
+
+	return os.WriteFile(backupPath, content, 0644)
+}
+
+// getBackupPath returns the backup path for a given file
+func (sm *SourceMutator) getBackupPath(filePath string) string {
+	absPath, _ := filepath.Abs(filePath)
+	// Replace path separators with underscores for backup filename
+	backupName := filepath.Base(absPath) + "_" + fmt.Sprintf("%x", absPath)
+	return filepath.Join(sm.backupDir, backupName)
+}
+
+// mutateFile applies the actual mutation to the file
+func (sm *SourceMutator) mutateFile(mutant mutation.Mutant) error {
+	// Parse the source file
+	fset := token.NewFileSet()
+	src, err := os.ReadFile(mutant.FilePath)
+	if err != nil {
+		return err
+	}
+
+	file, err := parser.ParseFile(fset, mutant.FilePath, src, parser.ParseComments)
+	if err != nil {
+		return err
+	}
+
+	// Apply mutation
+	mutated := false
+	ast.Inspect(file, func(node ast.Node) bool {
+		if node == nil || mutated {
+			return false // Stop if node is nil or after first mutation
+		}
+
+		pos := fset.Position(node.Pos())
+		if pos.Line == mutant.Line && pos.Column == mutant.Column {
+			mutated = sm.applyMutationToNode(node, mutant)
+		}
+		return !mutated
+	})
+
+	if !mutated {
+		return fmt.Errorf("failed to find mutation target at %s:%d:%d", mutant.FilePath, mutant.Line, mutant.Column)
+	}
+
+	// Write mutated code back to file
+	return sm.writeModifiedAST(file, fset, mutant.FilePath)
+}
+
+// applyMutationToNode applies the mutation to a specific AST node
+func (sm *SourceMutator) applyMutationToNode(node ast.Node, mutant mutation.Mutant) bool {
+	switch mutant.Type {
+	case "arithmetic_binary":
+		return sm.mutateArithmeticBinary(node, mutant)
+	case "arithmetic_assign":
+		return sm.mutateArithmeticAssign(node, mutant)
+	case "arithmetic_incdec":
+		return sm.mutateIncDec(node, mutant)
+	case "conditional":
+		return sm.mutateConditional(node, mutant)
+	case "logical_binary":
+		return sm.mutateLogicalBinary(node, mutant)
+	case "logical_not_removal":
+		return sm.mutateLogicalNot(node, mutant)
+	}
+	return false
+}
+
+// mutateArithmeticBinary mutates arithmetic binary expressions
+func (sm *SourceMutator) mutateArithmeticBinary(node ast.Node, mutant mutation.Mutant) bool {
+	if expr, ok := node.(*ast.BinaryExpr); ok {
+		newOp := sm.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			expr.Op = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// mutateArithmeticAssign mutates assignment operators
+func (sm *SourceMutator) mutateArithmeticAssign(node ast.Node, mutant mutation.Mutant) bool {
+	if stmt, ok := node.(*ast.AssignStmt); ok {
+		newOp := sm.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			stmt.Tok = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// mutateIncDec mutates increment/decrement operators
+func (sm *SourceMutator) mutateIncDec(node ast.Node, mutant mutation.Mutant) bool {
+	if stmt, ok := node.(*ast.IncDecStmt); ok {
+		newOp := sm.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			stmt.Tok = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// mutateConditional mutates conditional operators
+func (sm *SourceMutator) mutateConditional(node ast.Node, mutant mutation.Mutant) bool {
+	if expr, ok := node.(*ast.BinaryExpr); ok {
+		newOp := sm.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			expr.Op = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// mutateLogicalBinary mutates logical binary operators
+func (sm *SourceMutator) mutateLogicalBinary(node ast.Node, mutant mutation.Mutant) bool {
+	if expr, ok := node.(*ast.BinaryExpr); ok {
+		newOp := sm.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			expr.Op = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// mutateLogicalNot removes NOT operators
+func (sm *SourceMutator) mutateLogicalNot(node ast.Node, mutant mutation.Mutant) bool {
+	// For NOT removal, we need to replace the unary expression with its operand
+	// This is more complex and requires parent node manipulation
+	// For now, we'll return false to indicate this mutation type isn't fully implemented
+	return false
+}
+
+// stringToToken converts string representation to token.Token
+func (sm *SourceMutator) stringToToken(s string) token.Token {
+	switch s {
+	case "+":
+		return token.ADD
+	case "-":
+		return token.SUB
+	case "*":
+		return token.MUL
+	case "/":
+		return token.QUO
+	case "%":
+		return token.REM
+	case "==":
+		return token.EQL
+	case "!=":
+		return token.NEQ
+	case "<":
+		return token.LSS
+	case "<=":
+		return token.LEQ
+	case ">":
+		return token.GTR
+	case ">=":
+		return token.GEQ
+	case "&&":
+		return token.LAND
+	case "||":
+		return token.LOR
+	case "++":
+		return token.INC
+	case "--":
+		return token.DEC
+	case "+=":
+		return token.ADD_ASSIGN
+	case "-=":
+		return token.SUB_ASSIGN
+	case "*=":
+		return token.MUL_ASSIGN
+	case "/=":
+		return token.QUO_ASSIGN
+	default:
+		return token.ILLEGAL
+	}
+}
+
+// writeModifiedAST writes the modified AST back to the file
+func (sm *SourceMutator) writeModifiedAST(file *ast.File, fset *token.FileSet, filePath string) error {
+	// Create a temporary file first
+	tmpFile := filePath + ".tmp"
+	
+	f, err := os.Create(tmpFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// Format and write the AST
+	if err := format.Node(f, fset, file); err != nil {
+		os.Remove(tmpFile)
+		return err
+	}
+
+	// Replace original file with temporary file
+	if err := os.Rename(tmpFile, filePath); err != nil {
+		os.Remove(tmpFile)
+		return err
+	}
+
+	return nil
+}
