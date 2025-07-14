@@ -6,12 +6,14 @@ import (
 	"go/token"
 )
 
+const conditionalMutatorName = "conditional"
+
 // ConditionalMutator mutates conditional operators.
 type ConditionalMutator struct{}
 
 // Name returns the name of the mutator.
 func (m *ConditionalMutator) Name() string {
-	return "conditional"
+	return conditionalMutatorName
 }
 
 // CanMutate returns true if the node can be mutated by this mutator.
@@ -44,7 +46,7 @@ func (m *ConditionalMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Po
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,
 			Column:      pos.Column,
-			Type:        "conditional",
+			Type:        "conditional_binary",
 			Original:    expr.Op.String(),
 			Mutated:     newOp.String(),
 			Description: fmt.Sprintf("Replace %s with %s", expr.Op.String(), newOp.String()),

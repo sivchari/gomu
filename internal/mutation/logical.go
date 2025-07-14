@@ -6,12 +6,14 @@ import (
 	"go/token"
 )
 
+const logicalMutatorName = "logical"
+
 // LogicalMutator mutates logical operators.
 type LogicalMutator struct{}
 
 // Name returns the name of the mutator.
 func (m *LogicalMutator) Name() string {
-	return "logical"
+	return logicalMutatorName
 }
 
 // CanMutate returns true if the node can be mutated by this mutator.

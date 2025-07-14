@@ -9,7 +9,7 @@ import (
 
 func TestArithmeticMutator_Name(t *testing.T) {
 	mutator := &ArithmeticMutator{}
-	if mutator.Name() != "arithmetic" {
+	if mutator.Name() != arithmeticMutatorName {
 		t.Errorf("Expected name 'arithmetic', got %s", mutator.Name())
 	}
 }
@@ -69,10 +69,12 @@ func TestArithmeticMutator_CanMutate(t *testing.T) {
 						t.Errorf("CanMutate() = %v, expected %v", canMutate, tt.expected)
 					}
 				}
-			} else {
-				if canMutate := mutator.CanMutate(expr); canMutate != tt.expected {
-					t.Errorf("CanMutate() = %v, expected %v", canMutate, tt.expected)
-				}
+
+				return
+			}
+
+			if canMutate := mutator.CanMutate(expr); canMutate != tt.expected {
+				t.Errorf("CanMutate() = %v, expected %v", canMutate, tt.expected)
 			}
 		})
 	}
@@ -117,6 +119,7 @@ func TestArithmeticMutator_Mutate_BinaryExpr(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			src := "package main\nfunc test() { _ = " + tt.code + " }"
+
 			file, err := parser.ParseFile(fset, "test.go", src, 0)
 			if err != nil {
 				t.Fatalf("Failed to parse file: %v", err)
@@ -124,11 +127,14 @@ func TestArithmeticMutator_Mutate_BinaryExpr(t *testing.T) {
 
 			// Find the binary expression
 			var expr ast.Expr
+
 			ast.Inspect(file, func(node ast.Node) bool {
 				if be, ok := node.(*ast.BinaryExpr); ok {
 					expr = be
+
 					return false
 				}
+
 				return true
 			})
 
@@ -189,11 +195,14 @@ func test() {
 
 	// Find the assignment statement
 	var assignStmt *ast.AssignStmt
+
 	ast.Inspect(file, func(node ast.Node) bool {
 		if stmt, ok := node.(*ast.AssignStmt); ok {
 			assignStmt = stmt
+
 			return false
 		}
+
 		return true
 	})
 
@@ -212,6 +221,7 @@ func test() {
 	mutatedOps := make(map[string]bool)
 	for _, mutant := range mutants {
 		mutatedOps[mutant.Mutated] = true
+
 		if mutant.Type != "arithmetic_assign" {
 			t.Errorf("Expected type 'arithmetic_assign', got %s", mutant.Type)
 		}
@@ -259,11 +269,14 @@ func test() {
 
 			// Find the inc/dec statement
 			var incDecStmt *ast.IncDecStmt
+
 			ast.Inspect(file, func(node ast.Node) bool {
 				if stmt, ok := node.(*ast.IncDecStmt); ok {
 					incDecStmt = stmt
+
 					return false
 				}
+
 				return true
 			})
 
@@ -310,6 +323,7 @@ func TestArithmeticMutator_GetArithmeticMutations(t *testing.T) {
 		result := mutator.getArithmeticMutations(tt.op)
 		if len(result) != len(tt.expected) {
 			t.Errorf("For %s: expected %d mutations, got %d", tt.op, len(tt.expected), len(result))
+
 			continue
 		}
 
@@ -339,6 +353,7 @@ func TestArithmeticMutator_GetAssignMutations(t *testing.T) {
 		result := mutator.getAssignMutations(tt.op)
 		if len(result) != len(tt.expected) {
 			t.Errorf("For %s: expected %d mutations, got %d", tt.op, len(tt.expected), len(result))
+
 			continue
 		}
 
