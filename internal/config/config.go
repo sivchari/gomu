@@ -1,38 +1,40 @@
+// Package config provides configuration management for gomu.
 package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 )
 
-// Config represents the configuration for gomu
+// Config represents the configuration for gomu.
 type Config struct {
 	// General settings
 	Verbose bool `json:"verbose,omitempty"`
 	Workers int  `json:"workers,omitempty"`
 
 	// Test settings
-	TestCommand   string   `json:"test_command,omitempty"`
-	TestTimeout   int      `json:"test_timeout,omitempty"`
-	TestPatterns  []string `json:"test_patterns,omitempty"`
-	ExcludeFiles  []string `json:"exclude_files,omitempty"`
+	TestCommand  string   `json:"testCommand,omitempty"`
+	TestTimeout  int      `json:"testTimeout,omitempty"`
+	TestPatterns []string `json:"testPatterns,omitempty"`
+	ExcludeFiles []string `json:"excludeFiles,omitempty"`
 
 	// Mutation settings
 	Mutators      []string `json:"mutators,omitempty"`
-	MutationLimit int      `json:"mutation_limit,omitempty"`
+	MutationLimit int      `json:"mutationLimit,omitempty"`
 
 	// Incremental analysis
-	HistoryFile     string `json:"history_file,omitempty"`
-	UseGitDiff      bool   `json:"use_git_diff,omitempty"`
-	BaseBranch      string `json:"base_branch,omitempty"`
+	HistoryFile string `json:"historyFile,omitempty"`
+	UseGitDiff  bool   `json:"useGitDiff,omitempty"`
+	BaseBranch  string `json:"baseBranch,omitempty"`
 
 	// Output settings
-	OutputFormat string `json:"output_format,omitempty"`
-	OutputFile   string `json:"output_file,omitempty"`
+	OutputFormat string `json:"outputFormat,omitempty"`
+	OutputFile   string `json:"outputFile,omitempty"`
 }
 
-// Default returns a config with default values
+// Default returns a config with default values.
 func Default() *Config {
 	return &Config{
 		Workers:       4,
@@ -49,7 +51,7 @@ func Default() *Config {
 	}
 }
 
-// Load loads configuration from file, falling back to defaults
+// Load loads configuration from file, falling back to defaults.
 func Load(configFile string) (*Config, error) {
 	cfg := Default()
 
@@ -59,6 +61,7 @@ func Load(configFile string) (*Config, error) {
 		for _, candidate := range candidates {
 			if _, err := os.Stat(candidate); err == nil {
 				configFile = candidate
+
 				break
 			}
 		}
@@ -80,44 +83,57 @@ func Load(configFile string) (*Config, error) {
 func (c *Config) loadFromFile(filename string) error {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	return json.Unmarshal(data, c)
+	if err := json.Unmarshal(data, c); err != nil {
+		return fmt.Errorf("failed to parse config file: %w", err)
+	}
+
+	return nil
 }
 
 func (c *Config) validate() {
 	if c.Workers <= 0 {
 		c.Workers = 4
 	}
+
 	if c.TestTimeout <= 0 {
 		c.TestTimeout = 30
 	}
+
 	if len(c.TestPatterns) == 0 {
 		c.TestPatterns = []string{"*_test.go"}
 	}
+
 	if c.HistoryFile == "" {
 		c.HistoryFile = ".gomu_history.json"
 	}
+
 	if c.BaseBranch == "" {
 		c.BaseBranch = "main"
 	}
+
 	if c.OutputFormat == "" {
 		c.OutputFormat = "json"
 	}
 }
 
-// Save saves the configuration to a file
+// Save saves the configuration to a file.
 func (c *Config) Save(filename string) error {
 	dir := filepath.Dir(filename)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
+	if err := os.MkdirAll(dir, 0750); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
 	data, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	return os.WriteFile(filename, data, 0644)
+	if err := os.WriteFile(filename, data, 0600); err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
+	return nil
 }

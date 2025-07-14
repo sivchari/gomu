@@ -1,3 +1,4 @@
+// Package gomu provides the main API for mutation testing.
 package gomu
 
 import (
@@ -13,17 +14,17 @@ import (
 	"github.com/sivchari/gomu/internal/report"
 )
 
-// Engine is the main mutation testing engine
+// Engine is the main mutation testing engine.
 type Engine struct {
-	config     *config.Config
-	analyzer   *analysis.Analyzer
-	mutator    *mutation.Engine
-	executor   *execution.Engine
-	history    *history.Store
-	reporter   *report.Generator
+	config   *config.Config
+	analyzer *analysis.Analyzer
+	mutator  *mutation.Engine
+	executor *execution.Engine
+	history  *history.Store
+	reporter *report.Generator
 }
 
-// NewEngine creates a new mutation testing engine
+// NewEngine creates a new mutation testing engine.
 func NewEngine(cfg *config.Config) (*Engine, error) {
 	analyzer, err := analysis.New(cfg)
 	if err != nil {
@@ -60,7 +61,7 @@ func NewEngine(cfg *config.Config) (*Engine, error) {
 	}, nil
 }
 
-// Run executes mutation testing on the specified path
+// Run executes mutation testing on the specified path.
 func (e *Engine) Run(path string) error {
 	start := time.Now()
 
@@ -82,18 +83,17 @@ func (e *Engine) Run(path string) error {
 	if e.config.UseGitDiff {
 		changedFiles, err := e.analyzer.FindChangedFiles(files)
 		if err != nil {
-			if e.config.Verbose {
-				log.Printf("Warning: failed to get git diff, proceeding with all files: %v", err)
-			}
-		} else {
-			files = changedFiles
-			if e.config.Verbose {
-				log.Printf("Using incremental analysis: %d changed files", len(files))
-			}
+			return fmt.Errorf("failed to get git diff: %w", err)
+		}
+
+		files = changedFiles
+		if e.config.Verbose {
+			log.Printf("Using incremental analysis: %d changed files", len(files))
 		}
 	}
 
 	var allResults []mutation.Result
+
 	totalMutants := 0
 
 	// 3. Process each file
@@ -107,6 +107,7 @@ func (e *Engine) Run(path string) error {
 			if e.config.Verbose {
 				log.Printf("Skipping unchanged file: %s", file)
 			}
+
 			continue
 		}
 
@@ -114,6 +115,7 @@ func (e *Engine) Run(path string) error {
 		mutants, err := e.mutator.GenerateMutants(file)
 		if err != nil {
 			log.Printf("Warning: failed to generate mutants for %s: %v", file, err)
+
 			continue
 		}
 
@@ -121,10 +123,12 @@ func (e *Engine) Run(path string) error {
 			if e.config.Verbose {
 				log.Printf("No mutants generated for file: %s", file)
 			}
+
 			continue
 		}
 
 		totalMutants += len(mutants)
+
 		if e.config.Verbose {
 			log.Printf("Generated %d mutants for %s", len(mutants), file)
 		}
@@ -133,6 +137,7 @@ func (e *Engine) Run(path string) error {
 		results, err := e.executor.RunMutations(mutants)
 		if err != nil {
 			log.Printf("Warning: failed to execute mutations for %s: %v", file, err)
+
 			continue
 		}
 
@@ -154,12 +159,12 @@ func (e *Engine) Run(path string) error {
 
 	// 6. Generate report
 	summary := &report.Summary{
-		TotalFiles:      len(files),
-		TotalMutants:    totalMutants,
-		Results:         allResults,
-		Duration:        time.Since(start),
-		Config:          e.config,
-		ProcessedFiles:  len(files),
+		TotalFiles:     len(files),
+		TotalMutants:   totalMutants,
+		Results:        allResults,
+		Duration:       time.Since(start),
+		Config:         e.config,
+		ProcessedFiles: len(files),
 	}
 
 	if err := e.reporter.Generate(summary); err != nil {
@@ -173,7 +178,7 @@ func (e *Engine) Run(path string) error {
 	return nil
 }
 
-func (e *Engine) shouldProcessFile(file string) bool {
+func (e *Engine) shouldProcessFile(_ string) bool {
 	// For now, always process files
 	// TODO: implement hash-based comparison with history
 	return true

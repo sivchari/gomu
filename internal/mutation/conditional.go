@@ -6,22 +6,27 @@ import (
 	"go/token"
 )
 
-// ConditionalMutator mutates conditional operators
+// ConditionalMutator mutates conditional operators.
 type ConditionalMutator struct{}
 
+// Name returns the name of the mutator.
 func (m *ConditionalMutator) Name() string {
 	return "conditional"
 }
 
+// CanMutate returns true if the node can be mutated by this mutator.
 func (m *ConditionalMutator) CanMutate(node ast.Node) bool {
 	if expr, ok := node.(*ast.BinaryExpr); ok {
 		return m.isConditionalOp(expr.Op)
 	}
+
 	return false
 }
 
+// Mutate generates mutants for the given node.
 func (m *ConditionalMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
 	var mutants []Mutant
+
 	pos := fset.Position(node.Pos())
 
 	if expr, ok := node.(*ast.BinaryExpr); ok {
@@ -32,9 +37,9 @@ func (m *ConditionalMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant
 }
 
 func (m *ConditionalMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Position) []Mutant {
-	var mutants []Mutant
-
 	mutations := m.getConditionalMutations(expr.Op)
+	mutants := make([]Mutant, 0, len(mutations))
+
 	for _, newOp := range mutations {
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,

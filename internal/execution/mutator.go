@@ -12,16 +12,16 @@ import (
 	"github.com/sivchari/gomu/internal/mutation"
 )
 
-// SourceMutator handles actual source code mutation
+// SourceMutator handles actual source code mutation.
 type SourceMutator struct {
 	backupDir string
 }
 
-// NewSourceMutator creates a new source mutator
+// NewSourceMutator creates a new source mutator.
 func NewSourceMutator() (*SourceMutator, error) {
 	// Create backup directory
 	backupDir := filepath.Join(os.TempDir(), "gomu_backup")
-	if err := os.MkdirAll(backupDir, 0755); err != nil {
+	if err := os.MkdirAll(backupDir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create backup directory: %w", err)
 	}
 
@@ -30,7 +30,7 @@ func NewSourceMutator() (*SourceMutator, error) {
 	}, nil
 }
 
-// ApplyMutation applies a mutation to the source file
+// ApplyMutation applies a mutation to the source file.
 func (sm *SourceMutator) ApplyMutation(mutant mutation.Mutant) error {
 	// 1. Backup original file
 	if err := sm.backupFile(mutant.FilePath); err != nil {
@@ -40,17 +40,21 @@ func (sm *SourceMutator) ApplyMutation(mutant mutation.Mutant) error {
 	// 2. Apply mutation
 	if err := sm.mutateFile(mutant); err != nil {
 		// Restore original if mutation fails
-		sm.RestoreOriginal(mutant.FilePath)
+		if err := sm.RestoreOriginal(mutant.FilePath); err != nil {
+			// Log error but continue with next mutant
+			fmt.Printf("Warning: failed to restore original file: %v\n", err)
+		}
+
 		return fmt.Errorf("failed to apply mutation: %w", err)
 	}
 
 	return nil
 }
 
-// RestoreOriginal restores the original file from backup
+// RestoreOriginal restores the original file from backup.
 func (sm *SourceMutator) RestoreOriginal(filePath string) error {
 	backupPath := sm.getBackupPath(filePath)
-	
+
 	// Read backup content
 	content, err := os.ReadFile(backupPath)
 	if err != nil {
@@ -65,52 +69,63 @@ func (sm *SourceMutator) RestoreOriginal(filePath string) error {
 	return nil
 }
 
-// Cleanup removes backup files
+// Cleanup removes backup files.
 func (sm *SourceMutator) Cleanup() error {
-	return os.RemoveAll(sm.backupDir)
+	if err := os.RemoveAll(sm.backupDir); err != nil {
+		return fmt.Errorf("failed to remove backup directory: %w", err)
+	}
+
+	return nil
 }
 
-// backupFile creates a backup of the original file
+// backupFile creates a backup of the original file.
 func (sm *SourceMutator) backupFile(filePath string) error {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read file for backup: %w", err)
 	}
 
 	backupPath := sm.getBackupPath(filePath)
 	backupDir := filepath.Dir(backupPath)
-	
-	if err := os.MkdirAll(backupDir, 0755); err != nil {
-		return err
+
+	if err := os.MkdirAll(backupDir, 0750); err != nil {
+		return fmt.Errorf("failed to create backup directory: %w", err)
 	}
 
-	return os.WriteFile(backupPath, content, 0644)
+	if err := os.WriteFile(backupPath, content, 0600); err != nil {
+		return fmt.Errorf("failed to write backup file: %w", err)
+	}
+
+	return nil
 }
 
-// getBackupPath returns the backup path for a given file
+// getBackupPath returns the backup path for a given file.
 func (sm *SourceMutator) getBackupPath(filePath string) string {
 	absPath, _ := filepath.Abs(filePath)
 	// Replace path separators with underscores for backup filename
 	backupName := filepath.Base(absPath) + "_" + fmt.Sprintf("%x", absPath)
+
 	return filepath.Join(sm.backupDir, backupName)
 }
 
-// mutateFile applies the actual mutation to the file
+// mutateFile applies the actual mutation to the file.
 func (sm *SourceMutator) mutateFile(mutant mutation.Mutant) error {
 	// Parse the source file
 	fset := token.NewFileSet()
+
 	src, err := os.ReadFile(mutant.FilePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read source file: %w", err)
 	}
 
 	file, err := parser.ParseFile(fset, mutant.FilePath, src, parser.ParseComments)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse file: %w", err)
 	}
 
 	// Apply mutation
 	mutated := false
+
 	ast.Inspect(file, func(node ast.Node) bool {
 		if node == nil || mutated {
 			return false // Stop if node is nil or after first mutation
@@ -120,6 +135,7 @@ func (sm *SourceMutator) mutateFile(mutant mutation.Mutant) error {
 		if pos.Line == mutant.Line && pos.Column == mutant.Column {
 			mutated = sm.applyMutationToNode(node, mutant)
 		}
+
 		return !mutated
 	})
 
@@ -131,7 +147,7 @@ func (sm *SourceMutator) mutateFile(mutant mutation.Mutant) error {
 	return sm.writeModifiedAST(file, fset, mutant.FilePath)
 }
 
-// applyMutationToNode applies the mutation to a specific AST node
+// applyMutationToNode applies the mutation to a specific AST node.
 func (sm *SourceMutator) applyMutationToNode(node ast.Node, mutant mutation.Mutant) bool {
 	switch mutant.Type {
 	case "arithmetic_binary":
@@ -147,78 +163,89 @@ func (sm *SourceMutator) applyMutationToNode(node ast.Node, mutant mutation.Muta
 	case "logical_not_removal":
 		return sm.mutateLogicalNot(node, mutant)
 	}
+
 	return false
 }
 
-// mutateArithmeticBinary mutates arithmetic binary expressions
+// mutateArithmeticBinary mutates arithmetic binary expressions.
 func (sm *SourceMutator) mutateArithmeticBinary(node ast.Node, mutant mutation.Mutant) bool {
 	if expr, ok := node.(*ast.BinaryExpr); ok {
 		newOp := sm.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 
-// mutateArithmeticAssign mutates assignment operators
+// mutateArithmeticAssign mutates assignment operators.
 func (sm *SourceMutator) mutateArithmeticAssign(node ast.Node, mutant mutation.Mutant) bool {
 	if stmt, ok := node.(*ast.AssignStmt); ok {
 		newOp := sm.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 
-// mutateIncDec mutates increment/decrement operators
+// mutateIncDec mutates increment/decrement operators.
 func (sm *SourceMutator) mutateIncDec(node ast.Node, mutant mutation.Mutant) bool {
 	if stmt, ok := node.(*ast.IncDecStmt); ok {
 		newOp := sm.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 
-// mutateConditional mutates conditional operators
+// mutateConditional mutates conditional operators.
 func (sm *SourceMutator) mutateConditional(node ast.Node, mutant mutation.Mutant) bool {
 	if expr, ok := node.(*ast.BinaryExpr); ok {
 		newOp := sm.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 
-// mutateLogicalBinary mutates logical binary operators
+// mutateLogicalBinary mutates logical binary operators.
 func (sm *SourceMutator) mutateLogicalBinary(node ast.Node, mutant mutation.Mutant) bool {
 	if expr, ok := node.(*ast.BinaryExpr); ok {
 		newOp := sm.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 
-// mutateLogicalNot removes NOT operators
-func (sm *SourceMutator) mutateLogicalNot(node ast.Node, mutant mutation.Mutant) bool {
+// mutateLogicalNot removes NOT operators.
+func (sm *SourceMutator) mutateLogicalNot(_ ast.Node, _ mutation.Mutant) bool {
 	// For NOT removal, we need to replace the unary expression with its operand
 	// This is more complex and requires parent node manipulation
 	// For now, we'll return false to indicate this mutation type isn't fully implemented
 	return false
 }
 
-// stringToToken converts string representation to token.Token
+// stringToToken converts string representation to token.Token.
 func (sm *SourceMutator) stringToToken(s string) token.Token {
 	switch s {
 	case "+":
@@ -264,27 +291,35 @@ func (sm *SourceMutator) stringToToken(s string) token.Token {
 	}
 }
 
-// writeModifiedAST writes the modified AST back to the file
+// writeModifiedAST writes the modified AST back to the file.
 func (sm *SourceMutator) writeModifiedAST(file *ast.File, fset *token.FileSet, filePath string) error {
 	// Create a temporary file first
 	tmpFile := filePath + ".tmp"
-	
+
 	f, err := os.Create(tmpFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create temporary file: %w", err)
 	}
 	defer f.Close()
 
 	// Format and write the AST
 	if err := format.Node(f, fset, file); err != nil {
-		os.Remove(tmpFile)
-		return err
+		if err := os.Remove(tmpFile); err != nil {
+			// Log error but continue
+			fmt.Printf("Warning: failed to remove temporary file: %v\n", err)
+		}
+
+		return fmt.Errorf("failed to format and write AST: %w", err)
 	}
 
 	// Replace original file with temporary file
 	if err := os.Rename(tmpFile, filePath); err != nil {
-		os.Remove(tmpFile)
-		return err
+		if err := os.Remove(tmpFile); err != nil {
+			// Log error but continue
+			fmt.Printf("Warning: failed to remove temporary file: %v\n", err)
+		}
+
+		return fmt.Errorf("failed to replace original file: %w", err)
 	}
 
 	return nil

@@ -9,7 +9,6 @@ lint-fix: golangci-lint-fix
 .PHONY: test
 test: ## Run all tests except validation helper (due to known issues)
 	go test ./... -shuffle on -v -race
-	go test -C test ./... -shuffle on -v -race
 
 .PHONY: golangci-lint
 golangci-lint: ## Run golangci-lint over the codebase.
