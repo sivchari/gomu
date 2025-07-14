@@ -279,6 +279,7 @@ func TestValidate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.config.validate()
+
 			if !reflect.DeepEqual(tt.config, tt.expect) {
 				t.Errorf("After validation, config = %+v, want %+v", tt.config, tt.expect)
 			}
@@ -324,6 +325,7 @@ func TestSave(t *testing.T) {
 
 	// Validate will be called on load, so compare the validated version
 	cfg.validate()
+
 	if !reflect.DeepEqual(cfg, loadedCfg) {
 		t.Errorf("Loaded config does not match saved config:\nSaved:  %+v\nLoaded: %+v", cfg, loadedCfg)
 	}

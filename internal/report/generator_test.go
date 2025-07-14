@@ -19,6 +19,7 @@ func abs(x float64) float64 {
 
 func TestNew(t *testing.T) {
 	cfg := config.Default()
+
 	generator, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -35,6 +36,7 @@ func TestNew(t *testing.T) {
 
 func TestCalculateStatistics(t *testing.T) {
 	cfg := config.Default()
+
 	generator, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -72,14 +74,15 @@ func TestCalculateStatistics(t *testing.T) {
 	}
 
 	// Score should be 2/6 * 100 = 33.33...
-	expectedScore := 2.0/6.0 * 100
-	if abs(stats.Score - expectedScore) > 0.000001 {
+	expectedScore := 2.0 / 6.0 * 100
+	if abs(stats.Score-expectedScore) > 0.000001 {
 		t.Errorf("Expected Score %f, got %f", expectedScore, stats.Score)
 	}
 }
 
 func TestCalculateStatistics_EmptyResults(t *testing.T) {
 	cfg := config.Default()
+
 	generator, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -159,6 +162,7 @@ func TestGenerateJSON(t *testing.T) {
 	}
 
 	var parsedSummary Summary
+
 	err = json.Unmarshal(data, &parsedSummary)
 	if err != nil {
 		t.Fatalf("Failed to parse JSON output: %v", err)
@@ -275,6 +279,7 @@ func TestGenerateText(t *testing.T) {
 
 func TestFormatTextReport(t *testing.T) {
 	cfg := config.Default()
+
 	generator, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -342,6 +347,7 @@ func TestFormatTextReport(t *testing.T) {
 
 func TestFormatTextReport_NoSurvivedMutants(t *testing.T) {
 	cfg := config.Default()
+
 	generator, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)

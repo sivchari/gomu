@@ -9,7 +9,7 @@ import (
 
 func TestConditionalMutator_Name(t *testing.T) {
 	mutator := &ConditionalMutator{}
-	if mutator.Name() != "conditional" {
+	if mutator.Name() != conditionalMutatorName {
 		t.Errorf("Expected name 'conditional', got %s", mutator.Name())
 	}
 }
@@ -122,6 +122,7 @@ func TestConditionalMutator_Mutate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			src := "package main\nfunc test() { _ = " + tt.code + " }"
+
 			file, err := parser.ParseFile(fset, "test.go", src, 0)
 			if err != nil {
 				t.Fatalf("Failed to parse file: %v", err)
@@ -129,11 +130,14 @@ func TestConditionalMutator_Mutate(t *testing.T) {
 
 			// Find the binary expression
 			var expr ast.Expr
+
 			ast.Inspect(file, func(node ast.Node) bool {
 				if be, ok := node.(*ast.BinaryExpr); ok {
 					expr = be
+
 					return false
 				}
+
 				return true
 			})
 
@@ -161,8 +165,8 @@ func TestConditionalMutator_Mutate(t *testing.T) {
 
 			// Check mutant properties
 			for _, mutant := range mutants {
-				if mutant.Type != "conditional" {
-					t.Errorf("Expected type 'conditional', got %s", mutant.Type)
+				if mutant.Type != "conditional_binary" {
+					t.Errorf("Expected mutant type 'conditional_binary', got %s", mutant.Type)
 				}
 
 				if mutant.Line <= 0 {
@@ -242,6 +246,7 @@ func TestConditionalMutator_GetConditionalMutations(t *testing.T) {
 		result := mutator.getConditionalMutations(tt.op)
 		if len(result) != len(tt.expected) {
 			t.Errorf("For %s: expected %d mutations, got %d", tt.op, len(tt.expected), len(result))
+
 			continue
 		}
 

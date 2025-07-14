@@ -11,6 +11,7 @@ import (
 
 func TestNew(t *testing.T) {
 	cfg := config.Default()
+
 	engine, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
@@ -97,6 +98,7 @@ func LogicalTest(a, b bool) bool {
 	}
 
 	cfg := config.Default()
+
 	engine, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
@@ -152,7 +154,7 @@ func LogicalTest(a, b bool) bool {
 		mutationTypes[mutant.Type] = true
 	}
 
-	expectedTypes := []string{"arithmetic_binary", "conditional", "logical_binary"}
+	expectedTypes := []string{"arithmetic_binary", "conditional_binary", "logical_binary"}
 	for _, expectedType := range expectedTypes {
 		if !mutationTypes[expectedType] {
 			t.Errorf("Expected mutation type %s not found", expectedType)
@@ -166,6 +168,7 @@ func TestGenerateMutants_MutationLimit(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.go")
 
 	var codeBuilder strings.Builder
+
 	codeBuilder.WriteString("package main\n\n")
 	codeBuilder.WriteString("func ManyOperations() int {\n")
 	codeBuilder.WriteString("    result := 0\n")
@@ -206,6 +209,7 @@ func TestGenerateMutants_MutationLimit(t *testing.T) {
 
 func TestGenerateMutants_InvalidFile(t *testing.T) {
 	cfg := config.Default()
+
 	engine, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
@@ -236,6 +240,7 @@ func Invalid() {
 	}
 
 	cfg := config.Default()
+
 	engine, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
@@ -267,6 +272,7 @@ func NoMutations() {
 	}
 
 	cfg := config.Default()
+
 	engine, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
@@ -285,6 +291,7 @@ func NoMutations() {
 
 func TestCreateMutator(t *testing.T) {
 	cfg := config.Default()
+
 	engine, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)

@@ -87,6 +87,7 @@ func TestLogicalMutator_Mutate_BinaryExpr(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			src := "package main\nfunc test() { _ = " + tt.code + " }"
+
 			file, err := parser.ParseFile(fset, "test.go", src, 0)
 			if err != nil {
 				t.Fatalf("Failed to parse file: %v", err)
@@ -94,11 +95,14 @@ func TestLogicalMutator_Mutate_BinaryExpr(t *testing.T) {
 
 			// Find the binary expression
 			var expr ast.Expr
+
 			ast.Inspect(file, func(node ast.Node) bool {
 				if be, ok := node.(*ast.BinaryExpr); ok {
 					expr = be
+
 					return false
 				}
+
 				return true
 			})
 
@@ -159,11 +163,14 @@ func test() bool {
 
 	// Find the unary expression
 	var unaryExpr *ast.UnaryExpr
+
 	ast.Inspect(file, func(node ast.Node) bool {
 		if expr, ok := node.(*ast.UnaryExpr); ok && expr.Op == token.NOT {
 			unaryExpr = expr
+
 			return false
 		}
+
 		return true
 	})
 
@@ -184,9 +191,11 @@ func test() bool {
 		if mutant.Type != "logical_not_removal" {
 			t.Errorf("Expected type 'logical_not_removal', got %s", mutant.Type)
 		}
+
 		if mutant.Original != "!" {
 			t.Errorf("Expected original '!', got %s", mutant.Original)
 		}
+
 		if mutant.Mutated != "" {
 			t.Errorf("Expected mutated '', got %s", mutant.Mutated)
 		}
@@ -231,6 +240,7 @@ func TestLogicalMutator_GetLogicalMutations(t *testing.T) {
 		result := mutator.getLogicalMutations(tt.op)
 		if len(result) != len(tt.expected) {
 			t.Errorf("For %s: expected %d mutations, got %d", tt.op, len(tt.expected), len(result))
+
 			continue
 		}
 

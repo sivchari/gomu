@@ -189,7 +189,7 @@ func TestUpdateFile_AllKilled(t *testing.T) {
 	store.UpdateFile("test.go", mutants, results)
 
 	entry, _ := store.GetEntry("test.go")
-	
+
 	// Check mutation score (2 killed out of 2 = 100%)
 	expectedScore := 100.0
 	if entry.MutationScore != expectedScore {
@@ -209,7 +209,7 @@ func TestUpdateFile_NoResults(t *testing.T) {
 	store.UpdateFile("test.go", []mutation.Mutant{}, []mutation.Result{})
 
 	entry, _ := store.GetEntry("test.go")
-	
+
 	// Check mutation score (no results = 0%)
 	expectedScore := 0.0
 	if entry.MutationScore != expectedScore {
@@ -274,7 +274,7 @@ func TestHasChanged(t *testing.T) {
 	mutants := []mutation.Mutant{{ID: "test1", FilePath: "test.go"}}
 	results := []mutation.Result{{Mutant: mutants[0], Status: mutation.StatusKilled}}
 	store.UpdateFile("test.go", mutants, results)
-	
+
 	// Manually set the hash for testing
 	entry := store.entries["test.go"]
 	entry.FileHash = "hash123"

@@ -7,12 +7,14 @@ import (
 	"go/token"
 )
 
+const arithmeticMutatorName = "arithmetic"
+
 // ArithmeticMutator mutates arithmetic operators.
 type ArithmeticMutator struct{}
 
 // Name returns the name of the mutator.
 func (m *ArithmeticMutator) Name() string {
-	return "arithmetic"
+	return arithmeticMutatorName
 }
 
 // CanMutate returns true if the node can be mutated by this mutator.
