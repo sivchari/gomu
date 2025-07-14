@@ -183,10 +183,3 @@ type Stats struct {
 	AverageScore float64   `json:"averageScore"`
 	LastUpdated  time.Time `json:"lastUpdated"`
 }
-
-// calculateFileHash calculates a hash for file content
-// TODO: implement proper hash calculation using crypto/sha256.
-func calculateFileHash(filePath string) string {
-	// Placeholder implementation
-	return fmt.Sprintf("hash_%s", filePath)
-}

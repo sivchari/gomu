@@ -17,13 +17,13 @@ import (
 
 // Engine is the main mutation testing engine.
 type Engine struct {
-	config               *config.Config
-	analyzer             *analysis.Analyzer
-	mutator              *mutation.Engine
-	executor             *execution.Engine
-	history              *history.Store
-	reporter             *report.Generator
-	incrementalAnalyzer  *analysis.IncrementalAnalyzer
+	config              *config.Config
+	analyzer            *analysis.Analyzer
+	mutator             *mutation.Engine
+	executor            *execution.Engine
+	history             *history.Store
+	reporter            *report.Generator
+	incrementalAnalyzer *analysis.IncrementalAnalyzer
 }
 
 // NewEngine creates a new mutation testing engine.
@@ -54,13 +54,13 @@ func NewEngine(cfg *config.Config) (*Engine, error) {
 	}
 
 	return &Engine{
-		config:               cfg,
-		analyzer:             analyzer,
-		mutator:              mutator,
-		executor:             executor,
-		history:              historyStore,
-		reporter:             reporter,
-		incrementalAnalyzer:  nil, // Will be initialized in Run method
+		config:              cfg,
+		analyzer:            analyzer,
+		mutator:             mutator,
+		executor:            executor,
+		history:             historyStore,
+		reporter:            reporter,
+		incrementalAnalyzer: nil, // Will be initialized in Run method
 	}, nil
 }
 
@@ -81,6 +81,7 @@ func (e *Engine) Run(path string) error {
 	// Initialize incremental analyzer
 	historyWrapper := &historyStoreWrapper{store: e.history}
 	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(e.config, absPath, historyWrapper)
+
 	if err != nil {
 		return fmt.Errorf("failed to create incremental analyzer: %w", err)
 	}
@@ -110,13 +111,14 @@ func (e *Engine) Run(path string) error {
 		if e.config.Verbose {
 			log.Println("No files need processing - all files are up to date")
 		}
+
 		return nil
 	}
 
 	var allResults []mutation.Result
+
 	totalMutants := 0
 	processedFiles := 0
-
 	hasher := analysis.NewFileHasher()
 
 	// 3. Process each file
@@ -129,6 +131,7 @@ func (e *Engine) Run(path string) error {
 		mutants, err := e.mutator.GenerateMutants(file)
 		if err != nil {
 			log.Printf("Warning: failed to generate mutants for %s: %v", file, err)
+
 			continue
 		}
 
@@ -136,6 +139,7 @@ func (e *Engine) Run(path string) error {
 			if e.config.Verbose {
 				log.Printf("No mutants generated for file: %s", file)
 			}
+
 			continue
 		}
 
@@ -149,6 +153,7 @@ func (e *Engine) Run(path string) error {
 		results, err := e.executor.RunMutations(mutants)
 		if err != nil {
 			log.Printf("Warning: failed to execute mutations for %s: %v", file, err)
+
 			continue
 		}
 
@@ -158,6 +163,7 @@ func (e *Engine) Run(path string) error {
 		fileHash, err := hasher.HashFile(file)
 		if err != nil {
 			log.Printf("Warning: failed to hash file %s: %v", file, err)
+
 			fileHash = ""
 		}
 
@@ -165,6 +171,7 @@ func (e *Engine) Run(path string) error {
 
 		// Update history with hashes
 		e.history.UpdateFileWithHashes(file, mutants, results, fileHash, testHash)
+
 		processedFiles++
 	}
 
@@ -203,52 +210,54 @@ func (e *Engine) Run(path string) error {
 func (e *Engine) calculateTestHash(filePath string, hasher *analysis.FileHasher) string {
 	// Find related test files
 	testFiles := e.findRelatedTestFiles(filePath)
-	
+
 	if len(testFiles) == 0 {
 		return ""
 	}
-	
+
 	// Calculate combined hash
 	var combinedContent []byte
+
 	for _, testFile := range testFiles {
 		content, err := hasher.HashFile(testFile)
 		if err != nil {
 			continue
 		}
+
 		combinedContent = append(combinedContent, []byte(content)...)
 	}
-	
+
 	if len(combinedContent) == 0 {
 		return ""
 	}
-	
+
 	return hasher.HashContent(combinedContent)
 }
 
 // findRelatedTestFiles finds test files related to the given file.
 func (e *Engine) findRelatedTestFiles(filePath string) []string {
 	var testFiles []string
-	
+
 	// Get directory and base name
 	dir := filepath.Dir(filePath)
 	base := filepath.Base(filePath)
-	
+
 	// Remove .go extension
 	nameWithoutExt := base[:len(base)-3]
-	
+
 	// Common test file patterns
 	patterns := []string{
 		nameWithoutExt + "_test.go",
 		"test_" + nameWithoutExt + ".go",
 	}
-	
+
 	for _, pattern := range patterns {
 		testFile := filepath.Join(dir, pattern)
 		if _, err := filepath.Abs(testFile); err == nil {
 			testFiles = append(testFiles, testFile)
 		}
 	}
-	
+
 	return testFiles
 }
 
@@ -262,7 +271,7 @@ func (w *historyStoreWrapper) GetEntry(filePath string) (analysis.HistoryEntry, 
 	if !exists {
 		return analysis.HistoryEntry{}, false
 	}
-	
+
 	return analysis.HistoryEntry{
 		FileHash:      entry.FileHash,
 		TestHash:      entry.TestHash,

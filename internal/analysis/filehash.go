@@ -35,15 +35,16 @@ func (h *FileHasher) HashFile(filePath string) (string, error) {
 // HashFiles calculates hashes for multiple files.
 func (h *FileHasher) HashFiles(filePaths []string) (map[string]string, error) {
 	hashes := make(map[string]string)
-	
+
 	for _, filePath := range filePaths {
 		hash, err := h.HashFile(filePath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to hash file %s: %w", filePath, err)
 		}
+
 		hashes[filePath] = hash
 	}
-	
+
 	return hashes, nil
 }
 
@@ -51,5 +52,6 @@ func (h *FileHasher) HashFiles(filePaths []string) (map[string]string, error) {
 func (h *FileHasher) HashContent(content []byte) string {
 	hash := sha256.New()
 	hash.Write(content)
+
 	return fmt.Sprintf("%x", hash.Sum(nil))
 }

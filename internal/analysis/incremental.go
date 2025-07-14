@@ -24,11 +24,11 @@ type HistoryEntry struct {
 
 // IncrementalAnalyzer provides incremental analysis functionality.
 type IncrementalAnalyzer struct {
-	config     *config.Config
-	hasher     *FileHasher
-	git        *GitIntegration
-	history    HistoryStore
-	workDir    string
+	config  *config.Config
+	hasher  *FileHasher
+	git     *GitIntegration
+	history HistoryStore
+	workDir string
 }
 
 // NewIncrementalAnalyzer creates a new incremental analyzer.
@@ -53,8 +53,6 @@ type FileAnalysisResult struct {
 
 // AnalyzeFiles determines which files need mutation testing.
 func (a *IncrementalAnalyzer) AnalyzeFiles() ([]FileAnalysisResult, error) {
-	var results []FileAnalysisResult
-	
 	// Get files to analyze
 	files, err := a.getFilesToAnalyze()
 	if err != nil {
@@ -62,11 +60,14 @@ func (a *IncrementalAnalyzer) AnalyzeFiles() ([]FileAnalysisResult, error) {
 	}
 
 	// Analyze each file
+	results := make([]FileAnalysisResult, 0, len(files))
+
 	for _, file := range files {
 		result, err := a.analyzeFile(file)
 		if err != nil {
 			return nil, fmt.Errorf("failed to analyze file %s: %w", file, err)
 		}
+
 		results = append(results, result)
 	}
 
@@ -79,7 +80,7 @@ func (a *IncrementalAnalyzer) getFilesToAnalyze() ([]string, error) {
 		// Use Git diff to get changed files
 		return a.git.GetChangedFiles(a.config.BaseBranch)
 	}
-	
+
 	// Fallback to all Go files
 	return a.git.GetAllGoFiles()
 }
@@ -94,6 +95,7 @@ func (a *IncrementalAnalyzer) analyzeFile(filePath string) (FileAnalysisResult, 
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		result.NeedsUpdate = false
 		result.Reason = "File does not exist"
+
 		return result, nil
 	}
 
@@ -102,6 +104,7 @@ func (a *IncrementalAnalyzer) analyzeFile(filePath string) (FileAnalysisResult, 
 	if err != nil {
 		return result, fmt.Errorf("failed to hash file: %w", err)
 	}
+
 	result.CurrentHash = currentHash
 
 	// Get previous entry from history
@@ -109,6 +112,7 @@ func (a *IncrementalAnalyzer) analyzeFile(filePath string) (FileAnalysisResult, 
 	if !exists {
 		result.NeedsUpdate = true
 		result.Reason = "No previous history"
+
 		return result, nil
 	}
 
@@ -118,6 +122,7 @@ func (a *IncrementalAnalyzer) analyzeFile(filePath string) (FileAnalysisResult, 
 	if a.history.HasChanged(filePath, currentHash) {
 		result.NeedsUpdate = true
 		result.Reason = "File content changed"
+
 		return result, nil
 	}
 
@@ -125,11 +130,13 @@ func (a *IncrementalAnalyzer) analyzeFile(filePath string) (FileAnalysisResult, 
 	if a.hasTestFilesChanged(filePath) {
 		result.NeedsUpdate = true
 		result.Reason = "Related test files changed"
+
 		return result, nil
 	}
 
 	result.NeedsUpdate = false
 	result.Reason = "No changes detected"
+
 	return result, nil
 }
 
@@ -137,51 +144,51 @@ func (a *IncrementalAnalyzer) analyzeFile(filePath string) (FileAnalysisResult, 
 func (a *IncrementalAnalyzer) hasTestFilesChanged(filePath string) bool {
 	// Find related test files
 	testFiles := a.findRelatedTestFiles(filePath)
-	
+
 	for _, testFile := range testFiles {
 		if _, err := os.Stat(testFile); os.IsNotExist(err) {
 			continue
 		}
-		
+
 		currentHash, err := a.hasher.HashFile(testFile)
 		if err != nil {
 			continue
 		}
-		
+
 		// Check if test file hash has changed
 		entry, exists := a.history.GetEntry(filePath)
 		if !exists || entry.TestHash != currentHash {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
 // findRelatedTestFiles finds test files related to the given file.
 func (a *IncrementalAnalyzer) findRelatedTestFiles(filePath string) []string {
 	var testFiles []string
-	
+
 	// Get directory and base name
 	dir := filepath.Dir(filePath)
 	base := filepath.Base(filePath)
-	
+
 	// Remove .go extension
 	nameWithoutExt := strings.TrimSuffix(base, ".go")
-	
+
 	// Common test file patterns
 	patterns := []string{
 		nameWithoutExt + "_test.go",
 		"test_" + nameWithoutExt + ".go",
 	}
-	
+
 	for _, pattern := range patterns {
 		testFile := filepath.Join(dir, pattern)
 		if _, err := os.Stat(testFile); err == nil {
 			testFiles = append(testFiles, testFile)
 		}
 	}
-	
+
 	return testFiles
 }
 
@@ -191,14 +198,15 @@ func (a *IncrementalAnalyzer) GetFilesNeedingUpdate() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var needsUpdate []string
+
 	for _, result := range results {
 		if result.NeedsUpdate {
 			needsUpdate = append(needsUpdate, result.FilePath)
 		}
 	}
-	
+
 	return needsUpdate, nil
 }
 
@@ -206,24 +214,26 @@ func (a *IncrementalAnalyzer) GetFilesNeedingUpdate() ([]string, error) {
 func (a *IncrementalAnalyzer) PrintAnalysisReport(results []FileAnalysisResult) {
 	needsUpdate := 0
 	skipped := 0
-	
+
 	fmt.Println("Incremental Analysis Report")
 	fmt.Println("==========================")
-	
+
 	for _, result := range results {
 		if result.NeedsUpdate {
 			needsUpdate++
+
 			fmt.Printf("✓ %s - %s\n", result.FilePath, result.Reason)
 		} else {
 			skipped++
+
 			fmt.Printf("- %s - %s\n", result.FilePath, result.Reason)
 		}
 	}
-	
+
 	fmt.Printf("\nSummary: %d files need testing, %d files skipped\n", needsUpdate, skipped)
-	
+
 	if needsUpdate > 0 {
-		fmt.Printf("Performance improvement: %.1f%% files skipped\n", 
+		fmt.Printf("Performance improvement: %.1f%% files skipped\n",
 			float64(skipped)/float64(len(results))*100)
 	}
 }
