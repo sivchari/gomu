@@ -186,7 +186,7 @@ func (g *Generator) generateHTML(summary *Summary) error {
 	funcMap := template.FuncMap{
 		"percentage": percentage,
 	}
-	
+
 	tmpl, err := template.New("html_report").Funcs(funcMap).Parse(htmlTemplate)
 	if err != nil {
 		return fmt.Errorf("failed to parse HTML template: %w", err)
@@ -201,10 +201,12 @@ func (g *Generator) generateHTML(summary *Summary) error {
 		if err := os.WriteFile(g.config.OutputFile, []byte(output.String()), 0600); err != nil {
 			return fmt.Errorf("failed to write HTML output file: %w", err)
 		}
+
 		return nil
 	}
 
 	fmt.Print(output.String())
+
 	return nil
 }
 
