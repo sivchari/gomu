@@ -3,6 +3,7 @@ package history
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -36,7 +37,7 @@ func New(filepath string) (*Store, error) {
 	// Load existing history if file exists
 	if err := store.load(); err != nil {
 		// If file doesn't exist, that's okay - we'll create it on save
-		if !os.IsNotExist(err) {
+		if !errors.Is(err, os.ErrNotExist) {
 			return nil, fmt.Errorf("failed to load history: %w", err)
 		}
 	}

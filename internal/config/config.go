@@ -26,7 +26,7 @@ type Config struct {
 
 	// Incremental analysis
 	HistoryFile string `json:"historyFile,omitempty"`
-	UseGitDiff  bool   `json:"useGitDiff,omitempty"`
+	UseGitDiff  bool   `json:"useGitDiff"`
 	BaseBranch  string `json:"baseBranch,omitempty"`
 
 	// Output settings
@@ -57,7 +57,7 @@ func Load(configFile string) (*Config, error) {
 
 	// If no config file specified, try default locations
 	if configFile == "" {
-		candidates := []string{".gomu.json", "gomu.json", ".gomu/config.json"}
+		candidates := []string{".gomu.json"}
 		for _, candidate := range candidates {
 			if _, err := os.Stat(candidate); err == nil {
 				configFile = candidate
