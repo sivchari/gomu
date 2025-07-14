@@ -379,24 +379,92 @@ func TestFormatTextReport_NoSurvivedMutants(t *testing.T) {
 	}
 }
 
-func TestGenerateHTML_NotImplemented(t *testing.T) {
+func TestGenerateHTML(t *testing.T) {
+	tmpDir := t.TempDir()
+	outputFile := filepath.Join(tmpDir, "output.html")
+
 	cfg := config.Default()
 	cfg.OutputFormat = "html"
+	cfg.OutputFile = outputFile
 
 	generator, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
 
-	summary := &Summary{}
-
-	err = generator.Generate(summary)
-	if err == nil {
-		t.Error("Expected error for HTML generation, got nil")
+	summary := &Summary{
+		TotalFiles:     2,
+		ProcessedFiles: 2,
+		TotalMutants:   3,
+		Results: []mutation.Result{
+			{
+				Mutant: mutation.Mutant{
+					ID:          "test1",
+					FilePath:    "test.go",
+					Line:        10,
+					Column:      5,
+					Type:        "arithmetic",
+					Original:    "+",
+					Mutated:     "-",
+					Description: "Replace + with -",
+				},
+				Status: mutation.StatusKilled,
+			},
+			{
+				Mutant: mutation.Mutant{
+					ID:          "test2",
+					FilePath:    "test.go",
+					Line:        15,
+					Column:      8,
+					Type:        "conditional",
+					Original:    "==",
+					Mutated:     "!=",
+					Description: "Replace == with !=",
+				},
+				Status: mutation.StatusSurvived,
+			},
+		},
+		Duration: time.Second * 5,
 	}
 
-	if !strings.Contains(err.Error(), "HTML report format not yet implemented") {
-		t.Errorf("Expected HTML not implemented error, got: %v", err)
+	err = generator.Generate(summary)
+	if err != nil {
+		t.Fatalf("Failed to generate HTML report: %v", err)
+	}
+
+	// Verify file was created
+	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
+		t.Error("Output file was not created")
+	}
+
+	// Verify HTML content
+	data, err := os.ReadFile(outputFile)
+	if err != nil {
+		t.Fatalf("Failed to read output file: %v", err)
+	}
+
+	content := string(data)
+
+	// Check for key elements in the HTML report
+	expectedElements := []string{
+		"<!DOCTYPE html>",
+		"<title>Mutation Testing Report</title>",
+		"<h1>Mutation Testing Report</h1>",
+		"Files Processed",
+		"2/2",
+		"Total Mutants",
+		"Duration",
+		"Mutation Score",
+		"Killed",
+		"Survived",
+		"test.go:15:8",
+		"Replace == with !=",
+	}
+
+	for _, element := range expectedElements {
+		if !strings.Contains(content, element) {
+			t.Errorf("Expected element '%s' not found in HTML report", element)
+		}
 	}
 }
 

@@ -24,7 +24,7 @@ Mutation testing evaluates the quality of your test suite by introducing control
 
 ### 🛠️ Developer Experience
 - **JSON Configuration**: Transparent and debuggable configuration
-- **Rich Reporting**: Detailed text and JSON output formats
+- **Rich Reporting**: Detailed text, JSON, and HTML output formats
 - **CLI Integration**: Simple command-line interface with Cobra framework
 - **Flexible Targeting**: Run on specific files, directories, or changed files only
 
@@ -184,12 +184,12 @@ This can reduce execution time from minutes to seconds on large codebases.
 - [x] Basic mutation types (arithmetic, conditional, logical)
 - [x] Parallel execution
 - [x] JSON configuration
-- [x] Text and JSON output
+- [x] Text, JSON, and HTML output
 
 ### Phase 2
 - [ ] Actual mutation application (currently simulated)
 - [ ] Incremental analysis implementation
-- [ ] HTML report generation
+- [x] HTML report generation
 - [ ] More mutation types
 
 ### Phase 3
