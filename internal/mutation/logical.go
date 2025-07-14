@@ -6,13 +6,15 @@ import (
 	"go/token"
 )
 
-// LogicalMutator mutates logical operators
+// LogicalMutator mutates logical operators.
 type LogicalMutator struct{}
 
+// Name returns the name of the mutator.
 func (m *LogicalMutator) Name() string {
 	return "logical"
 }
 
+// CanMutate returns true if the node can be mutated by this mutator.
 func (m *LogicalMutator) CanMutate(node ast.Node) bool {
 	switch n := node.(type) {
 	case *ast.BinaryExpr:
@@ -20,11 +22,14 @@ func (m *LogicalMutator) CanMutate(node ast.Node) bool {
 	case *ast.UnaryExpr:
 		return n.Op == token.NOT
 	}
+
 	return false
 }
 
+// Mutate generates mutants for the given node.
 func (m *LogicalMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
 	var mutants []Mutant
+
 	pos := fset.Position(node.Pos())
 
 	switch n := node.(type) {
@@ -38,9 +43,9 @@ func (m *LogicalMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
 }
 
 func (m *LogicalMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Position) []Mutant {
-	var mutants []Mutant
-
 	mutations := m.getLogicalMutations(expr.Op)
+	mutants := make([]Mutant, 0, len(mutations))
+
 	for _, newOp := range mutations {
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,

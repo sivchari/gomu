@@ -1,3 +1,4 @@
+// Package execution provides mutation testing execution functionality.
 package execution
 
 import (
@@ -12,13 +13,13 @@ import (
 	"github.com/sivchari/gomu/internal/mutation"
 )
 
-// Engine handles test execution
+// Engine handles test execution.
 type Engine struct {
-	config      *config.Config
-	mutator     *SourceMutator
+	config  *config.Config
+	mutator *SourceMutator
 }
 
-// New creates a new execution engine
+// New creates a new execution engine.
 func New(cfg *config.Config) (*Engine, error) {
 	mutator, err := NewSourceMutator()
 	if err != nil {
@@ -31,15 +32,16 @@ func New(cfg *config.Config) (*Engine, error) {
 	}, nil
 }
 
-// Close cleans up the execution engine
+// Close cleans up the execution engine.
 func (e *Engine) Close() error {
 	if e.mutator != nil {
 		return e.mutator.Cleanup()
 	}
+
 	return nil
 }
 
-// RunMutations executes tests for all mutants in parallel
+// RunMutations executes tests for all mutants in parallel.
 func (e *Engine) RunMutations(mutants []mutation.Mutant) ([]mutation.Result, error) {
 	if len(mutants) == 0 {
 		return nil, nil
@@ -47,17 +49,19 @@ func (e *Engine) RunMutations(mutants []mutation.Mutant) ([]mutation.Result, err
 
 	results := make([]mutation.Result, len(mutants))
 	resultsChan := make(chan indexedResult, len(mutants))
-	
+
 	// Create worker pool
 	var wg sync.WaitGroup
+
 	semaphore := make(chan struct{}, e.config.Workers)
 
 	// Start workers
 	for i, mutant := range mutants {
 		wg.Add(1)
+
 		go func(index int, m mutation.Mutant) {
 			defer wg.Done()
-			
+
 			// Acquire semaphore
 			semaphore <- struct{}{}
 			defer func() { <-semaphore }()
@@ -86,7 +90,7 @@ type indexedResult struct {
 	result mutation.Result
 }
 
-// runSingleMutation executes tests for a single mutant
+// runSingleMutation executes tests for a single mutant.
 func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 	result := mutation.Result{
 		Mutant: mutant,
@@ -96,6 +100,7 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 	// 1. Apply the mutation to the source code
 	if err := e.mutator.ApplyMutation(mutant); err != nil {
 		result.Error = fmt.Sprintf("Failed to apply mutation: %v", err)
+
 		return result
 	}
 
@@ -114,6 +119,7 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 	restoreErr := e.mutator.RestoreOriginal(mutant.FilePath)
 	if restoreErr != nil {
 		result.Error = fmt.Sprintf("Failed to restore original file: %v", restoreErr)
+
 		return result
 	}
 
@@ -121,6 +127,7 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 	if ctx.Err() == context.DeadlineExceeded {
 		result.Status = mutation.StatusTimedOut
 		result.Error = "Test execution timed out"
+
 		return result
 	}
 
@@ -142,4 +149,3 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 
 	return result
 }
-

@@ -1,3 +1,4 @@
+// Package main provides the CLI interface for gomu mutation testing tool.
 package main
 
 import (
@@ -39,7 +40,7 @@ var runCmd = &cobra.Command{
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version information",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Println("gomu version 0.1.0")
 	},
 }
@@ -52,7 +53,7 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 }
 
-func runMutationTesting(cmd *cobra.Command, args []string) error {
+func runMutationTesting(_ *cobra.Command, args []string) error {
 	path := "."
 	if len(args) > 0 {
 		path = args[0]
@@ -72,7 +73,11 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create engine: %w", err)
 	}
 
-	return engine.Run(path)
+	if err := engine.Run(path); err != nil {
+		return fmt.Errorf("mutation testing failed: %w", err)
+	}
+
+	return nil
 }
 
 func main() {

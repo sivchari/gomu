@@ -1,3 +1,4 @@
+// Package history provides mutation testing history management.
 package history
 
 import (
@@ -9,23 +10,23 @@ import (
 	"github.com/sivchari/gomu/internal/mutation"
 )
 
-// Store manages mutation testing history for incremental analysis
+// Store manages mutation testing history for incremental analysis.
 type Store struct {
 	filepath string
 	entries  map[string]Entry
 }
 
-// Entry represents a history entry for a file
+// Entry represents a history entry for a file.
 type Entry struct {
-	FileHash     string            `json:"file_hash"`
-	TestHash     string            `json:"test_hash"`
-	Mutants      []mutation.Mutant `json:"mutants"`
-	Results      []mutation.Result `json:"results"`
-	Timestamp    time.Time         `json:"timestamp"`
-	MutationScore float64          `json:"mutation_score"`
+	FileHash      string            `json:"fileHash"`
+	TestHash      string            `json:"testHash"`
+	Mutants       []mutation.Mutant `json:"mutants"`
+	Results       []mutation.Result `json:"results"`
+	Timestamp     time.Time         `json:"timestamp"`
+	MutationScore float64           `json:"mutationScore"`
 }
 
-// New creates a new history store
+// New creates a new history store.
 func New(filepath string) (*Store, error) {
 	store := &Store{
 		filepath: filepath,
@@ -43,11 +44,11 @@ func New(filepath string) (*Store, error) {
 	return store, nil
 }
 
-// load reads the history file into memory
+// load reads the history file into memory.
 func (s *Store) load() error {
 	data, err := os.ReadFile(s.filepath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read history file: %w", err)
 	}
 
 	var historyData struct {
@@ -66,16 +67,16 @@ func (s *Store) load() error {
 	return nil
 }
 
-// Save writes the history to disk
+// Save writes the history to disk.
 func (s *Store) Save() error {
 	historyData := struct {
-		Entries   map[string]Entry `json:"entries"`
-		SavedAt   time.Time        `json:"saved_at"`
-		Version   string           `json:"version"`
+		Entries map[string]Entry `json:"entries"`
+		SavedAt time.Time        `json:"savedAt"`
+		Version string           `json:"version"`
 	}{
 		Entries: s.entries,
 		SavedAt: time.Now(),
-		Version: "0.1.0",
+		Version: "v0.0.0",
 	}
 
 	data, err := json.MarshalIndent(historyData, "", "  ")
@@ -83,21 +84,27 @@ func (s *Store) Save() error {
 		return fmt.Errorf("failed to marshal history data: %w", err)
 	}
 
-	return os.WriteFile(s.filepath, data, 0644)
+	if err := os.WriteFile(s.filepath, data, 0600); err != nil {
+		return fmt.Errorf("failed to write history file: %w", err)
+	}
+
+	return nil
 }
 
-// GetEntry retrieves a history entry for a file
+// GetEntry retrieves a history entry for a file.
 func (s *Store) GetEntry(filePath string) (Entry, bool) {
 	entry, exists := s.entries[filePath]
+
 	return entry, exists
 }
 
-// UpdateFile updates the history entry for a file
+// UpdateFile updates the history entry for a file.
 func (s *Store) UpdateFile(filePath string, mutants []mutation.Mutant, results []mutation.Result) {
 	// Calculate mutation score
 	var killed, total int
 	for _, result := range results {
 		total++
+
 		if result.Status == mutation.StatusKilled {
 			killed++
 		}
@@ -119,7 +126,7 @@ func (s *Store) UpdateFile(filePath string, mutants []mutation.Mutant, results [
 	s.entries[filePath] = entry
 }
 
-// HasChanged checks if a file has changed since last analysis
+// HasChanged checks if a file has changed since last analysis.
 func (s *Store) HasChanged(filePath, currentHash string) bool {
 	entry, exists := s.entries[filePath]
 	if !exists {
@@ -129,16 +136,17 @@ func (s *Store) HasChanged(filePath, currentHash string) bool {
 	return entry.FileHash != currentHash
 }
 
-// GetStats returns overall statistics from history
+// GetStats returns overall statistics from history.
 func (s *Store) GetStats() Stats {
 	var totalFiles, totalMutants, totalKilled int
+
 	var totalScore float64
 
 	for _, entry := range s.entries {
 		totalFiles++
 		totalMutants += len(entry.Results)
 		totalScore += entry.MutationScore
-		
+
 		for _, result := range entry.Results {
 			if result.Status == mutation.StatusKilled {
 				totalKilled++
@@ -152,25 +160,25 @@ func (s *Store) GetStats() Stats {
 	}
 
 	return Stats{
-		TotalFiles:       totalFiles,
-		TotalMutants:     totalMutants,
-		TotalKilled:      totalKilled,
-		AverageScore:     avgScore,
-		LastUpdated:      time.Now(),
+		TotalFiles:   totalFiles,
+		TotalMutants: totalMutants,
+		TotalKilled:  totalKilled,
+		AverageScore: avgScore,
+		LastUpdated:  time.Now(),
 	}
 }
 
-// Stats represents overall mutation testing statistics
+// Stats represents overall mutation testing statistics.
 type Stats struct {
-	TotalFiles   int       `json:"total_files"`
-	TotalMutants int       `json:"total_mutants"`
-	TotalKilled  int       `json:"total_killed"`
-	AverageScore float64   `json:"average_score"`
-	LastUpdated  time.Time `json:"last_updated"`
+	TotalFiles   int       `json:"totalFiles"`
+	TotalMutants int       `json:"totalMutants"`
+	TotalKilled  int       `json:"totalKilled"`
+	AverageScore float64   `json:"averageScore"`
+	LastUpdated  time.Time `json:"lastUpdated"`
 }
 
 // calculateFileHash calculates a hash for file content
-// TODO: implement proper hash calculation using crypto/sha256
+// TODO: implement proper hash calculation using crypto/sha256.
 func calculateFileHash(filePath string) string {
 	// Placeholder implementation
 	return fmt.Sprintf("hash_%s", filePath)

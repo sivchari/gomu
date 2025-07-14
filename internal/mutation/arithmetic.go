@@ -1,3 +1,4 @@
+// Package mutation provides mutation testing functionality.
 package mutation
 
 import (
@@ -6,13 +7,15 @@ import (
 	"go/token"
 )
 
-// ArithmeticMutator mutates arithmetic operators
+// ArithmeticMutator mutates arithmetic operators.
 type ArithmeticMutator struct{}
 
+// Name returns the name of the mutator.
 func (m *ArithmeticMutator) Name() string {
 	return "arithmetic"
 }
 
+// CanMutate returns true if the node can be mutated by this mutator.
 func (m *ArithmeticMutator) CanMutate(node ast.Node) bool {
 	switch node.(type) {
 	case *ast.BinaryExpr:
@@ -22,11 +25,14 @@ func (m *ArithmeticMutator) CanMutate(node ast.Node) bool {
 	case *ast.IncDecStmt:
 		return true
 	}
+
 	return false
 }
 
+// Mutate generates mutants for the given node.
 func (m *ArithmeticMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
 	var mutants []Mutant
+
 	pos := fset.Position(node.Pos())
 
 	switch n := node.(type) {
@@ -42,9 +48,9 @@ func (m *ArithmeticMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant 
 }
 
 func (m *ArithmeticMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Position) []Mutant {
-	var mutants []Mutant
-
 	mutations := m.getArithmeticMutations(expr.Op)
+	mutants := make([]Mutant, 0, len(mutations))
+
 	for _, newOp := range mutations {
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,
@@ -60,10 +66,10 @@ func (m *ArithmeticMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Pos
 }
 
 func (m *ArithmeticMutator) mutateAssignStmt(stmt *ast.AssignStmt, pos token.Position) []Mutant {
-	var mutants []Mutant
-
 	op := stmt.Tok
 	mutations := m.getAssignMutations(op)
+	mutants := make([]Mutant, 0, len(mutations))
+
 	for _, newOp := range mutations {
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,
@@ -82,6 +88,7 @@ func (m *ArithmeticMutator) mutateIncDecStmt(stmt *ast.IncDecStmt, pos token.Pos
 	var mutants []Mutant
 
 	var newOp token.Token
+
 	var desc string
 
 	if stmt.Tok == token.INC {
