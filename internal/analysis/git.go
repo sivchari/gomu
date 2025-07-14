@@ -24,6 +24,7 @@ func NewGitIntegration(workDir string) *GitIntegration {
 func (g *GitIntegration) IsGitRepository() bool {
 	gitDir := filepath.Join(g.workDir, ".git")
 	_, err := os.Stat(gitDir)
+
 	return err == nil
 }
 
@@ -37,16 +38,18 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 	mergeBaseCmd := exec.Command("git", "merge-base", "HEAD", baseBranch)
 	mergeBaseCmd.Dir = g.workDir
 	mergeBaseOutput, err := mergeBaseCmd.Output()
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get merge base: %w", err)
 	}
-	
+
 	mergeBase := strings.TrimSpace(string(mergeBaseOutput))
-	
+
 	// Get changed files since merge base
 	diffCmd := exec.Command("git", "diff", "--name-only", mergeBase, "HEAD")
 	diffCmd.Dir = g.workDir
 	output, err := diffCmd.Output()
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get changed files: %w", err)
 	}
@@ -58,6 +61,7 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 
 	// Filter for Go files
 	var goFiles []string
+
 	for _, file := range files {
 		if strings.HasSuffix(file, ".go") && !strings.HasSuffix(file, "_test.go") {
 			// Convert to absolute path
@@ -77,6 +81,7 @@ func (g *GitIntegration) GetCurrentBranch() (string, error) {
 
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	cmd.Dir = g.workDir
+
 	output, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to get current branch: %w", err)
@@ -88,33 +93,34 @@ func (g *GitIntegration) GetCurrentBranch() (string, error) {
 // GetAllGoFiles returns all Go files in the repository.
 func (g *GitIntegration) GetAllGoFiles() ([]string, error) {
 	var goFiles []string
-	
+
 	err := filepath.Walk(g.workDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		
+
 		// Skip hidden directories and vendor
 		if info.IsDir() {
 			name := info.Name()
 			if strings.HasPrefix(name, ".") || name == "vendor" {
 				return filepath.SkipDir
 			}
+
 			return nil
 		}
-		
+
 		// Only include Go files (not test files)
 		if strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go") {
 			goFiles = append(goFiles, path)
 		}
-		
+
 		return nil
 	})
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to walk directory: %w", err)
 	}
-	
+
 	return goFiles, nil
 }
 
@@ -126,6 +132,7 @@ func (g *GitIntegration) HasUncommittedChanges() (bool, error) {
 
 	cmd := exec.Command("git", "status", "--porcelain")
 	cmd.Dir = g.workDir
+
 	output, err := cmd.Output()
 	if err != nil {
 		return false, fmt.Errorf("failed to check git status: %w", err)
