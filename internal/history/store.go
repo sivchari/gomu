@@ -101,6 +101,11 @@ func (s *Store) GetEntry(filePath string) (Entry, bool) {
 
 // UpdateFile updates the history entry for a file.
 func (s *Store) UpdateFile(filePath string, mutants []mutation.Mutant, results []mutation.Result) {
+	s.UpdateFileWithHashes(filePath, mutants, results, "", "")
+}
+
+// UpdateFileWithHashes updates the history entry for a file with specific hashes.
+func (s *Store) UpdateFileWithHashes(filePath string, mutants []mutation.Mutant, results []mutation.Result, fileHash, testHash string) {
 	// Calculate mutation score
 	var killed, total int
 	for _, result := range results {
@@ -117,7 +122,8 @@ func (s *Store) UpdateFile(filePath string, mutants []mutation.Mutant, results [
 	}
 
 	entry := Entry{
-		FileHash:      calculateFileHash(filePath), // TODO: implement proper hash
+		FileHash:      fileHash,
+		TestHash:      testHash,
 		Mutants:       mutants,
 		Results:       results,
 		Timestamp:     time.Now(),
