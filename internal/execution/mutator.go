@@ -156,7 +156,7 @@ func (sm *SourceMutator) applyMutationToNode(node ast.Node, mutant mutation.Muta
 		return sm.mutateArithmeticAssign(node, mutant)
 	case "arithmetic_incdec":
 		return sm.mutateIncDec(node, mutant)
-	case "conditional":
+	case "conditional_binary":
 		return sm.mutateConditional(node, mutant)
 	case "logical_binary":
 		return sm.mutateLogicalBinary(node, mutant)
