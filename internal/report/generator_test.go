@@ -43,12 +43,12 @@ func TestCalculateStatistics(t *testing.T) {
 	}
 
 	results := []mutation.Result{
-		{Mutant: mutation.Mutant{ID: "1"}, Status: mutation.StatusKilled},
-		{Mutant: mutation.Mutant{ID: "2"}, Status: mutation.StatusKilled},
-		{Mutant: mutation.Mutant{ID: "3"}, Status: mutation.StatusSurvived},
-		{Mutant: mutation.Mutant{ID: "4"}, Status: mutation.StatusTimedOut},
-		{Mutant: mutation.Mutant{ID: "5"}, Status: mutation.StatusError},
-		{Mutant: mutation.Mutant{ID: "6"}, Status: mutation.StatusNotCovered},
+		{Mutant: mutation.Mutant{ID: "1", Type: "arithmetic"}, Status: mutation.StatusKilled},
+		{Mutant: mutation.Mutant{ID: "2", Type: "arithmetic"}, Status: mutation.StatusKilled},
+		{Mutant: mutation.Mutant{ID: "3", Type: "conditional"}, Status: mutation.StatusSurvived},
+		{Mutant: mutation.Mutant{ID: "4", Type: "logical"}, Status: mutation.StatusTimedOut},
+		{Mutant: mutation.Mutant{ID: "5", Type: "arithmetic"}, Status: mutation.StatusError},
+		{Mutant: mutation.Mutant{ID: "6", Type: "conditional"}, Status: mutation.StatusNotCovered},
 	}
 
 	stats := generator.calculateStatistics(results)
@@ -78,6 +78,60 @@ func TestCalculateStatistics(t *testing.T) {
 	if abs(stats.Score-expectedScore) > 0.000001 {
 		t.Errorf("Expected Score %f, got %f", expectedScore, stats.Score)
 	}
+
+	// Test mutation type statistics
+	if stats.MutationTypes == nil {
+		t.Error("Expected MutationTypes to be initialized")
+	}
+
+	if len(stats.MutationTypes) != 3 {
+		t.Errorf("Expected 3 mutation types, got %d", len(stats.MutationTypes))
+	}
+
+	// Test arithmetic mutations
+	if arithmeticStats, ok := stats.MutationTypes["arithmetic"]; ok {
+		if arithmeticStats.Total != 3 {
+			t.Errorf("Expected arithmetic total 3, got %d", arithmeticStats.Total)
+		}
+		if arithmeticStats.Killed != 2 {
+			t.Errorf("Expected arithmetic killed 2, got %d", arithmeticStats.Killed)
+		}
+		if arithmeticStats.Survived != 0 {
+			t.Errorf("Expected arithmetic survived 0, got %d", arithmeticStats.Survived)
+		}
+	} else {
+		t.Error("Expected arithmetic mutation type to exist")
+	}
+
+	// Test conditional mutations
+	if conditionalStats, ok := stats.MutationTypes["conditional"]; ok {
+		if conditionalStats.Total != 2 {
+			t.Errorf("Expected conditional total 2, got %d", conditionalStats.Total)
+		}
+		if conditionalStats.Killed != 0 {
+			t.Errorf("Expected conditional killed 0, got %d", conditionalStats.Killed)
+		}
+		if conditionalStats.Survived != 1 {
+			t.Errorf("Expected conditional survived 1, got %d", conditionalStats.Survived)
+		}
+	} else {
+		t.Error("Expected conditional mutation type to exist")
+	}
+
+	// Test logical mutations
+	if logicalStats, ok := stats.MutationTypes["logical"]; ok {
+		if logicalStats.Total != 1 {
+			t.Errorf("Expected logical total 1, got %d", logicalStats.Total)
+		}
+		if logicalStats.Killed != 0 {
+			t.Errorf("Expected logical killed 0, got %d", logicalStats.Killed)
+		}
+		if logicalStats.Survived != 0 {
+			t.Errorf("Expected logical survived 0, got %d", logicalStats.Survived)
+		}
+	} else {
+		t.Error("Expected logical mutation type to exist")
+	}
 }
 
 func TestCalculateStatistics_EmptyResults(t *testing.T) {
@@ -90,18 +144,40 @@ func TestCalculateStatistics_EmptyResults(t *testing.T) {
 
 	stats := generator.calculateStatistics([]mutation.Result{})
 
-	expectedStats := Statistics{
-		Killed:     0,
-		Survived:   0,
-		TimedOut:   0,
-		Errors:     0,
-		NotCovered: 0,
-		Score:      0,
-		Coverage:   0,
+	if stats.Killed != 0 {
+		t.Errorf("Expected Killed 0, got %d", stats.Killed)
 	}
 
-	if stats != expectedStats {
-		t.Errorf("Expected %+v, got %+v", expectedStats, stats)
+	if stats.Survived != 0 {
+		t.Errorf("Expected Survived 0, got %d", stats.Survived)
+	}
+
+	if stats.TimedOut != 0 {
+		t.Errorf("Expected TimedOut 0, got %d", stats.TimedOut)
+	}
+
+	if stats.Errors != 0 {
+		t.Errorf("Expected Errors 0, got %d", stats.Errors)
+	}
+
+	if stats.NotCovered != 0 {
+		t.Errorf("Expected NotCovered 0, got %d", stats.NotCovered)
+	}
+
+	if stats.Score != 0 {
+		t.Errorf("Expected Score 0, got %f", stats.Score)
+	}
+
+	if stats.Coverage != 0 {
+		t.Errorf("Expected Coverage 0, got %f", stats.Coverage)
+	}
+
+	if stats.MutationTypes == nil {
+		t.Error("Expected MutationTypes to be initialized")
+	}
+
+	if len(stats.MutationTypes) != 0 {
+		t.Errorf("Expected MutationTypes to be empty, got %d entries", len(stats.MutationTypes))
 	}
 }
 
@@ -407,8 +483,34 @@ func TestGenerateHTML(t *testing.T) {
 					Original:    "+",
 					Mutated:     "-",
 					Description: "Replace + with -",
+					Function:    "calculateSum",
+					Context:     "func calculateSum(a, b int) int {\n    return a + b\n}",
 				},
-				Status: mutation.StatusKilled,
+				Status:        mutation.StatusKilled,
+				ExecutionTime: 120,
+				TestsRun:      3,
+				TestsFailed:   1,
+				TestOutput: []mutation.TestInfo{
+					{
+						Name:     "TestCalculateSum",
+						Package:  "calculator",
+						Status:   "PASS",
+						Duration: 45,
+					},
+					{
+						Name:     "TestCalculateSumNegative",
+						Package:  "calculator",
+						Status:   "FAIL",
+						Duration: 32,
+						Output:   "Expected: 0, Got: 4",
+					},
+					{
+						Name:     "TestCalculateSumZero",
+						Package:  "calculator",
+						Status:   "PASS",
+						Duration: 18,
+					},
+				},
 			},
 			{
 				Mutant: mutation.Mutant{
@@ -420,11 +522,38 @@ func TestGenerateHTML(t *testing.T) {
 					Original:    "==",
 					Mutated:     "!=",
 					Description: "Replace == with !=",
+					Function:    "checkEqual",
+					Context:     "func checkEqual(a, b int) bool {\n    return a == b\n}",
 				},
-				Status: mutation.StatusSurvived,
+				Status:        mutation.StatusSurvived,
+				ExecutionTime: 85,
+				TestsRun:      2,
+				TestsFailed:   0,
+				TestOutput: []mutation.TestInfo{
+					{
+						Name:     "TestCheckEqual",
+						Package:  "calculator",
+						Status:   "PASS",
+						Duration: 25,
+					},
+					{
+						Name:     "TestCheckEqualFalse",
+						Package:  "calculator",
+						Status:   "PASS",
+						Duration: 18,
+					},
+				},
 			},
 		},
 		Duration: time.Second * 5,
+		Files: map[string]*FileReport{
+			"test.go": {
+				FilePath:      "test.go",
+				TotalMutants:  3,
+				KilledMutants: 1,
+				MutationScore: 33.3,
+			},
+		},
 	}
 
 	err = generator.Generate(summary)
@@ -448,8 +577,8 @@ func TestGenerateHTML(t *testing.T) {
 	// Check for key elements in the HTML report
 	expectedElements := []string{
 		"<!DOCTYPE html>",
-		"<title>Mutation Testing Report</title>",
-		"<h1>Mutation Testing Report</h1>",
+		"<title>Gomu Mutation Testing Report</title>",
+		"<h1>🧬 Gomu Mutation Testing Report</h1>",
 		"Files Processed",
 		"2/2",
 		"Total Mutants",
