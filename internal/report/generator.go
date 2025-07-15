@@ -43,13 +43,13 @@ type FileReport struct {
 
 // Statistics contains aggregated mutation testing statistics.
 type Statistics struct {
-	Killed        int                      `json:"killed"`
-	Survived      int                      `json:"survived"`
-	TimedOut      int                      `json:"timedOut"`
-	Errors        int                      `json:"errors"`
-	NotCovered    int                      `json:"notCovered"`
-	Score         float64                  `json:"mutationScore"`
-	Coverage      float64                  `json:"lineCoverage,omitempty"`
+	Killed        int                       `json:"killed"`
+	Survived      int                       `json:"survived"`
+	TimedOut      int                       `json:"timedOut"`
+	Errors        int                       `json:"errors"`
+	NotCovered    int                       `json:"notCovered"`
+	Score         float64                   `json:"mutationScore"`
+	Coverage      float64                   `json:"lineCoverage,omitempty"`
 	MutationTypes map[string]TypeStatistics `json:"mutationTypes,omitempty"`
 }
 
@@ -112,16 +112,17 @@ func (g *Generator) calculateStatistics(results []mutation.Result) Statistics {
 		if mutationType == "" {
 			mutationType = "unknown"
 		}
-		
+
 		typeStats := stats.MutationTypes[mutationType]
 		typeStats.Total++
-		
-		if result.Status == mutation.StatusKilled {
+
+		switch result.Status {
+		case mutation.StatusKilled:
 			typeStats.Killed++
-		} else if result.Status == mutation.StatusSurvived {
+		case mutation.StatusSurvived:
 			typeStats.Survived++
 		}
-		
+
 		stats.MutationTypes[mutationType] = typeStats
 	}
 
