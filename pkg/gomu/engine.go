@@ -43,7 +43,7 @@ func NewEngine(cfg *config.Config) (*Engine, error) {
 		return nil, fmt.Errorf("failed to create executor: %w", err)
 	}
 
-	historyStore, err := history.New(cfg.HistoryFile)
+	historyStore, err := history.New(cfg.Incremental.HistoryFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create history store: %w", err)
 	}
@@ -80,8 +80,8 @@ func (e *Engine) Run(path string) error {
 
 	// Initialize incremental analyzer
 	historyWrapper := &historyStoreWrapper{store: e.history}
-	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(e.config, absPath, historyWrapper)
 
+	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(e.config, absPath, historyWrapper)
 	if err != nil {
 		return fmt.Errorf("failed to create incremental analyzer: %w", err)
 	}

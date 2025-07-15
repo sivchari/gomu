@@ -95,6 +95,7 @@ func TestQualityGateEvaluator_Evaluate_EdgeCases(t *testing.T) {
 	if result.Pass {
 		t.Error("Expected false for nil summary")
 	}
+
 	if result.Reason != "No mutants generated" {
 		t.Errorf("Expected 'No mutants generated', got '%s'", result.Reason)
 	}
@@ -104,6 +105,7 @@ func TestQualityGateEvaluator_Evaluate_EdgeCases(t *testing.T) {
 		TotalMutants:  100,
 		KilledMutants: 80,
 	}
+
 	result = evaluator.Evaluate(summary)
 	if !result.Pass {
 		t.Error("Expected true for exact threshold match")

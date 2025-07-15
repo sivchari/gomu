@@ -1,6 +1,7 @@
 package ci
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,34 +14,32 @@ import (
 	"github.com/sivchari/gomu/internal/report"
 )
 
-// CIEngine integrates mutation testing with CI/CD environments.
-type CIEngine struct {
+// Engine integrates mutation testing with CI/CD environments.
+type Engine struct {
 	config       *config.Config
 	ciConfig     *Config
 	workDir      string
 	historyStore *history.Store
 	incremental  *analysis.IncrementalAnalyzer
 	qualityGate  *QualityGateEvaluator
-	reporter     *CIReporter
+	reporter     *Reporter
 	github       *GitHubIntegration
 }
 
-// NewCIEngine creates a new CI engine.
-func NewCIEngine(configPath, workDir string) (*CIEngine, error) {
+// NewEngine creates a new Engine.
+func NewEngine(configPath, workDir string) (*Engine, error) {
 	// Load unified YAML/JSON config
-	yamlCfg, err := config.LoadYAML(configPath)
+	cfg, err := config.Load(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
-
-	// Convert to legacy config format for backward compatibility
-	cfg := yamlCfg.ToLegacyConfig()
 
 	// Load CI config from environment
 	ciConfig := LoadConfigFromEnv()
 
 	// Initialize history store
-	historyPath := filepath.Join(workDir, yamlCfg.Incremental.HistoryFile)
+	historyPath := filepath.Join(workDir, cfg.Incremental.HistoryFile)
+
 	historyStore, err := history.NewStore(historyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize history store: %w", err)
@@ -54,28 +53,31 @@ func NewCIEngine(configPath, workDir string) (*CIEngine, error) {
 
 	// Initialize quality gate from YAML config
 	qualityGate := NewQualityGateEvaluator(
-		yamlCfg.CI.QualityGate.Enabled,
-		yamlCfg.CI.QualityGate.MinMutationScore,
+		cfg.CI.QualityGate.Enabled,
+		cfg.CI.QualityGate.MinMutationScore,
 	)
 
 	// Initialize reporter with config from YAML
 	outputFormat := "json"
-	if len(yamlCfg.CI.Reports.Formats) > 0 {
-		outputFormat = yamlCfg.CI.Reports.Formats[0]
+	if len(cfg.CI.Reports.Formats) > 0 {
+		outputFormat = cfg.CI.Reports.Formats[0]
 	}
-	reporter := NewCIReporter(yamlCfg.CI.Reports.OutputDir, outputFormat)
+
+	reporter := NewReporter(cfg.CI.Reports.OutputDir, outputFormat)
 
 	// Initialize GitHub integration
 	var github *GitHubIntegration
-	if yamlCfg.CI.GitHub.Enabled && ciConfig.Mode == "pr" && ciConfig.PRNumber > 0 {
+
+	if cfg.CI.GitHub.Enabled && ciConfig.Mode == "pr" && ciConfig.PRNumber > 0 {
 		token := os.Getenv("GITHUB_TOKEN")
 		repo := os.Getenv("GITHUB_REPOSITORY")
+
 		if token != "" && repo != "" {
 			github = NewGitHubIntegration(token, repo, ciConfig.PRNumber)
 		}
 	}
 
-	return &CIEngine{
+	return &Engine{
 		config:       cfg,
 		ciConfig:     ciConfig,
 		workDir:      workDir,
@@ -88,11 +90,12 @@ func NewCIEngine(configPath, workDir string) (*CIEngine, error) {
 }
 
 // Run executes the CI mutation testing workflow.
-func (e *CIEngine) Run() error {
+func (e *Engine) Run(ctx context.Context) error {
 	fmt.Println("Starting CI mutation testing...")
 
 	// Step 1: Analyze files for incremental testing
 	fmt.Println("Analyzing files for changes...")
+
 	results, err := e.incremental.AnalyzeFiles()
 	if err != nil {
 		return fmt.Errorf("failed to analyze files: %w", err)
@@ -108,6 +111,7 @@ func (e *CIEngine) Run() error {
 
 	if len(filesToTest) == 0 {
 		fmt.Println("No files need mutation testing. Skipping...")
+
 		return nil
 	}
 
@@ -136,7 +140,7 @@ func (e *CIEngine) Run() error {
 
 	// Step 5: Create PR comment if in PR mode
 	if e.github != nil {
-		if err := e.github.CreatePRComment(summary, qualityResult); err != nil {
+		if err := e.github.CreatePRComment(ctx, summary, qualityResult); err != nil {
 			fmt.Printf("Warning: Failed to create PR comment: %v\n", err)
 		} else {
 			fmt.Println("Created PR comment with mutation testing results")
@@ -154,13 +158,14 @@ func (e *CIEngine) Run() error {
 	}
 
 	fmt.Println("CI mutation testing completed successfully")
+
 	return nil
 }
 
 // runMutationTesting executes mutation testing on the specified files.
-func (e *CIEngine) runMutationTesting(files []string) (*report.Summary, error) {
+func (e *Engine) runMutationTesting(files []string) (*report.Summary, error) {
 	// Create mutation engine
-	engine, err := mutation.NewEngine(e.config, e.workDir)
+	engine, err := mutation.NewEngine(e.config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create mutation engine: %w", err)
 	}
@@ -191,6 +196,7 @@ func (e *CIEngine) runMutationTesting(files []string) (*report.Summary, error) {
 				fileReport.KilledMutants++
 				killedMutants++
 			}
+
 			totalMutants++
 		}
 
@@ -208,7 +214,7 @@ func (e *CIEngine) runMutationTesting(files []string) (*report.Summary, error) {
 }
 
 // updateHistory updates the mutation testing history with new results.
-func (e *CIEngine) updateHistory(summary *report.Summary) error {
+func (e *Engine) updateHistory(summary *report.Summary) error {
 	hasher := analysis.NewFileHasher()
 
 	for filePath, fileReport := range summary.Files {
@@ -219,7 +225,7 @@ func (e *CIEngine) updateHistory(summary *report.Summary) error {
 		}
 
 		// Create history entry
-		entry := history.HistoryEntry{
+		entry := history.Entry{
 			FileHash:      currentHash,
 			TestHash:      "", // Would need to calculate test file hash
 			MutationScore: fileReport.MutationScore,
@@ -234,11 +240,15 @@ func (e *CIEngine) updateHistory(summary *report.Summary) error {
 		}
 	}
 
-	return e.historyStore.Save()
+	if err := e.historyStore.Save(); err != nil {
+		return fmt.Errorf("failed to save history store: %w", err)
+	}
+
+	return nil
 }
 
 // shouldFailOnQualityGate determines if the build should fail on quality gate failure.
-func (e *CIEngine) shouldFailOnQualityGate() bool {
+func (e *Engine) shouldFailOnQualityGate() bool {
 	// This would be configurable via .gomu.yaml
 	// For now, return true to fail the build on quality gate failure
 	return true

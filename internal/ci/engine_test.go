@@ -9,7 +9,7 @@ import (
 	"github.com/sivchari/gomu/internal/config"
 )
 
-func TestNewCIEngine(t *testing.T) {
+func TestNewEngine(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create a basic config file
@@ -19,16 +19,11 @@ func TestNewCIEngine(t *testing.T) {
 	os.WriteFile(configPath, configData, 0600)
 
 	// Set CI environment variables
-	os.Setenv("CI_MODE", "pr")
-	os.Setenv("GITHUB_PR_NUMBER", "123")
-	os.Setenv("GITHUB_BASE_REF", "main")
-	defer func() {
-		os.Unsetenv("CI_MODE")
-		os.Unsetenv("GITHUB_PR_NUMBER")
-		os.Unsetenv("GITHUB_BASE_REF")
-	}()
+	t.Setenv("CI_MODE", "pr")
+	t.Setenv("GITHUB_PR_NUMBER", "123")
+	t.Setenv("GITHUB_BASE_REF", "main")
 
-	engine, err := NewCIEngine(configPath, tmpDir)
+	engine, err := NewEngine(configPath, tmpDir)
 	if err != nil {
 		t.Fatalf("Failed to create CI engine: %v", err)
 	}
@@ -50,11 +45,11 @@ func TestNewCIEngine(t *testing.T) {
 	}
 }
 
-func TestNewCIEngine_InvalidConfig(t *testing.T) {
+func TestNewEngine_InvalidConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Try with non-existent config file
-	_, err := NewCIEngine("/non/existent/config.json", tmpDir)
+	_, err := NewEngine("/non/existent/config.json", tmpDir)
 	if err == nil {
 		t.Error("Expected error for non-existent config file")
 	}
@@ -69,7 +64,7 @@ func TestCIEngine_shouldFailOnQualityGate(t *testing.T) {
 	configData, _ := json.MarshalIndent(cfg, "", "  ")
 	os.WriteFile(configPath, configData, 0600)
 
-	engine, err := NewCIEngine(configPath, tmpDir)
+	engine, err := NewEngine(configPath, tmpDir)
 	if err != nil {
 		t.Fatalf("Failed to create CI engine: %v", err)
 	}
@@ -80,7 +75,7 @@ func TestCIEngine_shouldFailOnQualityGate(t *testing.T) {
 	}
 }
 
-// Integration test that would require more setup
+// Integration test that would require more setup.
 func TestCIEngine_Run_NoFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -94,7 +89,7 @@ func TestCIEngine_Run_NoFiles(t *testing.T) {
 	gitDir := filepath.Join(tmpDir, ".git")
 	os.Mkdir(gitDir, 0755)
 
-	engine, err := NewCIEngine(configPath, tmpDir)
+	engine, err := NewEngine(configPath, tmpDir)
 	if err != nil {
 		t.Fatalf("Failed to create CI engine: %v", err)
 	}

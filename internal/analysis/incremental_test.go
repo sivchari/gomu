@@ -50,7 +50,7 @@ func (m *MockHistoryStore) SetEntry(filePath string, entry HistoryEntry) {
 func TestIncrementalAnalyzer_NewIncrementalAnalyzer(t *testing.T) {
 	tmpDir := t.TempDir()
 	cfg := config.Default()
-	cfg.HistoryFile = filepath.Join(tmpDir, "history.json")
+	cfg.Incremental.HistoryFile = filepath.Join(tmpDir, "history.json")
 
 	mockHistory := NewMockHistoryStore()
 
@@ -75,8 +75,8 @@ func TestIncrementalAnalyzer_NewIncrementalAnalyzer(t *testing.T) {
 func TestIncrementalAnalyzer_AnalyzeFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 	cfg := config.Default()
-	cfg.HistoryFile = filepath.Join(tmpDir, "history.json")
-	cfg.UseGitDiff = false // Disable git diff for testing
+	cfg.Incremental.HistoryFile = filepath.Join(tmpDir, "history.json")
+	cfg.Incremental.UseGitDiff = false // Disable git diff for testing
 
 	// Create test files
 	testFile := filepath.Join(tmpDir, "test.go")
@@ -127,8 +127,8 @@ func TestIncrementalAnalyzer_AnalyzeFiles(t *testing.T) {
 func TestIncrementalAnalyzer_GetFilesNeedingUpdate(t *testing.T) {
 	tmpDir := t.TempDir()
 	cfg := config.Default()
-	cfg.HistoryFile = filepath.Join(tmpDir, "history.json")
-	cfg.UseGitDiff = false
+	cfg.Incremental.HistoryFile = filepath.Join(tmpDir, "history.json")
+	cfg.Incremental.UseGitDiff = false
 
 	// Create test files
 	testFile := filepath.Join(tmpDir, "test.go")
@@ -173,7 +173,7 @@ func TestIncrementalAnalyzer_GetFilesNeedingUpdate(t *testing.T) {
 func TestIncrementalAnalyzer_analyzeFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	cfg := config.Default()
-	cfg.HistoryFile = filepath.Join(tmpDir, "history.json")
+	cfg.Incremental.HistoryFile = filepath.Join(tmpDir, "history.json")
 
 	mockHistory := NewMockHistoryStore()
 
@@ -225,7 +225,7 @@ func TestIncrementalAnalyzer_analyzeFile(t *testing.T) {
 func TestIncrementalAnalyzer_findRelatedTestFiles(t *testing.T) {
 	tmpDir := t.TempDir()
 	cfg := config.Default()
-	cfg.HistoryFile = filepath.Join(tmpDir, "history.json")
+	cfg.Incremental.HistoryFile = filepath.Join(tmpDir, "history.json")
 
 	mockHistory := NewMockHistoryStore()
 

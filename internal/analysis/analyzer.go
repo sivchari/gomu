@@ -48,7 +48,7 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 		// Skip directories
 		if info.IsDir() {
 			// Skip excluded directories
-			for _, exclude := range a.config.ExcludeFiles {
+			for _, exclude := range a.config.Test.Exclude {
 				if strings.Contains(path, exclude) {
 					return filepath.SkipDir
 				}
@@ -62,7 +62,7 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 			// Skip excluded files
 			excluded := false
 
-			for _, exclude := range a.config.ExcludeFiles {
+			for _, exclude := range a.config.Test.Exclude {
 				if strings.Contains(path, exclude) {
 					excluded = true
 
@@ -77,7 +77,6 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to walk directory: %w", err)
 	}
@@ -87,17 +86,17 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 
 // FindChangedFiles returns files that have changed compared to the base branch.
 func (a *Analyzer) FindChangedFiles(allFiles []string) ([]string, error) {
-	if !a.config.UseGitDiff {
+	if !a.config.Incremental.UseGitDiff {
 		return allFiles, nil
 	}
 
 	// Get changed files from git
 	// Validate base branch name to prevent command injection
-	if !isValidBranchName(a.config.BaseBranch) {
-		return nil, fmt.Errorf("invalid base branch name: %s", a.config.BaseBranch)
+	if !isValidBranchName(a.config.Incremental.BaseBranch) {
+		return nil, fmt.Errorf("invalid base branch name: %s", a.config.Incremental.BaseBranch)
 	}
 
-	cmd := exec.Command("git", "diff", "--name-only", a.config.BaseBranch+"...HEAD")
+	cmd := exec.Command("git", "diff", "--name-only", a.config.Incremental.BaseBranch+"...HEAD")
 
 	output, err := cmd.Output()
 	if err != nil {

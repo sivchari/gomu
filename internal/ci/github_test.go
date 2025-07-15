@@ -30,7 +30,7 @@ func TestGitHubIntegration_CreatePRComment(t *testing.T) {
 		Reason:        "Mutation score meets minimum threshold",
 	}
 
-	err := github.CreatePRComment(summary, qualityResult)
+	err := github.CreatePRComment(t.Context(), summary, qualityResult)
 	if err == nil {
 		t.Error("Expected error when token is empty")
 	}
@@ -68,8 +68,8 @@ func TestGitHubIntegration_formatPRComment(t *testing.T) {
 
 	// Check that comment contains expected elements
 	expectedElements := []string{
-		"## Mutation Testing Results",
-		"✅ Quality Gate: PASSED",
+		"## 🧬 Mutation Testing Results",
+		"✅ **Quality Gate: PASSED**",
 		"**Overall Mutation Score:** 85.0%",
 		"| File | Score | Mutants | Killed |",
 		"example.go",
@@ -90,7 +90,7 @@ func TestGitHubIntegration_formatPRComment(t *testing.T) {
 
 	comment = github.formatPRComment(summary, qualityResult)
 
-	if !strings.Contains(comment, "❌ Quality Gate: FAILED") {
+	if !strings.Contains(comment, "❌ **Quality Gate: FAILED**") {
 		t.Error("Expected failed quality gate indicator")
 	}
 

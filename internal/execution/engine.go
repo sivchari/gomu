@@ -64,6 +64,7 @@ func (e *Engine) RunMutations(mutants []mutation.Mutant) ([]mutation.Result, err
 
 			// Acquire semaphore
 			semaphore <- struct{}{}
+
 			defer func() { <-semaphore }()
 
 			result := e.runSingleMutation(m)
@@ -105,7 +106,7 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 	}
 
 	// 2. Run the tests
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(e.config.TestTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(e.config.Test.Timeout)*time.Second)
 	defer cancel()
 
 	// Get the directory containing the mutated file for running tests

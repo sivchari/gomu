@@ -73,7 +73,7 @@ func New(cfg *config.Config) (*Engine, error) {
 	}
 
 	// Register mutators based on config
-	for _, mutatorName := range cfg.Mutators {
+	for _, mutatorName := range cfg.Mutation.Types {
 		mutator := engine.createMutator(mutatorName)
 		if mutator != nil {
 			engine.mutators = append(engine.mutators, mutator)
@@ -122,7 +122,7 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 				allMutants = append(allMutants, mutants...)
 
 				// Respect mutation limit
-				if e.config.MutationLimit > 0 && len(allMutants) >= e.config.MutationLimit {
+				if e.config.Mutation.Limit > 0 && len(allMutants) >= e.config.Mutation.Limit {
 					return false
 				}
 			}
@@ -140,11 +140,12 @@ func (e *Engine) GetFileSet() *token.FileSet {
 }
 
 // NewEngine creates a new mutation engine with specified config and workDir.
-func NewEngine(configInterface interface{}, workDir string) (*Engine, error) {
+func NewEngine(configInterface interface{}) (*Engine, error) {
 	cfg, ok := configInterface.(*config.Config)
 	if !ok {
 		return nil, fmt.Errorf("invalid config type")
 	}
+
 	return New(cfg)
 }
 
@@ -171,11 +172,13 @@ func (e *Engine) RunOnFiles(files []string) ([]CIResult, error) {
 
 		// Create mock results
 		mutations := make([]CIMutation, 0, len(mutants))
+
 		for i := range mutants {
 			status := "killed"
 			if i%3 == 0 { // Mock some survivors
 				status = "survived"
 			}
+
 			mutations = append(mutations, CIMutation{Status: status})
 		}
 

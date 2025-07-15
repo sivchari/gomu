@@ -55,7 +55,7 @@ var configCmd = &cobra.Command{
 var configInitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a new gomu configuration file",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(cmd *cobra.Command, _ []string) error {
 		force, _ := cmd.Flags().GetBool("force")
 
 		filename := ".gomu.yaml"
@@ -65,13 +65,14 @@ var configInitCmd = &cobra.Command{
 			return fmt.Errorf("configuration file %s already exists (use --force to overwrite)", filename)
 		}
 
-		cfg := config.DefaultYAML()
-		if err := cfg.SaveYAML(filename); err != nil {
-			return err
+		cfg := config.Default()
+		if err := cfg.Save(filename); err != nil {
+			return fmt.Errorf("failed to save configuration file: %w", err)
 		}
 
 		fmt.Printf("✅ Created %s\n", filename)
 		fmt.Printf("💡 Edit the file to customize your mutation testing settings\n")
+
 		return nil
 	},
 }
@@ -79,19 +80,21 @@ var configInitCmd = &cobra.Command{
 var configValidateCmd = &cobra.Command{
 	Use:   "validate [config-file]",
 	Short: "Validate configuration file",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		configFile := ""
 		if len(args) > 0 {
 			configFile = args[0]
 		}
 
-		_, err := config.LoadYAML(configFile)
+		_, err := config.Load(configFile)
 		if err != nil {
 			fmt.Printf("❌ Configuration validation failed: %v\n", err)
-			return err
+
+			return fmt.Errorf("invalid configuration file: %w", err)
 		}
 
 		fmt.Printf("✅ Configuration is valid\n")
+
 		return nil
 	},
 }
@@ -177,17 +180,18 @@ func runCIMutationTesting(cmd *cobra.Command, args []string) error {
 	fmt.Printf("⚙️  Configuration: %s\n", ciConfigFile)
 
 	// Create CI engine
-	engine, err := ci.NewCIEngine(ciConfigFile, workDir)
+	engine, err := ci.NewEngine(ciConfigFile, workDir)
 	if err != nil {
 		return fmt.Errorf("failed to create CI engine: %w", err)
 	}
 
 	// Run CI mutation testing
-	if err := engine.Run(); err != nil {
+	if err := engine.Run(cmd.Context()); err != nil {
 		return fmt.Errorf("CI mutation testing failed: %w", err)
 	}
 
 	fmt.Println("✅ CI mutation testing completed successfully")
+
 	return nil
 }
 
