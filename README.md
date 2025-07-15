@@ -67,7 +67,7 @@ gomu run
 
 3. **Run in CI environment:**
 ```bash
-gomu ci
+gomu run --ci-mode
 ```
 
 4. **Run on specific directory:**
@@ -176,7 +176,7 @@ ci:
 gomu uses a **single configuration file** approach:
 
 - **Local Development**: Run `gomu run` using the same `.gomu.yaml`
-- **CI Environment**: Run `gomu ci` using the same `.gomu.yaml`
+- **CI Environment**: Run `gomu run --ci-mode` using the same `.gomu.yaml`
 - **Auto-Detection**: gomu automatically detects the environment and applies appropriate settings
 - **Environment Variables**: CI-specific values like `GITHUB_TOKEN` are injected automatically
 
@@ -193,7 +193,7 @@ gomu config validate
 ### Basic Usage
 
 - `gomu run [path]` - Run mutation testing
-- `gomu ci [path]` - Run mutation testing in CI/CD environment
+- `gomu run --ci-mode [path]` - Run mutation testing in CI/CD environment
 - `gomu version` - Show version information
 
 ### Configuration Management
@@ -203,12 +203,12 @@ gomu config validate
 
 ### CI/CD Command Options
 
-The `gomu ci` command includes additional options for CI/CD environments:
+The `gomu run --ci-mode` command includes additional options for CI/CD environments:
 
 ```bash
-gomu ci --threshold 85.0                    # Set quality gate threshold
-gomu ci --format html                       # Output format (json, html, console)
-gomu ci --fail-on-gate=false               # Don't fail build on quality gate
+gomu run --ci-mode --threshold 85.0                    # Set quality gate threshold
+gomu run --ci-mode --format html                       # Output format (json, html, console)
+gomu run --ci-mode --fail-on-gate=false               # Don't fail build on quality gate
 ```
 
 ## Mutation Types
@@ -314,7 +314,7 @@ jobs:
       run: go install github.com/sivchari/gomu/cmd/gomu@latest
     
     - name: Run mutation testing
-      run: gomu ci
+      run: gomu run --ci-mode
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_REPOSITORY: ${{ github.repository }}

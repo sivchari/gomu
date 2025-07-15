@@ -95,7 +95,7 @@ runs:
         
         echo "Running mutation testing with gomu (unified config)..."
         # Use single config file for both local and CI environments
-        gomu ci --config ${{ inputs.config-file }} --verbose
+        gomu run --ci-mode --config ${{ inputs.config-file }} --verbose
         
         # Parse results if report exists
         if [ -f "mutation-report.json" ]; then
