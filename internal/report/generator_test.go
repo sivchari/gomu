@@ -93,9 +93,11 @@ func TestCalculateStatistics(t *testing.T) {
 		if arithmeticStats.Total != 3 {
 			t.Errorf("Expected arithmetic total 3, got %d", arithmeticStats.Total)
 		}
+
 		if arithmeticStats.Killed != 2 {
 			t.Errorf("Expected arithmetic killed 2, got %d", arithmeticStats.Killed)
 		}
+
 		if arithmeticStats.Survived != 0 {
 			t.Errorf("Expected arithmetic survived 0, got %d", arithmeticStats.Survived)
 		}
@@ -108,9 +110,11 @@ func TestCalculateStatistics(t *testing.T) {
 		if conditionalStats.Total != 2 {
 			t.Errorf("Expected conditional total 2, got %d", conditionalStats.Total)
 		}
+
 		if conditionalStats.Killed != 0 {
 			t.Errorf("Expected conditional killed 0, got %d", conditionalStats.Killed)
 		}
+
 		if conditionalStats.Survived != 1 {
 			t.Errorf("Expected conditional survived 1, got %d", conditionalStats.Survived)
 		}
@@ -123,9 +127,11 @@ func TestCalculateStatistics(t *testing.T) {
 		if logicalStats.Total != 1 {
 			t.Errorf("Expected logical total 1, got %d", logicalStats.Total)
 		}
+
 		if logicalStats.Killed != 0 {
 			t.Errorf("Expected logical killed 0, got %d", logicalStats.Killed)
 		}
+
 		if logicalStats.Survived != 0 {
 			t.Errorf("Expected logical survived 0, got %d", logicalStats.Survived)
 		}
