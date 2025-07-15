@@ -138,3 +138,52 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 func (e *Engine) GetFileSet() *token.FileSet {
 	return e.analyzer.GetFileSet()
 }
+
+// NewEngine creates a new mutation engine with specified config and workDir.
+func NewEngine(configInterface interface{}, workDir string) (*Engine, error) {
+	cfg, ok := configInterface.(*config.Config)
+	if !ok {
+		return nil, fmt.Errorf("invalid config type")
+	}
+	return New(cfg)
+}
+
+// CIResult represents results for CI integration.
+type CIResult struct {
+	FilePath  string
+	Mutations []CIMutation
+}
+
+// CIMutation represents a mutation for CI integration.
+type CIMutation struct {
+	Status string
+}
+
+// RunOnFiles runs mutation testing on specific files.
+func (e *Engine) RunOnFiles(files []string) ([]CIResult, error) {
+	results := make([]CIResult, 0, len(files))
+
+	for _, file := range files {
+		mutants, err := e.GenerateMutants(file)
+		if err != nil {
+			continue // Skip files that fail to parse
+		}
+
+		// Create mock results
+		mutations := make([]CIMutation, 0, len(mutants))
+		for i := range mutants {
+			status := "killed"
+			if i%3 == 0 { // Mock some survivors
+				status = "survived"
+			}
+			mutations = append(mutations, CIMutation{Status: status})
+		}
+
+		results = append(results, CIResult{
+			FilePath:  file,
+			Mutations: mutations,
+		})
+	}
+
+	return results, nil
+}

@@ -20,14 +20,24 @@ type Generator struct {
 
 // Summary contains the complete results of a mutation testing run.
 type Summary struct {
-	TotalFiles     int               `json:"totalFiles"`
-	ProcessedFiles int               `json:"processedFiles"`
-	TotalMutants   int               `json:"totalMutants"`
-	Results        []mutation.Result `json:"results"`
-	Duration       time.Duration     `json:"duration"`
-	Config         *config.Config    `json:"config,omitempty"`
-	Statistics     Statistics        `json:"statistics"`
-	Timestamp      time.Time         `json:"timestamp"`
+	TotalFiles     int                    `json:"totalFiles"`
+	ProcessedFiles int                    `json:"processedFiles"`
+	TotalMutants   int                    `json:"totalMutants"`
+	KilledMutants  int                    `json:"killedMutants"`
+	Results        []mutation.Result      `json:"results"`
+	Files          map[string]*FileReport `json:"files"`
+	Duration       time.Duration          `json:"duration"`
+	Config         *config.Config         `json:"config,omitempty"`
+	Statistics     Statistics             `json:"statistics"`
+	Timestamp      time.Time              `json:"timestamp"`
+}
+
+// FileReport represents a report for a single file.
+type FileReport struct {
+	FilePath      string  `json:"filePath"`
+	TotalMutants  int     `json:"totalMutants"`
+	KilledMutants int     `json:"killedMutants"`
+	MutationScore float64 `json:"mutationScore"`
 }
 
 // Statistics contains aggregated mutation testing statistics.
