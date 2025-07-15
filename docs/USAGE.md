@@ -35,7 +35,7 @@ gomu run -v
 
 ### Use custom configuration file
 ```bash
-gomu run --config custom-config.json
+gomu run --config custom-config.yaml
 ```
 
 ## Configuration
@@ -44,30 +44,49 @@ gomu run --config custom-config.json
 
 gomu looks for configuration files in the following order:
 1. File specified with `--config` flag
-2. `.gomu.json` in current directory
-3. `gomu.json` in current directory  
-4. `.gomu/config.json` in current directory
+2. `.gomu.yaml` in current directory
+3. `gomu.yaml` in current directory  
+4. `.gomu/config.yaml` in current directory
 5. Default configuration if no file found
 
 ### Basic Configuration
 
-Create a `.gomu.json` file in your project root:
+Create a `.gomu.yaml` file in your project root:
 
-```json
-{
-  "verbose": false,
-  "workers": 4,
-  "test_command": "go test",
-  "test_timeout": 30,
-  "test_patterns": ["*_test.go"],
-  "exclude_files": ["vendor/", ".git/"],
-  "mutators": ["arithmetic", "conditional", "logical"],
-  "mutation_limit": 1000,
-  "history_file": ".gomu_history.json",
-  "use_git_diff": true,
-  "base_branch": "main",
-  "output_format": "text"
-}
+```yaml
+# General settings
+verbose: false
+workers: 4
+
+# Test configuration
+test:
+  command: "go test"
+  timeout: 30
+  patterns:
+    - "*_test.go"
+  exclude:
+    - "vendor/"
+    - ".git/"
+
+# Mutation configuration
+mutation:
+  types:
+    - "arithmetic"
+    - "conditional" 
+    - "logical"
+  limit: 1000
+
+# Incremental analysis
+incremental:
+  enabled: true
+  historyFile: ".gomu_history.json"
+  useGitDiff: true
+  baseBranch: "main"
+
+# Output configuration
+output:
+  format: "text"
+  file: ""
 ```
 
 ### Configuration Reference
@@ -260,7 +279,7 @@ fi
 - name: Run mutation testing
   run: |
     go build -o gomu ./cmd/gomu
-    ./gomu run --config .gomu-ci.json
+    ./gomu run --config .gomu.yaml
 ```
 
 #### GitLab CI
@@ -268,7 +287,7 @@ fi
 mutation_testing:
   script:
     - go build -o gomu ./cmd/gomu
-    - ./gomu run --config .gomu-ci.json
+    - ./gomu run --config .gomu.yaml
 ```
 
 ### Makefile Integration
@@ -282,7 +301,7 @@ mutation-test:
 .PHONY: mutation-test-ci
 mutation-test-ci:
 	@echo "Running mutation testing for CI..."
-	@./gomu run --config .gomu-ci.json
+	@./gomu run --config .gomu.yaml
 ```
 
 ## Troubleshooting

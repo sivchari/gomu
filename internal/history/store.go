@@ -183,3 +183,56 @@ type Stats struct {
 	AverageScore float64   `json:"averageScore"`
 	LastUpdated  time.Time `json:"lastUpdated"`
 }
+
+// HistoryEntry is an alias for Entry for compatibility.
+type HistoryEntry = Entry
+
+// NewStore creates a new history store (alias for New).
+func NewStore(filepath string) (*Store, error) {
+	return New(filepath)
+}
+
+// UpdateEntry updates an entry (wrapper for UpdateFileWithHashes).
+func (s *Store) UpdateEntry(filePath string, entry HistoryEntry) error {
+	s.entries[filePath] = entry
+	return nil
+}
+
+// HistoryStoreAdapter adapts Store to analysis.HistoryStore interface.
+type HistoryStoreAdapter struct {
+	store *Store
+}
+
+// NewHistoryStoreAdapter creates a new adapter.
+func NewHistoryStoreAdapter(store *Store) *HistoryStoreAdapter {
+	return &HistoryStoreAdapter{store: store}
+}
+
+// GetEntry implements analysis.HistoryStore interface.
+func (a *HistoryStoreAdapter) GetEntry(filePath string) (AnalysisHistoryEntry, bool) {
+	entry, exists := a.store.GetEntry(filePath)
+	if !exists {
+		return AnalysisHistoryEntry{}, false
+	}
+
+	// Convert to analysis.HistoryEntry format
+	analysisEntry := AnalysisHistoryEntry{
+		FileHash:      entry.FileHash,
+		TestHash:      entry.TestHash,
+		MutationScore: entry.MutationScore,
+	}
+
+	return analysisEntry, true
+}
+
+// AnalysisHistoryEntry represents the entry format expected by analysis package.
+type AnalysisHistoryEntry struct {
+	FileHash      string
+	TestHash      string
+	MutationScore float64
+}
+
+// HasChanged implements analysis.HistoryStore interface.
+func (a *HistoryStoreAdapter) HasChanged(filePath, currentHash string) bool {
+	return a.store.HasChanged(filePath, currentHash)
+}
