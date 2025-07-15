@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sivchari/gomu/internal/ci"
 	"github.com/sivchari/gomu/internal/config"
 	"github.com/sivchari/gomu/pkg/gomu"
 	"github.com/spf13/cobra"
@@ -99,28 +98,19 @@ var configValidateCmd = &cobra.Command{
 	},
 }
 
-var ciCmd = &cobra.Command{
-	Use:   "ci [path]",
-	Short: "Run mutation testing in CI/CD environment",
-	Long: `Run mutation testing optimized for CI/CD environments.
-This command includes:
-- Quality gates with configurable thresholds
-- GitHub/GitLab integration for PR comments
-- Incremental analysis based on changed files
-- HTML and JSON report generation
-- Automatic failure on quality gate violations`,
-	Args: cobra.MaximumNArgs(1),
-	RunE: runCIMutationTesting,
-}
-
 func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is .gomu.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(ciCmd)
 	rootCmd.AddCommand(configCmd)
+
+	// Run command flags
+	runCmd.Flags().Bool("ci-mode", false, "enable CI mode with quality gates and reporting")
+	runCmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold (CI mode only)")
+	runCmd.Flags().String("format", "json", "output format for CI reports (CI mode only)")
+	runCmd.Flags().Bool("fail-on-gate", true, "fail build when quality gate is not met (CI mode only)")
 
 	// Config subcommands
 	configCmd.AddCommand(configInitCmd)
@@ -128,15 +118,9 @@ func init() {
 
 	// Config init flags
 	configInitCmd.Flags().Bool("force", false, "overwrite existing config file")
-
-	// CI-specific flags
-	ciCmd.Flags().String("ci-config", "", "CI-specific configuration file (defaults to main config)")
-	ciCmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold for quality gate")
-	ciCmd.Flags().String("format", "json", "output format (json, html, console)")
-	ciCmd.Flags().Bool("fail-on-gate", true, "fail build when quality gate is not met")
 }
 
-func runMutationTesting(_ *cobra.Command, args []string) error {
+func runMutationTesting(cmd *cobra.Command, args []string) error {
 	path := "."
 	if len(args) > 0 {
 		path = args[0]
@@ -151,46 +135,34 @@ func runMutationTesting(_ *cobra.Command, args []string) error {
 		cfg.Verbose = true
 	}
 
-	engine, err := gomu.NewEngine(cfg)
+	// Check if CI mode is enabled
+	ciMode, _ := cmd.Flags().GetBool("ci-mode")
+
+	// Override CI config with command line flags if in CI mode
+	if ciMode {
+		if threshold, _ := cmd.Flags().GetFloat64("threshold"); cmd.Flags().Changed("threshold") {
+			cfg.CI.QualityGate.MinMutationScore = threshold
+		}
+
+		if format, _ := cmd.Flags().GetString("format"); cmd.Flags().Changed("format") {
+			cfg.CI.Reports.Formats = []string{format}
+		}
+
+		if failOnGate, _ := cmd.Flags().GetBool("fail-on-gate"); cmd.Flags().Changed("fail-on-gate") {
+			cfg.CI.QualityGate.FailOnQualityGate = failOnGate
+		}
+		// Enable CI features
+		cfg.CI.QualityGate.Enabled = true
+	}
+
+	engine, err := gomu.NewEngineWithCIMode(cfg, ciMode)
 	if err != nil {
 		return fmt.Errorf("failed to create engine: %w", err)
 	}
 
-	if err := engine.Run(path); err != nil {
+	if err := engine.RunWithContext(cmd.Context(), path); err != nil {
 		return fmt.Errorf("mutation testing failed: %w", err)
 	}
-
-	return nil
-}
-
-func runCIMutationTesting(cmd *cobra.Command, args []string) error {
-	workDir := "."
-	if len(args) > 0 {
-		workDir = args[0]
-	}
-
-	// Get CI-specific config file
-	ciConfigFile, _ := cmd.Flags().GetString("ci-config")
-	if ciConfigFile == "" {
-		ciConfigFile = configFile
-	}
-
-	fmt.Println("🧬 Starting CI Mutation Testing...")
-	fmt.Printf("📁 Working directory: %s\n", workDir)
-	fmt.Printf("⚙️  Configuration: %s\n", ciConfigFile)
-
-	// Create CI engine
-	engine, err := ci.NewEngine(ciConfigFile, workDir)
-	if err != nil {
-		return fmt.Errorf("failed to create CI engine: %w", err)
-	}
-
-	// Run CI mutation testing
-	if err := engine.Run(cmd.Context()); err != nil {
-		return fmt.Errorf("CI mutation testing failed: %w", err)
-	}
-
-	fmt.Println("✅ CI mutation testing completed successfully")
 
 	return nil
 }

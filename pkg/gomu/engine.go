@@ -2,12 +2,15 @@
 package gomu
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/sivchari/gomu/internal/analysis"
+	"github.com/sivchari/gomu/internal/ci"
 	"github.com/sivchari/gomu/internal/config"
 	"github.com/sivchari/gomu/internal/execution"
 	"github.com/sivchari/gomu/internal/history"
@@ -24,10 +27,20 @@ type Engine struct {
 	history             *history.Store
 	reporter            *report.Generator
 	incrementalAnalyzer *analysis.IncrementalAnalyzer
+	// CI-specific components
+	ciMode      bool
+	qualityGate *ci.QualityGateEvaluator
+	ciReporter  *ci.Reporter
+	github      *ci.GitHubIntegration
 }
 
 // NewEngine creates a new mutation testing engine.
 func NewEngine(cfg *config.Config) (*Engine, error) {
+	return NewEngineWithCIMode(cfg, false)
+}
+
+// NewEngineWithCIMode creates a new mutation testing engine with optional CI mode.
+func NewEngineWithCIMode(cfg *config.Config, ciMode bool) (*Engine, error) {
 	analyzer, err := analysis.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create analyzer: %w", err)
@@ -53,7 +66,7 @@ func NewEngine(cfg *config.Config) (*Engine, error) {
 		return nil, fmt.Errorf("failed to create reporter: %w", err)
 	}
 
-	return &Engine{
+	engine := &Engine{
 		config:              cfg,
 		analyzer:            analyzer,
 		mutator:             mutator,
@@ -61,11 +74,54 @@ func NewEngine(cfg *config.Config) (*Engine, error) {
 		history:             historyStore,
 		reporter:            reporter,
 		incrementalAnalyzer: nil, // Will be initialized in Run method
-	}, nil
+		ciMode:              ciMode,
+	}
+
+	// Initialize CI-specific components if in CI mode
+	if ciMode {
+		engine.initializeCIComponents()
+	}
+
+	return engine, nil
+}
+
+// initializeCIComponents initializes CI-specific components.
+func (e *Engine) initializeCIComponents() {
+	// Initialize quality gate
+	e.qualityGate = ci.NewQualityGateEvaluator(
+		e.config.CI.QualityGate.Enabled,
+		e.config.CI.QualityGate.MinMutationScore,
+	)
+
+	// Initialize CI reporter
+	outputFormat := "json"
+	if len(e.config.CI.Reports.Formats) > 0 {
+		outputFormat = e.config.CI.Reports.Formats[0]
+	}
+
+	e.ciReporter = ci.NewReporter(e.config.CI.Reports.OutputDir, outputFormat)
+
+	// Initialize GitHub integration if enabled
+	if e.config.CI.GitHub.Enabled {
+		ciConfig := ci.LoadConfigFromEnv()
+		if ciConfig.Mode == "pr" && ciConfig.PRNumber > 0 {
+			token := os.Getenv("GITHUB_TOKEN")
+
+			repo := os.Getenv("GITHUB_REPOSITORY")
+			if token != "" && repo != "" {
+				e.github = ci.NewGitHubIntegration(token, repo, ciConfig.PRNumber)
+			}
+		}
+	}
 }
 
 // Run executes mutation testing on the specified path.
 func (e *Engine) Run(path string) error {
+	return e.RunWithContext(context.Background(), path)
+}
+
+// RunWithContext executes mutation testing on the specified path with context.
+func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 	start := time.Now()
 
 	if e.config.Verbose {
@@ -199,11 +255,116 @@ func (e *Engine) Run(path string) error {
 		return fmt.Errorf("failed to generate report: %w", err)
 	}
 
+	// 7. CI-specific processing
+	if e.ciMode {
+		if err := e.processCIWorkflow(ctx, summary); err != nil {
+			return fmt.Errorf("CI workflow failed: %w", err)
+		}
+	}
+
 	if e.config.Verbose {
 		log.Printf("Mutation testing completed in %v", time.Since(start))
 	}
 
 	return nil
+}
+
+// processCIWorkflow handles CI-specific processing after mutation testing.
+func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary) error {
+	if e.config.Verbose {
+		log.Println("Processing CI workflow...")
+	}
+
+	// Convert summary to CI format
+	ciSummary := e.convertToCISummary(summary)
+
+	// Evaluate quality gate
+	var qualityResult *ci.QualityGateResult
+	if e.qualityGate != nil {
+		qualityResult = e.qualityGate.Evaluate(ciSummary)
+		fmt.Printf("Quality Gate: %s (Score: %.1f%%)\n",
+			map[bool]string{true: "PASSED", false: "FAILED"}[qualityResult.Pass],
+			qualityResult.MutationScore)
+
+		if !qualityResult.Pass {
+			fmt.Printf("Reason: %s\n", qualityResult.Reason)
+		}
+	}
+
+	// Generate CI reports
+	if e.ciReporter != nil {
+		if err := e.ciReporter.Generate(ciSummary, e.qualityGate); err != nil {
+			return fmt.Errorf("failed to generate CI reports: %w", err)
+		}
+	}
+
+	// Create GitHub PR comment
+	if e.github != nil && qualityResult != nil {
+		if err := e.github.CreatePRComment(ctx, ciSummary, qualityResult); err != nil {
+			fmt.Printf("Warning: Failed to create PR comment: %v\n", err)
+		} else {
+			fmt.Println("Created PR comment with mutation testing results")
+		}
+	}
+
+	// Fail build if quality gate fails
+	if qualityResult != nil && !qualityResult.Pass && e.shouldFailOnQualityGate() {
+		return fmt.Errorf("quality gate failed: %s", qualityResult.Reason)
+	}
+
+	return nil
+}
+
+// convertToCISummary converts report.Summary to CI format.
+func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
+	// Create file reports map
+	files := make(map[string]*report.FileReport)
+
+	totalMutants := 0
+	killedMutants := 0
+
+	// Group results by file
+	fileResults := make(map[string][]mutation.Result)
+	for _, result := range summary.Results {
+		fileResults[result.Mutant.FilePath] = append(fileResults[result.Mutant.FilePath], result)
+	}
+
+	// Create file reports
+	for filePath, results := range fileResults {
+		fileReport := &report.FileReport{
+			FilePath:      filePath,
+			TotalMutants:  len(results),
+			KilledMutants: 0,
+		}
+
+		for _, result := range results {
+			if result.Status == mutation.StatusKilled {
+				fileReport.KilledMutants++
+				killedMutants++
+			}
+
+			totalMutants++
+		}
+
+		if fileReport.TotalMutants > 0 {
+			fileReport.MutationScore = float64(fileReport.KilledMutants) / float64(fileReport.TotalMutants) * 100
+		}
+
+		files[filePath] = fileReport
+	}
+
+	return &report.Summary{
+		Files:         files,
+		TotalMutants:  totalMutants,
+		KilledMutants: killedMutants,
+		Duration:      summary.Duration,
+		Config:        summary.Config,
+	}
+}
+
+// shouldFailOnQualityGate determines if the build should fail on quality gate failure.
+func (e *Engine) shouldFailOnQualityGate() bool {
+	return e.config.CI.QualityGate.Enabled && e.config.CI.QualityGate.FailOnQualityGate
 }
 
 // calculateTestHash calculates the combined hash of test files related to the given file.
