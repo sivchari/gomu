@@ -1,0 +1,85 @@
+version: 2
+
+project_name: gomu
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: gomu
+    main: ./cmd/gomu
+    binary: gomu
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+
+archives:
+  - id: gomu
+    formats: ['tar.gz']
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: ['zip']
+    files:
+      - LICENSE
+      - README.md
+    ids:
+      - gomu
+
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+
+changelog:
+  sort: asc
+
+release:
+  github:
+    owner: sivchari
+    name: gomu
+  draft: false
+  prerelease: auto
+  name_template: "{{ .Version }}"
+  header: |
+    ## Changes
+
+    This release includes the following changes:
+  footer: |
+    ## Installation
+
+    ### Binary downloads
+    Download the appropriate binary for your platform from the assets below.
+
+    ### Go install
+    ```bash
+    go install github.com/sivchari/gomu/cmd/gomu@{{ .Tag }}
+    ```
+
+    ### Homebrew (macOS/Linux)
+    ```bash
+    brew install sivchari/tap/gomu
+    ```
+
+    ---
+    **Full Changelog**: https://github.com/sivchari/gomu/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+homebrew_casks:
+  - name: gomu
+    repository:
+      owner: sivchari
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/sivchari/gomu
+    description: "A Go code generator for validation functions"
+    license: MIT
+    binary: gomu
+    conflicts:
+      - formula: gomu
