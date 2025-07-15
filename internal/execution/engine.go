@@ -15,8 +15,10 @@ import (
 
 // Engine handles test execution.
 type Engine struct {
-	config  *config.Config
-	mutator *SourceMutator
+	config    *config.Config
+	mutator   *SourceMutator
+	fileLocks map[string]*sync.Mutex
+	fileMapMu sync.Mutex
 }
 
 // New creates a new execution engine.
@@ -27,8 +29,9 @@ func New(cfg *config.Config) (*Engine, error) {
 	}
 
 	return &Engine{
-		config:  cfg,
-		mutator: mutator,
+		config:    cfg,
+		mutator:   mutator,
+		fileLocks: make(map[string]*sync.Mutex),
 	}, nil
 }
 
@@ -91,12 +94,33 @@ type indexedResult struct {
 	result mutation.Result
 }
 
+// getFileLock returns a mutex for the given file path.
+func (e *Engine) getFileLock(filePath string) *sync.Mutex {
+	e.fileMapMu.Lock()
+	defer e.fileMapMu.Unlock()
+
+	if lock, exists := e.fileLocks[filePath]; exists {
+		return lock
+	}
+
+	lock := &sync.Mutex{}
+	e.fileLocks[filePath] = lock
+
+	return lock
+}
+
 // runSingleMutation executes tests for a single mutant.
 func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 	result := mutation.Result{
 		Mutant: mutant,
 		Status: mutation.StatusError,
 	}
+
+	// Acquire file lock to prevent concurrent mutations on the same file
+	fileLock := e.getFileLock(mutant.FilePath)
+
+	fileLock.Lock()
+	defer fileLock.Unlock()
 
 	// 1. Apply the mutation to the source code
 	if err := e.mutator.ApplyMutation(mutant); err != nil {

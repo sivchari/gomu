@@ -103,7 +103,7 @@ func (sm *SourceMutator) backupFile(filePath string) error {
 func (sm *SourceMutator) getBackupPath(filePath string) string {
 	absPath, _ := filepath.Abs(filePath)
 	// Replace path separators with underscores for backup filename
-	backupName := filepath.Base(absPath) + "_" + fmt.Sprintf("%x", absPath)
+	backupName := filepath.Base(absPath) + "_" + fmt.Sprintf("%x", absPath) + "_original"
 
 	return filepath.Join(sm.backupDir, backupName)
 }
@@ -300,23 +300,31 @@ func (sm *SourceMutator) writeModifiedAST(file *ast.File, fset *token.FileSet, f
 	if err != nil {
 		return fmt.Errorf("failed to create temporary file: %w", err)
 	}
-	defer f.Close()
 
 	// Format and write the AST
 	if err := format.Node(f, fset, file); err != nil {
-		if err := os.Remove(tmpFile); err != nil {
-			// Log error but continue
-			fmt.Printf("Warning: failed to remove temporary file: %v\n", err)
+		f.Close()
+
+		if _, statErr := os.Stat(tmpFile); statErr == nil {
+			if removeErr := os.Remove(tmpFile); removeErr != nil {
+				fmt.Printf("Warning: failed to remove temporary file: %v\n", removeErr)
+			}
 		}
 
 		return fmt.Errorf("failed to format and write AST: %w", err)
 	}
 
+	// Close file before rename
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("failed to close temporary file: %w", err)
+	}
+
 	// Replace original file with temporary file
 	if err := os.Rename(tmpFile, filePath); err != nil {
-		if err := os.Remove(tmpFile); err != nil {
-			// Log error but continue
-			fmt.Printf("Warning: failed to remove temporary file: %v\n", err)
+		if _, statErr := os.Stat(tmpFile); statErr == nil {
+			if removeErr := os.Remove(tmpFile); removeErr != nil {
+				fmt.Printf("Warning: failed to remove temporary file: %v\n", removeErr)
+			}
 		}
 
 		return fmt.Errorf("failed to replace original file: %w", err)

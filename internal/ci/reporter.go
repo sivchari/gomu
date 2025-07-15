@@ -113,11 +113,13 @@ func (r *Reporter) generateJSONReport(summary *report.Summary, qualityResult *Qu
 func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *QualityGateResult) error {
 	// Build file details HTML
 	fileDetailsHTML := ""
+
 	for _, file := range summary.Files {
 		score := 0.0
 		if file.TotalMutants > 0 {
 			score = float64(file.KilledMutants) / float64(file.TotalMutants) * 100
 		}
+
 		fileDetailsHTML += fmt.Sprintf(`
         <tr>
             <td>%s</td>
