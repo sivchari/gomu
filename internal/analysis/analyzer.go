@@ -4,8 +4,10 @@ package analysis
 import (
 	"fmt"
 	"go/ast"
+	"go/importer"
 	"go/parser"
 	"go/token"
+	"go/types"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,8 +19,9 @@ import (
 
 // Analyzer handles code analysis and file discovery.
 type Analyzer struct {
-	config  *config.Config
-	fileSet *token.FileSet
+	config   *config.Config
+	fileSet  *token.FileSet
+	typeInfo *types.Info
 }
 
 // New creates a new analyzer.
@@ -26,14 +29,20 @@ func New(cfg *config.Config) (*Analyzer, error) {
 	return &Analyzer{
 		config:  cfg,
 		fileSet: token.NewFileSet(),
+		typeInfo: &types.Info{
+			Types: make(map[ast.Expr]types.TypeAndValue),
+			Uses:  make(map[*ast.Ident]types.Object),
+			Defs:  make(map[*ast.Ident]types.Object),
+		},
 	}, nil
 }
 
 // FileInfo represents information about a Go source file.
 type FileInfo struct {
-	Path    string
-	FileAST *ast.File
-	Hash    string
+	Path     string
+	FileAST  *ast.File
+	Hash     string
+	TypeInfo *types.Info
 }
 
 // FindTargetFiles discovers Go source files to be tested.
@@ -140,10 +149,14 @@ func (a *Analyzer) ParseFile(filePath string) (*FileInfo, error) {
 	// Calculate file hash for incremental analysis
 	hash := calculateFileHash(src)
 
+	// Try to get type information for the file
+	typeInfo := a.getTypeInfo(fileAST, filePath)
+
 	return &FileInfo{
-		Path:    filePath,
-		FileAST: fileAST,
-		Hash:    hash,
+		Path:     filePath,
+		FileAST:  fileAST,
+		Hash:     hash,
+		TypeInfo: typeInfo,
 	}, nil
 }
 
@@ -155,6 +168,70 @@ func (a *Analyzer) GetPosition(pos token.Pos) token.Position {
 // GetFileSet returns the file set used by the analyzer.
 func (a *Analyzer) GetFileSet() *token.FileSet {
 	return a.fileSet
+}
+
+// getTypeInfo attempts to get type information for a file.
+func (a *Analyzer) getTypeInfo(fileAST *ast.File, filePath string) *types.Info {
+	// Create a new type info for this file
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+		Uses:  make(map[*ast.Ident]types.Object),
+		Defs:  make(map[*ast.Ident]types.Object),
+	}
+
+	// Get the package directory
+	pkgDir := filepath.Dir(filePath)
+
+	// Parse all files in the package
+	pkgFiles, err := a.parsePackageFiles(pkgDir)
+	if err != nil {
+		// If we can't parse the package, return nil (fall back to syntax-only)
+		return nil
+	}
+
+	// Create type checker config
+	config := &types.Config{
+		Importer: importer.ForCompiler(a.fileSet, "source", nil),
+		Error: func(_ error) {
+			// Ignore type errors for now - we want to be permissive
+		},
+	}
+
+	// Type check the package
+	_, err = config.Check(fileAST.Name.Name, a.fileSet, pkgFiles, info)
+	if err != nil {
+		// If type checking fails, return nil (fall back to syntax-only)
+		return nil
+	}
+
+	return info
+}
+
+// parsePackageFiles parses all Go files in a package directory.
+func (a *Analyzer) parsePackageFiles(pkgDir string) ([]*ast.File, error) {
+	files, err := filepath.Glob(filepath.Join(pkgDir, "*.go"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to glob files: %w", err)
+	}
+
+	astFiles := make([]*ast.File, 0, len(files))
+
+	for _, file := range files {
+		// Skip test files for type checking
+		if strings.HasSuffix(file, "_test.go") {
+			continue
+		}
+
+		astFile, err := parser.ParseFile(a.fileSet, file, nil, parser.ParseComments)
+		if err != nil {
+			// Skip files that can't be parsed
+			continue
+		}
+
+		astFiles = append(astFiles, astFile)
+	}
+
+	return astFiles, nil
 }
 
 // CalculateFileHash calculates a hash for the given file content.
