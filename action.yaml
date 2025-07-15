@@ -1,0 +1,199 @@
+name: 'Gomu Mutation Testing'
+description: 'Run mutation testing for Go projects using gomu with incremental analysis'
+author: 'sivchari'
+
+branding:
+  icon: 'git-branch'
+  color: 'blue'
+
+inputs:
+  go-version:
+    description: 'Go version to use'
+    required: false
+    default: '1.21'
+  
+  config-file:
+    description: 'Path to gomu configuration file'
+    required: false
+    default: '.gomu.yaml'
+  
+  working-directory:
+    description: 'Working directory for the action'
+    required: false
+    default: '.'
+  
+  mutation-score-threshold:
+    description: 'Minimum mutation score threshold (0-100)'
+    required: false
+    default: '80'
+  
+  upload-artifacts:
+    description: 'Whether to upload mutation reports as artifacts'
+    required: false
+    default: 'true'
+  
+  comment-pr:
+    description: 'Whether to comment on pull requests with results'
+    required: false
+    default: 'true'
+
+outputs:
+  mutation-score:
+    description: 'The mutation score percentage'
+    value: ${{ steps.mutation-test.outputs.mutation-score }}
+  
+  total-mutants:
+    description: 'Total number of mutants generated'
+    value: ${{ steps.mutation-test.outputs.total-mutants }}
+  
+  killed-mutants:
+    description: 'Number of killed mutants'
+    value: ${{ steps.mutation-test.outputs.killed-mutants }}
+  
+  survived-mutants:
+    description: 'Number of survived mutants'
+    value: ${{ steps.mutation-test.outputs.survived-mutants }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.go-version }}
+    
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: go mod download
+    
+    - name: Run tests first
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: go test ./...
+    
+    - name: Install gomu
+      shell: bash
+      run: |
+        echo "Installing gomu from repository..."
+        go install github.com/sivchari/gomu/cmd/gomu@latest
+    
+    - name: Run mutation testing
+      id: mutation-test
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -e
+        
+        echo "Running mutation testing with gomu (unified config)..."
+        # Use single config file for both local and CI environments
+        gomu ci --config ${{ inputs.config-file }} --verbose
+        
+        # Parse results if report exists
+        if [ -f "mutation-report.json" ]; then
+          mutation_score=$(jq -r '.mutationScore // 0' mutation-report.json)
+          total_mutants=$(jq -r '.totalMutants // 0' mutation-report.json)
+          killed_mutants=$(jq -r '.killed // 0' mutation-report.json)
+          survived_mutants=$(jq -r '.survived // 0' mutation-report.json)
+          
+          echo "mutation-score=$mutation_score" >> $GITHUB_OUTPUT
+          echo "total-mutants=$total_mutants" >> $GITHUB_OUTPUT
+          echo "killed-mutants=$killed_mutants" >> $GITHUB_OUTPUT
+          echo "survived-mutants=$survived_mutants" >> $GITHUB_OUTPUT
+          
+          echo "✅ Mutation testing completed"
+          echo "📊 Mutation Score: $mutation_score%"
+          echo "🧬 Total Mutants: $total_mutants"
+          echo "⚰️  Killed: $killed_mutants"
+          echo "🏃 Survived: $survived_mutants"
+          
+          # Check threshold
+          threshold=${{ inputs.mutation-score-threshold }}
+          if (( $(echo "$mutation_score < $threshold" | bc -l) )); then
+            echo "❌ Mutation score $mutation_score% is below threshold $threshold%"
+            exit 1
+          else
+            echo "✅ Mutation score $mutation_score% meets threshold $threshold%"
+          fi
+        else
+          echo "⚠️ No mutation report found"
+          exit 1
+        fi
+      env:
+        CI_MODE: pr
+        GITHUB_PR_NUMBER: ${{ github.event.number }}
+        GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
+        GITHUB_HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+    
+    - name: Upload mutation report
+      if: ${{ inputs.upload-artifacts == 'true' && always() }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: mutation-report
+        path: |
+          ${{ inputs.working-directory }}/mutation-report.html
+          ${{ inputs.working-directory }}/mutation-report.json
+          ${{ inputs.working-directory }}/.gomu_history.json
+    
+    - name: Comment PR
+      if: ${{ inputs.comment-pr == 'true' && github.event_name == 'pull_request' }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          try {
+            const workingDir = '${{ inputs.working-directory }}';
+            const reportPath = path.join(workingDir, 'mutation-report.json');
+            
+            if (fs.existsSync(reportPath)) {
+              const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+              const threshold = parseInt('${{ inputs.mutation-score-threshold }}');
+              
+              const comment = `## 🧬 Mutation Testing Report
+              
+              ### Summary
+              - **Mutation Score**: ${report.mutationScore}%
+              - **Total Mutants**: ${report.totalMutants}
+              - **Killed**: ${report.killed} (${report.killedPercentage}%)
+              - **Survived**: ${report.survived} (${report.survivedPercentage}%)
+              
+              ### Performance
+              - **Files Processed**: ${report.processedFiles}/${report.totalFiles}
+              - **Duration**: ${report.duration}
+              
+              ${report.mutationScore >= threshold ? '✅ **Quality Gate Passed**' : `❌ **Quality Gate Failed** - Minimum ${threshold}% required`}
+              
+              <details>
+              <summary>📊 Detailed Results</summary>
+              
+              ${report.changedFiles ? report.changedFiles.map(file => 
+                `- \`${file.path}\`: ${file.score}% (${file.status})`
+              ).join('\n') : ''}
+              
+              </details>
+              
+              ---
+              *Generated by [gomu mutation testing action](https://github.com/sivchari/gomu)*`;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+          } catch (error) {
+            console.error('Error posting comment:', error);
+          }

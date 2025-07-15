@@ -1,0 +1,28 @@
+name: Mutation Testing
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['**/*.go', '!**/*_test.go']
+  push:
+    branches: [main]
+    paths: ['**/*.go', '!**/*_test.go']
+
+jobs:
+  mutation-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for incremental analysis
+    
+    - name: Run mutation testing with gomu action
+      uses: ./  # Use the local action.yaml for self-validation
+      with:
+        go-version: '1.21'
+        config-file: '.gomu.yaml'
+        mutation-score-threshold: '80'
+        upload-artifacts: 'true'
+        comment-pr: 'true'
