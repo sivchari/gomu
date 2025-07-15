@@ -2,6 +2,7 @@ package ci
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -38,7 +39,7 @@ type PRComment struct {
 }
 
 // CreatePRComment creates a comment on a pull request.
-func (g *GitHubIntegration) CreatePRComment(summary *report.Summary, qualityResult *QualityGateResult) error {
+func (g *GitHubIntegration) CreatePRComment(ctx context.Context, summary *report.Summary, qualityResult *QualityGateResult) error {
 	if g.prNumber == 0 || g.token == "" {
 		return fmt.Errorf("missing required PR number or GitHub token")
 	}
@@ -49,12 +50,13 @@ func (g *GitHubIntegration) CreatePRComment(summary *report.Summary, qualityResu
 		g.apiBase, g.repository, g.prNumber)
 
 	payload := PRComment{Body: comment}
+
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal comment: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -71,6 +73,7 @@ func (g *GitHubIntegration) CreatePRComment(summary *report.Summary, qualityResu
 
 	if resp.StatusCode != http.StatusCreated {
 		body, _ := io.ReadAll(resp.Body)
+
 		return fmt.Errorf("failed to create comment: %s (status: %d)", string(body), resp.StatusCode)
 	}
 
@@ -80,6 +83,7 @@ func (g *GitHubIntegration) CreatePRComment(summary *report.Summary, qualityResu
 // formatPRComment formats the mutation testing results for PR comment.
 func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResult *QualityGateResult) string {
 	var buf strings.Builder
+
 	buf.WriteString("## 🧬 Mutation Testing Results\n\n")
 
 	// Quality gate status
@@ -99,6 +103,7 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	if len(summary.Files) > 0 {
 		buf.WriteString("| File | Score | Mutants | Killed |\n")
 		buf.WriteString("|------|-------|---------|--------|\n")
+
 		for _, fileReport := range summary.Files {
 			buf.WriteString(fmt.Sprintf("| %s | %.1f%% | %d | %d |\n",
 				fileReport.FilePath,
@@ -107,6 +112,7 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 				fileReport.KilledMutants,
 			))
 		}
+
 		buf.WriteString("\n")
 	} else {
 		buf.WriteString("No files analyzed.\n\n")

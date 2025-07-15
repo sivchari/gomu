@@ -10,7 +10,7 @@ import (
 	"github.com/sivchari/gomu/internal/report"
 )
 
-func TestCIReporter_Generate(t *testing.T) {
+func TestReporter_Generate(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	summary := &report.Summary{
@@ -40,6 +40,7 @@ func TestCIReporter_Generate(t *testing.T) {
 			expectedFile: "mutation-report.json",
 			checkContent: func(content string) bool {
 				var result map[string]interface{}
+
 				return json.Unmarshal([]byte(content), &result) == nil
 			},
 		},
@@ -56,7 +57,7 @@ func TestCIReporter_Generate(t *testing.T) {
 			name:         "Console format",
 			format:       "console",
 			expectedFile: "",
-			checkContent: func(content string) bool {
+			checkContent: func(_ string) bool {
 				return true // Console output doesn't create a file
 			},
 		},
@@ -64,9 +65,9 @@ func TestCIReporter_Generate(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			reporter := NewCIReporter(tmpDir, tc.format)
-			err := reporter.Generate(summary, qualityGate)
+			reporter := NewReporter(tmpDir, tc.format)
 
+			err := reporter.Generate(summary, qualityGate)
 			if err != nil {
 				t.Fatalf("Failed to generate report: %v", err)
 			}
@@ -75,6 +76,7 @@ func TestCIReporter_Generate(t *testing.T) {
 				reportPath := filepath.Join(tmpDir, tc.expectedFile)
 				if _, err := os.Stat(reportPath); os.IsNotExist(err) {
 					t.Errorf("Expected report file %s was not created", tc.expectedFile)
+
 					return
 				}
 
@@ -91,9 +93,9 @@ func TestCIReporter_Generate(t *testing.T) {
 	}
 }
 
-func TestCIReporter_generateJSONReport(t *testing.T) {
+func TestReporter_generateJSONReport(t *testing.T) {
 	tmpDir := t.TempDir()
-	reporter := NewCIReporter(tmpDir, "json")
+	reporter := NewReporter(tmpDir, "json")
 
 	summary := &report.Summary{
 		TotalMutants:  100,
@@ -121,6 +123,7 @@ func TestCIReporter_generateJSONReport(t *testing.T) {
 
 	// Verify file was created
 	reportPath := filepath.Join(tmpDir, "mutation-report.json")
+
 	content, err := os.ReadFile(reportPath)
 	if err != nil {
 		t.Fatalf("Failed to read JSON report: %v", err)
@@ -146,9 +149,9 @@ func TestCIReporter_generateJSONReport(t *testing.T) {
 	}
 }
 
-func TestCIReporter_generateHTMLReport(t *testing.T) {
+func TestReporter_generateHTMLReport(t *testing.T) {
 	tmpDir := t.TempDir()
-	reporter := NewCIReporter(tmpDir, "html")
+	reporter := NewReporter(tmpDir, "html")
 
 	summary := &report.Summary{
 		TotalMutants:  100,
@@ -176,6 +179,7 @@ func TestCIReporter_generateHTMLReport(t *testing.T) {
 
 	// Verify file was created
 	reportPath := filepath.Join(tmpDir, "mutation-report.html")
+
 	content, err := os.ReadFile(reportPath)
 	if err != nil {
 		t.Fatalf("Failed to read HTML report: %v", err)

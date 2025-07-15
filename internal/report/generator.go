@@ -64,7 +64,7 @@ func (g *Generator) Generate(summary *Summary) error {
 	summary.Statistics = g.calculateStatistics(summary.Results)
 	summary.Timestamp = time.Now()
 
-	switch g.config.OutputFormat {
+	switch g.config.Output.Format {
 	case "json":
 		return g.generateJSON(summary)
 	case "text":
@@ -108,8 +108,8 @@ func (g *Generator) generateJSON(summary *Summary) error {
 		return fmt.Errorf("failed to marshal summary: %w", err)
 	}
 
-	if g.config.OutputFile != "" {
-		if err := os.WriteFile(g.config.OutputFile, data, 0600); err != nil {
+	if g.config.Output.File != "" {
+		if err := os.WriteFile(g.config.Output.File, data, 0600); err != nil {
 			return fmt.Errorf("failed to write output file: %w", err)
 		}
 
@@ -124,8 +124,8 @@ func (g *Generator) generateJSON(summary *Summary) error {
 func (g *Generator) generateText(summary *Summary) error {
 	output := g.formatTextReport(summary)
 
-	if g.config.OutputFile != "" {
-		if err := os.WriteFile(g.config.OutputFile, []byte(output), 0600); err != nil {
+	if g.config.Output.File != "" {
+		if err := os.WriteFile(g.config.Output.File, []byte(output), 0600); err != nil {
 			return fmt.Errorf("failed to write output file: %w", err)
 		}
 
@@ -207,8 +207,8 @@ func (g *Generator) generateHTML(summary *Summary) error {
 		return fmt.Errorf("failed to execute HTML template: %w", err)
 	}
 
-	if g.config.OutputFile != "" {
-		if err := os.WriteFile(g.config.OutputFile, []byte(output.String()), 0600); err != nil {
+	if g.config.Output.File != "" {
+		if err := os.WriteFile(g.config.Output.File, []byte(output.String()), 0600); err != nil {
 			return fmt.Errorf("failed to write HTML output file: %w", err)
 		}
 

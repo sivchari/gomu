@@ -10,22 +10,22 @@ import (
 	"github.com/sivchari/gomu/internal/report"
 )
 
-// CIReporter generates CI-specific reports.
-type CIReporter struct {
+// Reporter generates CI-specific reports.
+type Reporter struct {
 	outputDir    string
 	outputFormat string
 }
 
-// NewCIReporter creates a new CI reporter.
-func NewCIReporter(outputDir, outputFormat string) *CIReporter {
-	return &CIReporter{
+// NewReporter creates a new Reporter.
+func NewReporter(outputDir, outputFormat string) *Reporter {
+	return &Reporter{
 		outputDir:    outputDir,
 		outputFormat: outputFormat,
 	}
 }
 
-// CIReport represents a CI-specific mutation testing report.
-type CIReport struct {
+// Report represents a CI-specific mutation testing report.
+type Report struct {
 	Summary            *report.Summary     `json:"summary"`
 	QualityGate        *QualityGateResult  `json:"qualityGate"`
 	ChangedFiles       []ChangedFileReport `json:"changedFiles"`
@@ -40,7 +40,7 @@ type CIReport struct {
 	ProcessedFiles     int                 `json:"processedFiles"`
 	TotalFiles         int                 `json:"totalFiles"`
 	Timestamp          time.Time           `json:"timestamp"`
-	CI                 CIMetadata          `json:"ci"`
+	Metadata           Metadata            `json:"metadata"`
 }
 
 // ChangedFileReport represents a report for a changed file.
@@ -50,8 +50,8 @@ type ChangedFileReport struct {
 	Status string  `json:"status"`
 }
 
-// CIMetadata contains CI-specific metadata.
-type CIMetadata struct {
+// Metadata contains CI-specific metadata.
+type Metadata struct {
 	Provider   string `json:"provider"`
 	Repository string `json:"repository"`
 	Branch     string `json:"branch"`
@@ -62,7 +62,7 @@ type CIMetadata struct {
 }
 
 // Generate generates and outputs CI-specific reports.
-func (r *CIReporter) Generate(summary *report.Summary, qualityGate *QualityGateEvaluator) error {
+func (r *Reporter) Generate(summary *report.Summary, qualityGate *QualityGateEvaluator) error {
 	// Evaluate quality gate
 	var qualityResult *QualityGateResult
 	if qualityGate != nil {
@@ -76,6 +76,7 @@ func (r *CIReporter) Generate(summary *report.Summary, qualityGate *QualityGateE
 		return r.generateHTMLReport(summary, qualityResult)
 	case "console":
 		r.generateConsoleReport(summary, qualityResult)
+
 		return nil
 	default:
 		return r.generateJSONReport(summary, qualityResult)
@@ -83,7 +84,7 @@ func (r *CIReporter) Generate(summary *report.Summary, qualityGate *QualityGateE
 }
 
 // generateJSONReport generates a JSON report.
-func (r *CIReporter) generateJSONReport(summary *report.Summary, qualityResult *QualityGateResult) error {
+func (r *Reporter) generateJSONReport(summary *report.Summary, qualityResult *QualityGateResult) error {
 	data := map[string]interface{}{
 		"totalMutants":      summary.TotalMutants,
 		"killedMutants":     summary.KilledMutants,
@@ -100,11 +101,32 @@ func (r *CIReporter) generateJSONReport(summary *report.Summary, qualityResult *
 	}
 
 	filename := filepath.Join(r.outputDir, "mutation-report.json")
-	return os.WriteFile(filename, jsonData, 0644)
+
+	if err := os.WriteFile(filename, jsonData, 0644); err != nil {
+		return fmt.Errorf("failed to write JSON report: %w", err)
+	}
+
+	return nil
 }
 
 // generateHTMLReport generates an HTML report.
-func (r *CIReporter) generateHTMLReport(summary *report.Summary, qualityResult *QualityGateResult) error {
+func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *QualityGateResult) error {
+	// Build file details HTML
+	fileDetailsHTML := ""
+	for _, file := range summary.Files {
+		score := 0.0
+		if file.TotalMutants > 0 {
+			score = float64(file.KilledMutants) / float64(file.TotalMutants) * 100
+		}
+		fileDetailsHTML += fmt.Sprintf(`
+        <tr>
+            <td>%s</td>
+            <td>%d</td>
+            <td>%d</td>
+            <td>%.1f%%</td>
+        </tr>`, file.FilePath, file.TotalMutants, file.KilledMutants, score)
+	}
+
 	html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
@@ -113,6 +135,9 @@ func (r *CIReporter) generateHTMLReport(summary *report.Summary, qualityResult *
         body { font-family: Arial, sans-serif; margin: 20px; }
         .header { background: #f5f5f5; padding: 20px; border-radius: 5px; }
         .score { font-size: 24px; font-weight: bold; color: %s; }
+        table { border-collapse: collapse; width: 100%%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
     </style>
 </head>
 <body>
@@ -125,6 +150,15 @@ func (r *CIReporter) generateHTMLReport(summary *report.Summary, qualityResult *
     <p>Total Mutants: %d</p>
     <p>Killed: %d</p>
     <p>Files Analyzed: %d</p>
+    <h2>File Details</h2>
+    <table>
+        <tr>
+            <th>File</th>
+            <th>Total Mutants</th>
+            <th>Killed</th>
+            <th>Score</th>
+        </tr>%s
+    </table>
 </body>
 </html>`,
 		r.getScoreColor(qualityResult.MutationScore),
@@ -133,14 +167,20 @@ func (r *CIReporter) generateHTMLReport(summary *report.Summary, qualityResult *
 		summary.TotalMutants,
 		summary.KilledMutants,
 		len(summary.Files),
+		fileDetailsHTML,
 	)
 
 	filename := filepath.Join(r.outputDir, "mutation-report.html")
-	return os.WriteFile(filename, []byte(html), 0644)
+
+	if err := os.WriteFile(filename, []byte(html), 0644); err != nil {
+		return fmt.Errorf("failed to write HTML report: %w", err)
+	}
+
+	return nil
 }
 
 // generateConsoleReport prints a console report.
-func (r *CIReporter) generateConsoleReport(summary *report.Summary, qualityResult *QualityGateResult) {
+func (r *Reporter) generateConsoleReport(summary *report.Summary, qualityResult *QualityGateResult) {
 	fmt.Printf("Mutation Score: %.1f%%\n", qualityResult.MutationScore)
 	fmt.Printf("Quality Gate: %s\n", map[bool]string{true: "PASSED", false: "FAILED"}[qualityResult.Pass])
 	fmt.Printf("Total Mutants: %d\n", summary.TotalMutants)
@@ -148,12 +188,14 @@ func (r *CIReporter) generateConsoleReport(summary *report.Summary, qualityResul
 }
 
 // getScoreColor returns color based on score.
-func (r *CIReporter) getScoreColor(score float64) string {
+func (r *Reporter) getScoreColor(score float64) string {
 	if score >= 80 {
 		return "#28a745"
 	}
+
 	if score >= 60 {
 		return "#ffc107"
 	}
+
 	return "#dc3545"
 }

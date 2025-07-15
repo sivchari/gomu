@@ -29,14 +29,6 @@ func NewQualityGateEvaluator(enabled bool, minMutationScore float64) *QualityGat
 
 // Evaluate evaluates the quality gate against mutation testing results.
 func (e *QualityGateEvaluator) Evaluate(summary *report.Summary) *QualityGateResult {
-	if !e.enabled {
-		return &QualityGateResult{
-			Pass:          true,
-			MutationScore: 0.0,
-			Reason:        "Quality gate disabled",
-		}
-	}
-
 	if summary == nil || summary.TotalMutants == 0 {
 		return &QualityGateResult{
 			Pass:          false,
@@ -47,6 +39,14 @@ func (e *QualityGateEvaluator) Evaluate(summary *report.Summary) *QualityGateRes
 
 	// Calculate mutation score
 	mutationScore := float64(summary.KilledMutants) / float64(summary.TotalMutants) * 100
+
+	if !e.enabled {
+		return &QualityGateResult{
+			Pass:          true,
+			MutationScore: mutationScore,
+			Reason:        "Quality gate disabled",
+		}
+	}
 
 	// Check if score meets threshold
 	if mutationScore >= e.minMutationScore {

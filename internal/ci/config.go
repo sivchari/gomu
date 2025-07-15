@@ -80,6 +80,7 @@ func (c *Config) GetBaseBranch() string {
 	if c.BaseRef != "" {
 		return c.BaseRef
 	}
+
 	return "main"
 }
 
@@ -88,6 +89,7 @@ func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
+
 	return defaultValue
 }
 
@@ -98,5 +100,6 @@ func getEnvInt(key string, defaultValue int) int {
 			return intValue
 		}
 	}
+
 	return defaultValue
 }

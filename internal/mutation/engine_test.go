@@ -45,7 +45,7 @@ func TestNew(t *testing.T) {
 
 func TestNew_CustomMutators(t *testing.T) {
 	cfg := config.Default()
-	cfg.Mutators = []string{"arithmetic", "conditional"}
+	cfg.Mutation.Types = []string{"arithmetic", "conditional"}
 
 	engine, err := New(cfg)
 	if err != nil {
@@ -59,7 +59,7 @@ func TestNew_CustomMutators(t *testing.T) {
 
 func TestNew_InvalidMutator(t *testing.T) {
 	cfg := config.Default()
-	cfg.Mutators = []string{"arithmetic", "invalid", "conditional"}
+	cfg.Mutation.Types = []string{"arithmetic", "invalid", "conditional"}
 
 	engine, err := New(cfg)
 	if err != nil {
@@ -190,7 +190,7 @@ func TestGenerateMutants_MutationLimit(t *testing.T) {
 	}
 
 	cfg := config.Default()
-	cfg.MutationLimit = 10 // Set low limit
+	cfg.Mutation.Limit = 10 // Set low limit
 
 	engine, err := New(cfg)
 	if err != nil {
@@ -202,8 +202,8 @@ func TestGenerateMutants_MutationLimit(t *testing.T) {
 		t.Fatalf("Failed to generate mutants: %v", err)
 	}
 
-	if len(mutants) > cfg.MutationLimit {
-		t.Errorf("Expected mutants to be limited to %d, got %d", cfg.MutationLimit, len(mutants))
+	if len(mutants) > cfg.Mutation.Limit {
+		t.Errorf("Expected mutants to be limited to %d, got %d", cfg.Mutation.Limit, len(mutants))
 	}
 }
 

@@ -37,8 +37,8 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 	// Get the merge base with the base branch
 	mergeBaseCmd := exec.Command("git", "merge-base", "HEAD", baseBranch)
 	mergeBaseCmd.Dir = g.workDir
-	mergeBaseOutput, err := mergeBaseCmd.Output()
 
+	mergeBaseOutput, err := mergeBaseCmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get merge base: %w", err)
 	}
@@ -48,8 +48,8 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 	// Get changed files since merge base
 	diffCmd := exec.Command("git", "diff", "--name-only", mergeBase, "HEAD")
 	diffCmd.Dir = g.workDir
-	output, err := diffCmd.Output()
 
+	output, err := diffCmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get changed files: %w", err)
 	}
@@ -116,7 +116,6 @@ func (g *GitIntegration) GetAllGoFiles() ([]string, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to walk directory: %w", err)
 	}

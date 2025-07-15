@@ -110,8 +110,8 @@ func TestGenerateJSON(t *testing.T) {
 	outputFile := filepath.Join(tmpDir, "output.json")
 
 	cfg := config.Default()
-	cfg.OutputFormat = "json"
-	cfg.OutputFile = outputFile
+	cfg.Output.Format = "json"
+	cfg.Output.File = outputFile
 
 	generator, err := New(cfg)
 	if err != nil {
@@ -182,8 +182,8 @@ func TestGenerateText(t *testing.T) {
 	outputFile := filepath.Join(tmpDir, "output.txt")
 
 	cfg := config.Default()
-	cfg.OutputFormat = "text"
-	cfg.OutputFile = outputFile
+	cfg.Output.Format = "text"
+	cfg.Output.File = outputFile
 
 	generator, err := New(cfg)
 	if err != nil {
@@ -384,8 +384,8 @@ func TestGenerateHTML(t *testing.T) {
 	outputFile := filepath.Join(tmpDir, "output.html")
 
 	cfg := config.Default()
-	cfg.OutputFormat = "html"
-	cfg.OutputFile = outputFile
+	cfg.Output.Format = "html"
+	cfg.Output.File = outputFile
 
 	generator, err := New(cfg)
 	if err != nil {

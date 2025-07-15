@@ -114,7 +114,3 @@ func TestGitIntegration_HasUncommittedChanges_NotGitRepo(t *testing.T) {
 		t.Error("Expected error for non-git repository")
 	}
 }
-
-// Note: Tests for actual git operations would require setting up a real git repository
-// and are more complex to implement in unit tests. These would be better suited for
-// integration tests.
