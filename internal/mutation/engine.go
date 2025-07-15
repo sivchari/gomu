@@ -26,14 +26,29 @@ type Mutant struct {
 	Original    string `json:"original"`
 	Mutated     string `json:"mutated"`
 	Description string `json:"description"`
+	Context     string `json:"context,omitempty"`     // Source code context around the mutation
+	Function    string `json:"function,omitempty"`    // Function name containing the mutation
 }
 
 // Result represents the result of testing a mutant.
 type Result struct {
-	Mutant Mutant `json:"mutant"`
-	Status Status `json:"status"`
-	Output string `json:"output,omitempty"`
-	Error  string `json:"error,omitempty"`
+	Mutant        Mutant      `json:"mutant"`
+	Status        Status      `json:"status"`
+	Output        string      `json:"output,omitempty"`
+	Error         string      `json:"error,omitempty"`
+	ExecutionTime int64       `json:"executionTime,omitempty"` // Execution time in milliseconds
+	TestsRun      int         `json:"testsRun,omitempty"`      // Number of tests executed
+	TestsFailed   int         `json:"testsFailed,omitempty"`   // Number of tests that failed
+	TestOutput    []TestInfo  `json:"testOutput,omitempty"`    // Detailed test execution information
+}
+
+// TestInfo represents information about a specific test execution.
+type TestInfo struct {
+	Name     string `json:"name"`               // Test function name
+	Package  string `json:"package,omitempty"`  // Package name
+	Status   string `json:"status"`             // PASS, FAIL, SKIP
+	Duration int64  `json:"duration,omitempty"` // Duration in milliseconds
+	Output   string `json:"output,omitempty"`   // Test output/error message
 }
 
 // Status represents the outcome of testing a mutant.
