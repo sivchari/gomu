@@ -137,7 +137,7 @@ runs:
     
     - name: Upload mutation report
       if: ${{ inputs.upload-artifacts == 'true' && always() }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: mutation-report
         path: |
