@@ -48,7 +48,7 @@ func TestCalculateStatistics(t *testing.T) {
 		{Mutant: mutation.Mutant{ID: "3", Type: "conditional"}, Status: mutation.StatusSurvived},
 		{Mutant: mutation.Mutant{ID: "4", Type: "logical"}, Status: mutation.StatusTimedOut},
 		{Mutant: mutation.Mutant{ID: "5", Type: "arithmetic"}, Status: mutation.StatusError},
-		{Mutant: mutation.Mutant{ID: "6", Type: "conditional"}, Status: mutation.StatusNotCovered},
+		{Mutant: mutation.Mutant{ID: "6", Type: "conditional"}, Status: mutation.StatusNotViable},
 	}
 
 	stats := generator.calculateStatistics(results)
@@ -69,12 +69,12 @@ func TestCalculateStatistics(t *testing.T) {
 		t.Errorf("Expected Errors 1, got %d", stats.Errors)
 	}
 
-	if stats.NotCovered != 1 {
-		t.Errorf("Expected NotCovered 1, got %d", stats.NotCovered)
+	if stats.NotViable != 1 {
+		t.Errorf("Expected NotViable 1, got %d", stats.NotViable)
 	}
 
-	// Score should be 2/6 * 100 = 33.33...
-	expectedScore := 2.0 / 6.0 * 100
+	// Score should be 2/5 * 100 = 40.0 (excluding NOT_VIABLE)
+	expectedScore := 2.0 / 5.0 * 100
 	if abs(stats.Score-expectedScore) > 0.000001 {
 		t.Errorf("Expected Score %f, got %f", expectedScore, stats.Score)
 	}
@@ -166,8 +166,8 @@ func TestCalculateStatistics_EmptyResults(t *testing.T) {
 		t.Errorf("Expected Errors 0, got %d", stats.Errors)
 	}
 
-	if stats.NotCovered != 0 {
-		t.Errorf("Expected NotCovered 0, got %d", stats.NotCovered)
+	if stats.NotViable != 0 {
+		t.Errorf("Expected NotViable 0, got %d", stats.NotViable)
 	}
 
 	if stats.Score != 0 {

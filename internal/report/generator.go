@@ -47,7 +47,7 @@ type Statistics struct {
 	Survived      int                       `json:"survived"`
 	TimedOut      int                       `json:"timedOut"`
 	Errors        int                       `json:"errors"`
-	NotCovered    int                       `json:"notCovered"`
+	NotViable     int                       `json:"notViable"`
 	Score         float64                   `json:"mutationScore"`
 	Coverage      float64                   `json:"lineCoverage,omitempty"`
 	MutationTypes map[string]TypeStatistics `json:"mutationTypes,omitempty"`
@@ -103,8 +103,8 @@ func (g *Generator) calculateStatistics(results []mutation.Result) Statistics {
 			stats.TimedOut++
 		case mutation.StatusError:
 			stats.Errors++
-		case mutation.StatusNotCovered:
-			stats.NotCovered++
+		case mutation.StatusNotViable:
+			stats.NotViable++
 		}
 
 		// Track mutation type statistics
@@ -126,9 +126,10 @@ func (g *Generator) calculateStatistics(results []mutation.Result) Statistics {
 		stats.MutationTypes[mutationType] = typeStats
 	}
 
-	total := len(results)
-	if total > 0 {
-		stats.Score = float64(stats.Killed) / float64(total) * 100
+	// Calculate mutation score excluding NOT_VIABLE mutants
+	validMutants := len(results) - stats.NotViable
+	if validMutants > 0 {
+		stats.Score = float64(stats.Killed) / float64(validMutants) * 100
 	}
 
 	return stats
@@ -186,7 +187,7 @@ Results:
   Survived:   %d (%.1f%%)
   Timed out:  %d (%.1f%%)
   Errors:     %d (%.1f%%)
-  Not covered:%d (%.1f%%)
+  Not viable: %d (%.1f%%)
 
 Mutation Score: %.1f%%
 
@@ -198,7 +199,7 @@ Mutation Score: %.1f%%
 		stats.Survived, percentage(stats.Survived, summary.TotalMutants),
 		stats.TimedOut, percentage(stats.TimedOut, summary.TotalMutants),
 		stats.Errors, percentage(stats.Errors, summary.TotalMutants),
-		stats.NotCovered, percentage(stats.NotCovered, summary.TotalMutants),
+		stats.NotViable, percentage(stats.NotViable, summary.TotalMutants),
 		stats.Score,
 	)
 
@@ -406,7 +407,7 @@ const htmlTemplate = `<!DOCTYPE html>
         .stat-item.survived { border-left: 4px solid #e74c3c; }
         .stat-item.timed-out { border-left: 4px solid #f39c12; }
         .stat-item.error { border-left: 4px solid #e67e22; }
-        .stat-item.not-covered { border-left: 4px solid #95a5a6; }
+        .stat-item.not-viable { border-left: 4px solid #8e44ad; }
         .stat-number {
             font-size: 32px;
             font-weight: bold;
@@ -567,6 +568,10 @@ const htmlTemplate = `<!DOCTYPE html>
             background: #e2e3e5;
             color: #383d41;
         }
+        .mutant-status.NOT_VIABLE {
+            background: #e8d5f0;
+            color: #5a2d6e;
+        }
         .mutant-item.KILLED {
             border-left-color: #28a745;
         }
@@ -578,6 +583,9 @@ const htmlTemplate = `<!DOCTYPE html>
         }
         .mutant-item.ERROR {
             border-left-color: #6c757d;
+        }
+        .mutant-item.NOT_VIABLE {
+            border-left-color: #8e44ad;
         }
         .filters {
             margin-bottom: 20px;
@@ -886,7 +894,7 @@ const htmlTemplate = `<!DOCTYPE html>
                         
                         if (filter === 'all') {
                             shouldShow = true;
-                        } else if (filter === 'SURVIVED' || filter === 'KILLED' || filter === 'TIMED_OUT' || filter === 'ERROR') {
+                        } else if (filter === 'SURVIVED' || filter === 'KILLED' || filter === 'TIMED_OUT' || filter === 'ERROR' || filter === 'NOT_VIABLE') {
                             shouldShow = status === filter;
                         } else {
                             shouldShow = type === filter;
@@ -977,9 +985,9 @@ const htmlTemplate = `<!DOCTYPE html>
                         <div class="stat-number">{{.Statistics.Errors}}</div>
                         <div class="stat-label">Errors ({{printf "%.1f" (percentage .Statistics.Errors .TotalMutants)}}%)</div>
                     </div>
-                    <div class="stat-item not-covered">
-                        <div class="stat-number">{{.Statistics.NotCovered}}</div>
-                        <div class="stat-label">Not Covered ({{printf "%.1f" (percentage .Statistics.NotCovered .TotalMutants)}}%)</div>
+                    <div class="stat-item not-viable">
+                        <div class="stat-number">{{.Statistics.NotViable}}</div>
+                        <div class="stat-label">Not Viable ({{printf "%.1f" (percentage .Statistics.NotViable .TotalMutants)}}%)</div>
                     </div>
                 </div>
             </div>
@@ -1039,6 +1047,7 @@ const htmlTemplate = `<!DOCTYPE html>
                     <button class="filter-btn active" data-filter="all">All Status</button>
                     <button class="filter-btn" data-filter="SURVIVED">Survived</button>
                     <button class="filter-btn" data-filter="KILLED">Killed</button>
+                    <button class="filter-btn" data-filter="NOT_VIABLE">Not Viable</button>
                     <button class="filter-btn" data-filter="arithmetic">Arithmetic</button>
                     <button class="filter-btn" data-filter="conditional">Conditional</button>
                     <button class="filter-btn" data-filter="logical">Logical</button>
