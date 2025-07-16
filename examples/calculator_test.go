@@ -152,26 +152,28 @@ func TestCalculator_IsEven(t *testing.T) {
 	}
 }
 
-// Additional edge case tests for better mutation coverage
+// Additional edge case tests for better mutation coverage.
 func TestCalculator_EdgeCases(t *testing.T) {
 	calc := &Calculator{}
-	
+
 	// Test boundary conditions for divide by zero
 	t.Run("divide by zero special cases", func(t *testing.T) {
 		if got := calc.Divide(0, 0); got != 0 {
 			t.Errorf("Divide(0, 0) = %v, want 0", got)
 		}
+
 		if got := calc.Divide(-1, 0); got != 0 {
 			t.Errorf("Divide(-1, 0) = %v, want 0", got)
 		}
 	})
-	
+
 	// Test modulo operation in IsEven
 	t.Run("modulo boundary cases", func(t *testing.T) {
 		// Test values around boundaries
 		if !calc.IsEven(2) {
 			t.Error("IsEven(2) should return true")
 		}
+
 		if calc.IsEven(3) {
 			t.Error("IsEven(3) should return false")
 		}
@@ -179,20 +181,23 @@ func TestCalculator_EdgeCases(t *testing.T) {
 		if calc.IsEven(5) {
 			t.Error("IsEven(5) should return false")
 		}
+
 		if !calc.IsEven(6) {
 			t.Error("IsEven(6) should return true")
 		}
 	})
-	
+
 	// Test comparison operator in IsPositive
 	t.Run("comparison boundary cases", func(t *testing.T) {
 		// Test values around zero boundary
 		if !calc.IsPositive(1) {
 			t.Error("IsPositive(1) should return true")
 		}
+
 		if calc.IsPositive(0) {
 			t.Error("IsPositive(0) should return false")
 		}
+
 		if calc.IsPositive(-1) {
 			t.Error("IsPositive(-1) should return false")
 		}

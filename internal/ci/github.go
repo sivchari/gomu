@@ -65,6 +65,7 @@ func (g *GitHubIntegration) ListPRComments(ctx context.Context) ([]Comment, erro
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
+
 		return nil, fmt.Errorf("failed to list comments: %s (status: %d)", string(body), resp.StatusCode)
 	}
 
@@ -97,6 +98,7 @@ func (g *GitHubIntegration) DeletePRComment(ctx context.Context, commentID int) 
 
 	if resp.StatusCode != http.StatusNoContent {
 		body, _ := io.ReadAll(resp.Body)
+
 		return fmt.Errorf("failed to delete comment: %s (status: %d)", string(body), resp.StatusCode)
 	}
 
