@@ -31,8 +31,8 @@ ci:
   enabled: true
   qualityGate:
     enabled: true
-    minMutationScore: 70.0
     failOnQualityGate: true
+    minMutationScore: 70.0
   github:
     enabled: true
     prComments: true
