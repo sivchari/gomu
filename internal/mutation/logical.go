@@ -10,7 +10,6 @@ const logicalMutatorName = "logical"
 
 // LogicalMutator mutates logical operators.
 type LogicalMutator struct {
-	validator *TypeValidator
 }
 
 // Name returns the name of the mutator.
@@ -49,17 +48,8 @@ func (m *LogicalMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
 func (m *LogicalMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Position) []Mutant {
 	mutations := m.getLogicalMutations(expr.Op)
 
-	// Apply type-safe filtering if validator is available
-	if m.validator != nil {
-		safeMutations := make([]token.Token, 0, len(mutations))
-		for _, newOp := range mutations {
-			if m.validator.IsValidLogicalMutation(expr, newOp) {
-				safeMutations = append(safeMutations, newOp)
-			}
-		}
-
-		mutations = safeMutations
-	}
+	// Generate all mutations - validation will be done at compile time
+	// No pre-filtering based on type safety
 
 	mutants := make([]Mutant, 0, len(mutations))
 
@@ -81,11 +71,7 @@ func (m *LogicalMutator) mutateUnaryExpr(expr *ast.UnaryExpr, pos token.Position
 	var mutants []Mutant
 
 	if expr.Op == token.NOT {
-		// Check if this is a valid mutation
-		if m.validator != nil && !m.validator.IsValidUnaryMutation(expr, true) {
-			return mutants // Return empty if not valid
-		}
-
+		// Generate all mutations - validation will be done at compile time
 		// Remove the NOT operator
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,

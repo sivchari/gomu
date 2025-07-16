@@ -11,7 +11,6 @@ const arithmeticMutatorName = "arithmetic"
 
 // ArithmeticMutator mutates arithmetic operators.
 type ArithmeticMutator struct {
-	validator *TypeValidator
 }
 
 // Name returns the name of the mutator.
@@ -54,17 +53,8 @@ func (m *ArithmeticMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant 
 func (m *ArithmeticMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Position) []Mutant {
 	mutations := m.getArithmeticMutations(expr.Op)
 
-	// Apply type-safe filtering if validator is available
-	if m.validator != nil {
-		safeMutations := make([]token.Token, 0, len(mutations))
-		for _, newOp := range mutations {
-			if m.validator.IsValidArithmeticMutation(expr, newOp) {
-				safeMutations = append(safeMutations, newOp)
-			}
-		}
-
-		mutations = safeMutations
-	}
+	// Generate all mutations - validation will be done at compile time
+	// No pre-filtering based on type safety
 
 	mutants := make([]Mutant, 0, len(mutations))
 
@@ -86,17 +76,8 @@ func (m *ArithmeticMutator) mutateAssignStmt(stmt *ast.AssignStmt, pos token.Pos
 	op := stmt.Tok
 	mutations := m.getAssignMutations(op)
 
-	// Apply type-safe filtering if validator is available
-	if m.validator != nil && len(stmt.Lhs) > 0 && len(stmt.Rhs) > 0 {
-		// For assignment operations, we need to check the types of the left and right sides
-		// This is a simplified approach - in practice, you'd want more sophisticated type checking
-		safeMutations := make([]token.Token, 0, len(mutations))
-		// For now, we'll be conservative and allow all assignment mutations
-		// In a more sophisticated implementation, you'd check the types of the operands
-		safeMutations = append(safeMutations, mutations...)
-
-		mutations = safeMutations
-	}
+	// Generate all mutations - validation will be done at compile time
+	// No pre-filtering based on type safety
 
 	mutants := make([]Mutant, 0, len(mutations))
 

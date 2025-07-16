@@ -129,7 +129,21 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 		return result
 	}
 
-	// 2. Run the tests
+	// 2. Check if the mutated code compiles
+	if err := e.checkCompilation(mutant.FilePath); err != nil {
+		result.Status = mutation.StatusNotViable
+		result.Error = fmt.Sprintf("Compilation failed: %v", err)
+		result.Output = err.Error()
+
+		// Always restore the original code
+		if restoreErr := e.mutator.RestoreOriginal(mutant.FilePath); restoreErr != nil {
+			result.Error = fmt.Sprintf("Failed to restore original file after compilation check: %v", restoreErr)
+		}
+
+		return result
+	}
+
+	// 3. Run the tests
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(e.config.Test.Timeout)*time.Second)
 	defer cancel()
 
@@ -140,7 +154,7 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 
 	output, err := cmd.CombinedOutput()
 
-	// 3. Always restore the original code
+	// 4. Always restore the original code
 	restoreErr := e.mutator.RestoreOriginal(mutant.FilePath)
 	if restoreErr != nil {
 		result.Error = fmt.Sprintf("Failed to restore original file: %v", restoreErr)
@@ -148,7 +162,7 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 		return result
 	}
 
-	// 4. Analyze the test results
+	// 5. Analyze the test results
 	if ctx.Err() == context.DeadlineExceeded {
 		result.Status = mutation.StatusTimedOut
 		result.Error = "Test execution timed out"
@@ -173,4 +187,25 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 	}
 
 	return result
+}
+
+// checkCompilation verifies that the mutated code compiles successfully.
+func (e *Engine) checkCompilation(filePath string) error {
+	// Get the directory containing the mutated file for compilation check
+	compileDir := filepath.Dir(filePath)
+
+	// Create a context with timeout for compilation check
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Run 'go build' to check compilation
+	cmd := exec.CommandContext(ctx, "go", "build", "./...")
+	cmd.Dir = compileDir
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("compilation error: %s", string(output))
+	}
+
+	return nil
 }

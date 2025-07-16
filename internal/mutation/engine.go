@@ -63,8 +63,8 @@ const (
 	StatusTimedOut Status = "TIMED_OUT" // Tests timed out
 	// StatusError indicates a build or runtime error.
 	StatusError Status = "ERROR" // Build or runtime error
-	// StatusNotCovered indicates that a mutant was not covered by tests.
-	StatusNotCovered Status = "NOT_COVERED" // Mutant not covered by tests
+	// StatusNotViable indicates that a mutant causes compilation failure.
+	StatusNotViable Status = "NOT_VIABLE" // Mutant causes compilation failure
 )
 
 // Mutator interface for different types of mutations.
@@ -111,20 +111,6 @@ func (e *Engine) createMutator(name string) Mutator {
 	}
 }
 
-// SetTypeValidator sets the type validator for all mutators.
-func (e *Engine) SetTypeValidator(validator *TypeValidator) {
-	for _, mutator := range e.mutators {
-		switch m := mutator.(type) {
-		case *ArithmeticMutator:
-			m.validator = validator
-		case *ConditionalMutator:
-			m.validator = validator
-		case *LogicalMutator:
-			m.validator = validator
-		}
-	}
-}
-
 // GenerateMutants generates all possible mutants for a given file.
 func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 	fileInfo, err := e.analyzer.ParseFile(filePath)
@@ -132,11 +118,7 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 		return nil, fmt.Errorf("failed to parse file: %w", err)
 	}
 
-	// Set up type validator if type information is available
-	if fileInfo.TypeInfo != nil {
-		validator := NewTypeValidator(fileInfo.TypeInfo)
-		e.SetTypeValidator(validator)
-	}
+	// Type validation is disabled - generate all possible mutations
 
 	var allMutants []Mutant
 
