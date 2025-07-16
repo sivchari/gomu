@@ -62,6 +62,13 @@ runs:
       with:
         go-version: ${{ inputs.go-version }}
     
+    - name: Setup git for merge base
+      shell: bash
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        git fetch origin main:main || git fetch origin main || true
+    
     - name: Cache Go modules
       uses: actions/cache@v3
       with:
@@ -149,6 +156,7 @@ runs:
       if: ${{ inputs.comment-pr == 'true' && github.event_name == 'pull_request' }}
       uses: actions/github-script@v6
       with:
+        github-token: ${{ github.token }}
         script: |
           const fs = require('fs');
           const path = require('path');

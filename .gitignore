@@ -31,6 +31,4 @@ go.work.sum
 # .idea/
 # .vscode/
 
-.gomu.yaml
-.gomu_history.json
 gomu
