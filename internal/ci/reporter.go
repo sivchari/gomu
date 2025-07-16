@@ -85,7 +85,7 @@ func (r *Reporter) Generate(summary *report.Summary, qualityGate *QualityGateEva
 
 // generateJSONReport generates a JSON report.
 func (r *Reporter) generateJSONReport(summary *report.Summary, qualityResult *QualityGateResult) error {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"totalMutants":      summary.TotalMutants,
 		"killedMutants":     summary.KilledMutants,
 		"mutationScore":     qualityResult.MutationScore,

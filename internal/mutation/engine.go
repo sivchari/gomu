@@ -175,7 +175,7 @@ func (e *Engine) GetFileSet() *token.FileSet {
 }
 
 // NewEngine creates a new mutation engine with specified config and workDir.
-func NewEngine(configInterface interface{}) (*Engine, error) {
+func NewEngine(configInterface any) (*Engine, error) {
 	cfg, ok := configInterface.(*config.Config)
 	if !ok {
 		return nil, fmt.Errorf("invalid config type")
