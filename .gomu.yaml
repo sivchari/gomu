@@ -1,0 +1,44 @@
+# gomu configuration file
+verbose: false
+workers: 4
+
+test:
+  command: "go test"
+  timeout: 30
+  patterns:
+    - "*_test.go"
+  exclude:
+    - "vendor/"
+    - ".git/"
+
+mutation:
+  types:
+    # - "conditional"
+    # - "logical"
+    - "arithmetic"
+  limit: 1000
+
+incremental:
+  enabled: true
+  historyFile: ".gomu_history.json"
+  useGitDiff: true
+  baseBranch: "main"
+
+output:
+  format: "json"
+
+ci:
+  enabled: true
+  qualityGate:
+    enabled: true
+    minMutationScore: 80.0
+    failOnQualityGate: true
+  github:
+    enabled: true
+    prComments: true
+  reports:
+    formats:
+      - "json"
+      - "html"
+    outputDir: "."
+    artifacts: true

@@ -249,6 +249,10 @@ on:
 jobs:
   mutation-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
     
     steps:
     - uses: actions/checkout@v4
@@ -263,6 +267,17 @@ jobs:
         mutation-score-threshold: '80'
         upload-artifacts: 'true'
         comment-pr: 'true'
+```
+
+#### Required Permissions
+
+**Important**: For PR comments and artifact uploads to work, your workflow needs the following permissions:
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 ```
 
 #### Available Inputs
@@ -299,6 +314,10 @@ on:
 jobs:
   mutation-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
     
     steps:
     - uses: actions/checkout@v4
@@ -306,9 +325,9 @@ jobs:
         fetch-depth: 0
     
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: '1.21'
+        go-version: '1.24'
     
     - name: Install gomu
       run: go install github.com/sivchari/gomu/cmd/gomu@latest
