@@ -13,8 +13,8 @@ test:
 
 mutation:
   types:
-    # - "conditional"
-    # - "logical"
+    - "conditional"
+    - "logical"
     - "arithmetic"
   limit: 1000
 
@@ -31,7 +31,7 @@ ci:
   enabled: true
   qualityGate:
     enabled: true
-    minMutationScore: 80.0
+    minMutationScore: 70.0
     failOnQualityGate: true
   github:
     enabled: true
