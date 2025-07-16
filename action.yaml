@@ -22,11 +22,6 @@ inputs:
     required: false
     default: '.'
   
-  mutation-score-threshold:
-    description: 'Minimum mutation score threshold (0-100)'
-    required: false
-    default: '80'
-  
   upload-artifacts:
     description: 'Whether to upload mutation reports as artifacts'
     required: false
@@ -122,14 +117,8 @@ runs:
           echo "⚰️  Killed: $killed_mutants"
           echo "🏃 Survived: $survived_mutants"
           
-          # Check threshold
-          threshold=${{ inputs.mutation-score-threshold }}
-          if (( $(echo "$mutation_score < $threshold" | bc -l) )); then
-            echo "❌ Mutation score $mutation_score% is below threshold $threshold%"
-            exit 1
-          else
-            echo "✅ Mutation score $mutation_score% meets threshold $threshold%"
-          fi
+          # Threshold check is handled by gomu based on config file settings
+          # Quality gate configuration should be managed in .gomu.yaml
         else
           echo "⚠️ No mutation report found"
         fi
