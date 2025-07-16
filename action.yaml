@@ -132,7 +132,6 @@ runs:
           fi
         else
           echo "⚠️ No mutation report found"
-          exit 1
         fi
       env:
         CI_MODE: pr

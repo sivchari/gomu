@@ -39,7 +39,7 @@ func TestReporter_Generate(t *testing.T) {
 			format:       "json",
 			expectedFile: "mutation-report.json",
 			checkContent: func(content string) bool {
-				var result map[string]interface{}
+				var result map[string]any
 
 				return json.Unmarshal([]byte(content), &result) == nil
 			},
@@ -130,7 +130,7 @@ func TestReporter_generateJSONReport(t *testing.T) {
 	}
 
 	// Verify it's valid JSON
-	var result map[string]interface{}
+	var result map[string]any
 	if err := json.Unmarshal(content, &result); err != nil {
 		t.Fatalf("Generated JSON is invalid: %v", err)
 	}
