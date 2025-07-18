@@ -12,15 +12,56 @@ inputs:
     required: false
     default: '1.21'
   
-  config-file:
-    description: 'Path to gomu configuration file'
-    required: false
-    default: '.gomu.yaml'
   
   working-directory:
     description: 'Working directory for the action'
     required: false
     default: '.'
+  
+  # Version control
+  version:
+    description: 'gomu version to use (latest, nightly, local, or specific version like v1.0.0)'
+    required: false
+    default: 'latest'
+  
+  # Quality Gate Settings
+  threshold:
+    description: 'Minimum mutation score threshold (0-100)'
+    required: false
+    default: '80'
+  
+  fail-on-gate:
+    description: 'Whether to fail the build if quality gate is not met'
+    required: false
+    default: 'true'
+  
+  # Performance Settings
+  workers:
+    description: 'Number of parallel workers'
+    required: false
+    default: '4'
+  
+  timeout:
+    description: 'Test timeout in seconds'
+    required: false
+    default: '30'
+  
+  # Incremental Analysis
+  incremental:
+    description: 'Enable incremental analysis for performance'
+    required: false
+    default: 'true'
+  
+  base-branch:
+    description: 'Base branch for incremental analysis'
+    required: false
+    default: 'main'
+  
+  # Output Settings
+  output:
+    description: 'Output format (json, html, console)'
+    required: false
+    default: 'json'
   
   upload-artifacts:
     description: 'Whether to upload mutation reports as artifacts'
@@ -84,9 +125,31 @@ runs:
     
     - name: Install gomu
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
-        echo "Installing gomu from repository..."
-        go install github.com/sivchari/gomu/cmd/gomu@latest
+        if [ "${{ inputs.version }}" = "local" ]; then
+          echo "Using local gomu binary from PATH..."
+          if ! command -v gomu &> /dev/null; then
+            echo "❌ Error: local gomu not found in PATH"
+            echo "💡 Hint: Build gomu first with 'go build -o gomu ./cmd/gomu' and add it to PATH"
+            exit 1
+          fi
+          echo "✅ Found local gomu at: $(which gomu)"
+        elif [ "${{ inputs.version }}" = "nightly" ]; then
+          echo "Building gomu from latest source (nightly)..."
+          # Clone the latest main branch and build from source
+          git clone https://github.com/sivchari/gomu.git /tmp/gomu
+          cd /tmp/gomu
+          go build -o gomu ./cmd/gomu
+          sudo mv gomu /usr/local/bin/gomu
+          chmod +x /usr/local/bin/gomu
+        else
+          echo "Installing gomu from releases..."
+          go install github.com/sivchari/gomu/cmd/gomu@${{ inputs.version }}
+        fi
+        
+        # Verify installation
+        gomu version || echo "Version command not available yet"
     
     - name: Run mutation testing
       id: mutation-test
@@ -95,9 +158,17 @@ runs:
       run: |
         set -e
         
-        echo "Running mutation testing with gomu (unified config)..."
-        # Use single config file for both local and CI environments
-        gomu run --ci-mode --config ${{ inputs.config-file }} --verbose
+        echo "Running mutation testing with gomu..."
+        # Pass all settings via CLI flags (no config file needed)
+        gomu run --ci-mode \
+          --workers=${{ inputs.workers }} \
+          --timeout=${{ inputs.timeout }} \
+          --threshold=${{ inputs.threshold }} \
+          --incremental=${{ inputs.incremental }} \
+          --base-branch=${{ inputs.base-branch }} \
+          --output=${{ inputs.output }} \
+          --fail-on-gate=${{ inputs.fail-on-gate }} \
+          --verbose
         
         # Parse results if report exists
         if [ -f "mutation-report.json" ]; then
