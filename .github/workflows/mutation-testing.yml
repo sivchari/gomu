@@ -20,10 +20,16 @@ jobs:
       with:
         fetch-depth: 0  # Fetch full history for incremental analysis
     
+    - name: Build gomu binary
+      run: go build -o gomu ./cmd/gomu
+    
+    - name: Add gomu to PATH
+      run: echo "$PWD" >> $GITHUB_PATH
+    
     - name: Run mutation testing with gomu action
       uses: ./  # Use the local action.yaml for self-validation
       with:
         go-version: '1.24'
-        config-file: '.gomu.yaml'
         upload-artifacts: 'true'
         comment-pr: 'true'
+        version: 'local'

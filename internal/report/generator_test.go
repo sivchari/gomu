@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"math"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -188,12 +187,7 @@ func TestCalculateStatistics_EmptyResults(t *testing.T) {
 }
 
 func TestGenerateJSON(t *testing.T) {
-	tmpDir := t.TempDir()
-	outputFile := filepath.Join(tmpDir, "output.json")
-
 	cfg := config.Default()
-	cfg.Output.Format = "json"
-	cfg.Output.File = outputFile
 
 	generator, err := New(cfg)
 	if err != nil {
@@ -232,16 +226,20 @@ func TestGenerateJSON(t *testing.T) {
 		t.Fatalf("Failed to generate JSON report: %v", err)
 	}
 
-	// Verify file was created
-	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
-		t.Error("Output file was not created")
+	// Verify standard output file was created
+	standardFile := "mutation-report.json"
+	if _, err := os.Stat(standardFile); os.IsNotExist(err) {
+		t.Error("Standard output file was not created")
 	}
 
 	// Verify JSON content
-	data, err := os.ReadFile(outputFile)
+	data, err := os.ReadFile(standardFile)
 	if err != nil {
 		t.Fatalf("Failed to read output file: %v", err)
 	}
+
+	// Cleanup
+	defer os.Remove(standardFile)
 
 	var parsedSummary Summary
 
@@ -260,12 +258,8 @@ func TestGenerateJSON(t *testing.T) {
 }
 
 func TestGenerateText(t *testing.T) {
-	tmpDir := t.TempDir()
-	outputFile := filepath.Join(tmpDir, "output.txt")
-
 	cfg := config.Default()
-	cfg.Output.Format = "text"
-	cfg.Output.File = outputFile
+	// Output format and file are now handled by intelligent defaults
 
 	generator, err := New(cfg)
 	if err != nil {
@@ -325,16 +319,20 @@ func TestGenerateText(t *testing.T) {
 		t.Fatalf("Failed to generate text report: %v", err)
 	}
 
-	// Verify file was created
-	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
-		t.Error("Output file was not created")
+	// Verify standard output file was created
+	standardFile := "mutation-report.txt"
+	if _, err := os.Stat(standardFile); os.IsNotExist(err) {
+		t.Error("Standard output file was not created")
 	}
 
 	// Verify text content
-	data, err := os.ReadFile(outputFile)
+	data, err := os.ReadFile(standardFile)
 	if err != nil {
 		t.Fatalf("Failed to read output file: %v", err)
 	}
+
+	// Cleanup
+	defer os.Remove(standardFile)
 
 	content := string(data)
 
@@ -462,12 +460,8 @@ func TestFormatTextReport_NoSurvivedMutants(t *testing.T) {
 }
 
 func TestGenerateHTML(t *testing.T) {
-	tmpDir := t.TempDir()
-	outputFile := filepath.Join(tmpDir, "output.html")
-
 	cfg := config.Default()
-	cfg.Output.Format = "html"
-	cfg.Output.File = outputFile
+	// Output format and file are now handled by intelligent defaults
 
 	generator, err := New(cfg)
 	if err != nil {
@@ -567,16 +561,20 @@ func TestGenerateHTML(t *testing.T) {
 		t.Fatalf("Failed to generate HTML report: %v", err)
 	}
 
-	// Verify file was created
-	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
-		t.Error("Output file was not created")
+	// Verify standard output file was created
+	standardFile := "mutation-report.html"
+	if _, err := os.Stat(standardFile); os.IsNotExist(err) {
+		t.Error("Standard output file was not created")
 	}
 
 	// Verify HTML content
-	data, err := os.ReadFile(outputFile)
+	data, err := os.ReadFile(standardFile)
 	if err != nil {
 		t.Fatalf("Failed to read output file: %v", err)
 	}
+
+	// Cleanup
+	defer os.Remove(standardFile)
 
 	content := string(data)
 

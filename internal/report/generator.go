@@ -76,16 +76,16 @@ func (g *Generator) Generate(summary *Summary) error {
 	summary.Timestamp = time.Now()
 	summary.Version = gomuVersion
 
-	switch g.config.Output.Format {
-	case "json":
-		return g.generateJSON(summary)
-	case "text":
-		return g.generateText(summary)
-	case "html":
-		return g.generateHTML(summary)
-	default:
-		return g.generateJSON(summary)
+	// Generate all formats by default for comprehensive reporting
+	if err := g.generateJSON(summary); err != nil {
+		return err
 	}
+
+	if err := g.generateText(summary); err != nil {
+		return err
+	}
+
+	return g.generateHTML(summary)
 }
 
 func (g *Generator) calculateStatistics(results []mutation.Result) Statistics {
@@ -141,12 +141,10 @@ func (g *Generator) generateJSON(summary *Summary) error {
 		return fmt.Errorf("failed to marshal summary: %w", err)
 	}
 
-	if g.config.Output.File != "" {
-		if err := os.WriteFile(g.config.Output.File, data, 0600); err != nil {
-			return fmt.Errorf("failed to write output file: %w", err)
-		}
-
-		return nil
+	// Always write to standard file
+	outputFile := "mutation-report.json"
+	if err := os.WriteFile(outputFile, data, 0600); err != nil {
+		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
 	fmt.Println(string(data))
@@ -157,12 +155,10 @@ func (g *Generator) generateJSON(summary *Summary) error {
 func (g *Generator) generateText(summary *Summary) error {
 	output := g.formatTextReport(summary)
 
-	if g.config.Output.File != "" {
-		if err := os.WriteFile(g.config.Output.File, []byte(output), 0600); err != nil {
-			return fmt.Errorf("failed to write output file: %w", err)
-		}
-
-		return nil
+	// Always write to standard file for text output
+	outputFile := "mutation-report.txt"
+	if err := os.WriteFile(outputFile, []byte(output), 0600); err != nil {
+		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
 	fmt.Print(output)
@@ -240,12 +236,10 @@ func (g *Generator) generateHTML(summary *Summary) error {
 		return fmt.Errorf("failed to execute HTML template: %w", err)
 	}
 
-	if g.config.Output.File != "" {
-		if err := os.WriteFile(g.config.Output.File, []byte(output.String()), 0600); err != nil {
-			return fmt.Errorf("failed to write HTML output file: %w", err)
-		}
-
-		return nil
+	// Always write to standard file for HTML output
+	outputFile := "mutation-report.html"
+	if err := os.WriteFile(outputFile, []byte(output.String()), 0600); err != nil {
+		return fmt.Errorf("failed to write HTML output file: %w", err)
 	}
 
 	fmt.Print(output.String())

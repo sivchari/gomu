@@ -46,6 +46,11 @@ func (e *Engine) Close() error {
 
 // RunMutations executes tests for all mutants in parallel.
 func (e *Engine) RunMutations(mutants []mutation.Mutant) ([]mutation.Result, error) {
+	return e.RunMutationsWithOptions(mutants, 4, 30) // intelligent defaults
+}
+
+// RunMutationsWithOptions executes tests for all mutants in parallel with custom options.
+func (e *Engine) RunMutationsWithOptions(mutants []mutation.Mutant, workers, timeout int) ([]mutation.Result, error) {
 	if len(mutants) == 0 {
 		return nil, nil
 	}
@@ -56,7 +61,7 @@ func (e *Engine) RunMutations(mutants []mutation.Mutant) ([]mutation.Result, err
 	// Create worker pool
 	var wg sync.WaitGroup
 
-	semaphore := make(chan struct{}, e.config.Workers)
+	semaphore := make(chan struct{}, workers)
 
 	// Start workers
 	for i, mutant := range mutants {
@@ -70,7 +75,7 @@ func (e *Engine) RunMutations(mutants []mutation.Mutant) ([]mutation.Result, err
 
 			defer func() { <-semaphore }()
 
-			result := e.runSingleMutation(m)
+			result := e.runSingleMutation(m, timeout)
 			resultsChan <- indexedResult{index: index, result: result}
 		}(i, mutant)
 	}
@@ -109,8 +114,8 @@ func (e *Engine) getFileLock(filePath string) *sync.Mutex {
 	return lock
 }
 
-// runSingleMutation executes tests for a single mutant.
-func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
+// runSingleMutation executes tests for a single mutant with timeout.
+func (e *Engine) runSingleMutation(mutant mutation.Mutant, timeout int) mutation.Result {
 	result := mutation.Result{
 		Mutant: mutant,
 		Status: mutation.StatusError,
@@ -144,7 +149,7 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 	}
 
 	// 3. Run the tests
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(e.config.Test.Timeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 
 	// Get the directory containing the mutated file for running tests

@@ -45,21 +45,21 @@ func TestNew(t *testing.T) {
 
 func TestNew_CustomMutators(t *testing.T) {
 	cfg := config.Default()
-	cfg.Mutation.Types = []string{"arithmetic", "conditional"}
+	// All mutation types are now enabled by default
 
 	engine, err := New(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
 
-	if len(engine.mutators) != 2 {
-		t.Errorf("Expected 2 mutators, got %d", len(engine.mutators))
+	if len(engine.mutators) != 3 {
+		t.Errorf("Expected 3 mutators (all types enabled by default), got %d", len(engine.mutators))
 	}
 }
 
 func TestNew_InvalidMutator(t *testing.T) {
 	cfg := config.Default()
-	cfg.Mutation.Types = []string{"arithmetic", "invalid", "conditional"}
+	// All mutation types are now enabled by default
 
 	engine, err := New(cfg)
 	if err != nil {
@@ -67,8 +67,8 @@ func TestNew_InvalidMutator(t *testing.T) {
 	}
 
 	// Should ignore invalid mutator
-	if len(engine.mutators) != 2 {
-		t.Errorf("Expected 2 mutators (invalid should be ignored), got %d", len(engine.mutators))
+	if len(engine.mutators) != 3 {
+		t.Errorf("Expected 3 mutators (all types enabled by default), got %d", len(engine.mutators))
 	}
 }
 
@@ -190,7 +190,7 @@ func TestGenerateMutants_MutationLimit(t *testing.T) {
 	}
 
 	cfg := config.Default()
-	cfg.Mutation.Limit = 10 // Set low limit
+	// Mutation limits are no longer supported - using unlimited
 
 	engine, err := New(cfg)
 	if err != nil {
@@ -202,8 +202,9 @@ func TestGenerateMutants_MutationLimit(t *testing.T) {
 		t.Fatalf("Failed to generate mutants: %v", err)
 	}
 
-	if len(mutants) > cfg.Mutation.Limit {
-		t.Errorf("Expected mutants to be limited to %d, got %d", cfg.Mutation.Limit, len(mutants))
+	// Mutation limits are no longer supported - just check that we got some mutants
+	if len(mutants) == 0 {
+		t.Error("Expected to generate some mutants")
 	}
 }
 

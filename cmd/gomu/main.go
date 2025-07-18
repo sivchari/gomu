@@ -108,9 +108,13 @@ func init() {
 
 	// Run command flags
 	runCmd.Flags().Bool("ci-mode", false, "enable CI mode with quality gates and reporting")
-	runCmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold (CI mode only)")
-	runCmd.Flags().String("format", "json", "output format for CI reports (CI mode only)")
-	runCmd.Flags().Bool("fail-on-gate", true, "fail build when quality gate is not met (CI mode only)")
+	runCmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold")
+	runCmd.Flags().String("output", "json", "output format (json, html, console)")
+	runCmd.Flags().Bool("fail-on-gate", true, "fail build when quality gate is not met")
+	runCmd.Flags().Int("workers", 4, "number of parallel workers")
+	runCmd.Flags().Int("timeout", 30, "test timeout in seconds")
+	runCmd.Flags().Bool("incremental", true, "enable incremental analysis")
+	runCmd.Flags().String("base-branch", "main", "base branch for incremental analysis")
 
 	// Config subcommands
 	configCmd.AddCommand(configInitCmd)
@@ -131,28 +135,32 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	if verbose {
-		cfg.Verbose = true
-	}
-
-	// Check if CI mode is enabled
+	// Read CLI flags
 	ciMode, _ := cmd.Flags().GetBool("ci-mode")
+	workers, _ := cmd.Flags().GetInt("workers")
+	timeout, _ := cmd.Flags().GetInt("timeout")
+	output, _ := cmd.Flags().GetString("output")
+	incremental, _ := cmd.Flags().GetBool("incremental")
+	baseBranch, _ := cmd.Flags().GetString("base-branch")
+	threshold, _ := cmd.Flags().GetFloat64("threshold")
+	failOnGate, _ := cmd.Flags().GetBool("fail-on-gate")
 
-	// Override CI config with command line flags if in CI mode
-	if ciMode {
-		if threshold, _ := cmd.Flags().GetFloat64("threshold"); cmd.Flags().Changed("threshold") {
-			cfg.CI.QualityGate.MinMutationScore = threshold
+	if verbose {
+		fmt.Printf("Running mutation testing with the following settings:\n")
+		fmt.Printf("  Path: %s\n", path)
+		fmt.Printf("  CI Mode: %t\n", ciMode)
+		fmt.Printf("  Workers: %d\n", workers)
+		fmt.Printf("  Timeout: %d seconds\n", timeout)
+		fmt.Printf("  Output: %s\n", output)
+		fmt.Printf("  Incremental: %t\n", incremental)
+		fmt.Printf("  Base Branch: %s\n", baseBranch)
+
+		if ciMode {
+			fmt.Printf("  Threshold: %.1f%%\n", threshold)
+			fmt.Printf("  Fail on Gate: %t\n", failOnGate)
 		}
 
-		if format, _ := cmd.Flags().GetString("format"); cmd.Flags().Changed("format") {
-			cfg.CI.Reports.Formats = []string{format}
-		}
-
-		if failOnGate, _ := cmd.Flags().GetBool("fail-on-gate"); cmd.Flags().Changed("fail-on-gate") {
-			cfg.CI.QualityGate.FailOnQualityGate = failOnGate
-		}
-		// Enable CI features
-		cfg.CI.QualityGate.Enabled = true
+		fmt.Println()
 	}
 
 	engine, err := gomu.NewEngineWithCIMode(cfg, ciMode)
@@ -160,7 +168,19 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create engine: %w", err)
 	}
 
-	if err := engine.RunWithContext(cmd.Context(), path); err != nil {
+	// Create run options from CLI flags
+	opts := &gomu.RunOptions{
+		Workers:     workers,
+		Timeout:     timeout,
+		Output:      output,
+		Incremental: incremental,
+		BaseBranch:  baseBranch,
+		Threshold:   threshold,
+		FailOnGate:  failOnGate,
+		Verbose:     verbose,
+	}
+
+	if err := engine.RunWithOptions(cmd.Context(), path, opts); err != nil {
 		return fmt.Errorf("mutation testing failed: %w", err)
 	}
 
