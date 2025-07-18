@@ -9,136 +9,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Config represents the unified  configuration structure.
 type Config struct {
-	// General settings
-	Verbose bool `yaml:"verbose,omitempty" json:"verbose,omitempty"`
-	Workers int  `yaml:"workers,omitempty" json:"workers,omitempty"`
-
-	// Test settings
-	Test TestConfig `yaml:"test,omitempty" json:"test,omitempty"`
-
-	// Mutation settings
-	Mutation MutationConfig `yaml:"mutation,omitempty" json:"mutation,omitempty"`
-
-	// Incremental analysis
-	Incremental IncrementalConfig `yaml:"incremental,omitempty" json:"incremental,omitempty"`
-
-	// Output settings
-	Output OutputConfig `yaml:"output,omitempty" json:"output,omitempty"`
-
-	// CI/CD settings
-	CI CIConfig `yaml:"ci,omitempty" json:"ci,omitempty"`
+	// Empty - all configuration via CLI flags and environment
 }
 
-// TestConfig contains test-related configuration.
-type TestConfig struct {
-	Command  string   `yaml:"command,omitempty" json:"command,omitempty"`
-	Timeout  int      `yaml:"timeout,omitempty" json:"timeout,omitempty"`
-	Patterns []string `yaml:"patterns,omitempty" json:"patterns,omitempty"`
-	Exclude  []string `yaml:"exclude,omitempty" json:"exclude,omitempty"`
-}
-
-// MutationConfig contains mutation-related configuration.
-type MutationConfig struct {
-	Types []string `yaml:"types,omitempty" json:"types,omitempty"`
-	Limit int      `yaml:"limit,omitempty" json:"limit,omitempty"`
-}
-
-// IncrementalConfig contains incremental analysis configuration.
-type IncrementalConfig struct {
-	Enabled     bool   `yaml:"enabled" json:"enabled"`
-	HistoryFile string `yaml:"historyFile,omitempty" json:"historyFile,omitempty"`
-	UseGitDiff  bool   `yaml:"useGitDiff" json:"useGitDiff"`
-	BaseBranch  string `yaml:"baseBranch,omitempty" json:"baseBranch,omitempty"`
-}
-
-// OutputConfig contains output-related configuration.
-type OutputConfig struct {
-	Format string           `yaml:"format,omitempty" json:"format,omitempty"`
-	File   string           `yaml:"file,omitempty" json:"file,omitempty"`
-	HTML   HTMLOutputConfig `yaml:"html,omitempty" json:"html,omitempty"`
-}
-
-// HTMLOutputConfig contains HTML-specific output configuration.
-type HTMLOutputConfig struct {
-	Template string `yaml:"template,omitempty" json:"template,omitempty"`
-	CSS      string `yaml:"css,omitempty" json:"css,omitempty"`
-}
-
-// CIConfig contains CI/CD-related configuration.
-type CIConfig struct {
-	Enabled     bool              `yaml:"enabled" json:"enabled"`
-	QualityGate QualityGateConfig `yaml:"qualityGate,omitempty" json:"qualityGate,omitempty"`
-	GitHub      GitHubConfig      `yaml:"github,omitempty" json:"github,omitempty"`
-	Reports     CIReportsConfig   `yaml:"reports,omitempty" json:"reports,omitempty"`
-}
-
-// QualityGateConfig contains quality gate configuration.
-type QualityGateConfig struct {
-	Enabled            bool    `yaml:"enabled" json:"enabled"`
-	MinMutationScore   float64 `yaml:"minMutationScore,omitempty" json:"minMutationScore,omitempty"`
-	MaxSurvivors       int     `yaml:"maxSurvivors,omitempty" json:"maxSurvivors,omitempty"`
-	FailOnQualityGate  bool    `yaml:"failOnQualityGate" json:"failOnQualityGate"`
-	GradualEnforcement bool    `yaml:"gradualEnforcement,omitempty" json:"gradualEnforcement,omitempty"`
-	BaselineFile       string  `yaml:"baselineFile,omitempty" json:"baselineFile,omitempty"`
-}
-
-// GitHubConfig contains GitHub-specific configuration.
-type GitHubConfig struct {
-	Enabled    bool `yaml:"enabled" json:"enabled"`
-	PRComments bool `yaml:"prComments" json:"prComments"`
-	Badges     bool `yaml:"badges,omitempty" json:"badges,omitempty"`
-}
-
-// CIReportsConfig contains CI report configuration.
-type CIReportsConfig struct {
-	Formats   []string `yaml:"formats,omitempty" json:"formats,omitempty"`
-	OutputDir string   `yaml:"outputDir,omitempty" json:"outputDir,omitempty"`
-	Artifacts bool     `yaml:"artifacts" json:"artifacts"`
-}
-
-// Default returns a  config with default values.
 func Default() *Config {
-	return &Config{
-		Workers: 4,
-		Test: TestConfig{
-			Command:  "go test",
-			Timeout:  30,
-			Patterns: []string{"*_test.go"},
-			Exclude:  []string{"vendor/", ".git/"},
-		},
-		Mutation: MutationConfig{
-			Types: []string{"arithmetic", "conditional", "logical"},
-			Limit: 1000,
-		},
-		Incremental: IncrementalConfig{
-			Enabled:     true,
-			HistoryFile: ".gomu_history.json",
-			UseGitDiff:  true,
-			BaseBranch:  "main",
-		},
-		Output: OutputConfig{
-			Format: "json",
-		},
-		CI: CIConfig{
-			Enabled: true,
-			QualityGate: QualityGateConfig{
-				Enabled:           true,
-				MinMutationScore:  80.0,
-				FailOnQualityGate: true,
-			},
-			GitHub: GitHubConfig{
-				Enabled:    true,
-				PRComments: true,
-			},
-			Reports: CIReportsConfig{
-				Formats:   []string{"json", "html"},
-				OutputDir: ".",
-				Artifacts: true,
-			},
-		},
-	}
+	return &Config{}
 }
 
 // Load loads configuration from  file with fallback support.
@@ -186,49 +62,7 @@ func (c *Config) loadFromFile(filename string) error {
 
 // validate ensures the configuration has sensible values.
 func (c *Config) validate() {
-	if c.Workers <= 0 {
-		c.Workers = 4
-	}
-
-	if c.Test.Timeout <= 0 {
-		c.Test.Timeout = 30
-	}
-
-	if len(c.Test.Patterns) == 0 {
-		c.Test.Patterns = []string{"*_test.go"}
-	}
-
-	if c.Test.Command == "" {
-		c.Test.Command = "go test"
-	}
-
-	if len(c.Mutation.Types) == 0 {
-		c.Mutation.Types = []string{"arithmetic", "conditional", "logical"}
-	}
-
-	if c.Incremental.HistoryFile == "" {
-		c.Incremental.HistoryFile = ".gomu_history.json"
-	}
-
-	if c.Incremental.BaseBranch == "" {
-		c.Incremental.BaseBranch = "main"
-	}
-
-	if c.Output.Format == "" {
-		c.Output.Format = "json"
-	}
-
-	if c.CI.QualityGate.MinMutationScore == 0 {
-		c.CI.QualityGate.MinMutationScore = 80.0
-	}
-
-	if len(c.CI.Reports.Formats) == 0 {
-		c.CI.Reports.Formats = []string{"json", "html"}
-	}
-
-	if c.CI.Reports.OutputDir == "" {
-		c.CI.Reports.OutputDir = "."
-	}
+	// No validation needed - using intelligent defaults
 }
 
 // Save saves the configuration to a  file.
