@@ -97,7 +97,9 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 
 // FindChangedFiles returns files that have changed compared to the base branch.
 func (a *Analyzer) FindChangedFiles(allFiles []string) ([]string, error) {
-	if !a.config.Incremental.Enabled {
+	// Always enable incremental analysis by default
+	incrementalEnabled := true
+	if !incrementalEnabled {
 		return allFiles, nil
 	}
 

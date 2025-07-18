@@ -17,26 +17,15 @@ func Default() *Config {
 	return &Config{}
 }
 
-// Load loads configuration from  file with fallback support.
+// Load loads configuration from file with fallback support.
+// Since config is now zero-config, this always returns default empty config.
 func Load(configFile string) (*Config, error) {
 	cfg := Default()
 
-	// If no config file specified, try default locations
-	if configFile == "" {
-		candidates := []string{".gomu.yaml", ".gomu.yml"}
-		for _, candidate := range candidates {
-			if _, err := os.Stat(candidate); err == nil {
-				configFile = candidate
-
-				break
-			}
-		}
-	}
-
-	// If config file exists, load it
+	// Config files are optional - ignore errors and just use defaults
 	if configFile != "" {
 		if err := cfg.loadFromFile(configFile); err != nil {
-			return nil, err
+			// Just log and continue with defaults - config files are optional
 		}
 	}
 

@@ -76,7 +76,9 @@ func (a *IncrementalAnalyzer) AnalyzeFiles() ([]FileAnalysisResult, error) {
 
 // getFilesToAnalyze returns the list of files that should be analyzed.
 func (a *IncrementalAnalyzer) getFilesToAnalyze() ([]string, error) {
-	if a.config.Incremental.Enabled && a.git.IsGitRepository() {
+	// Always enable incremental analysis by default
+	incrementalEnabled := true
+	if incrementalEnabled && a.git.IsGitRepository() {
 		// Use Git diff to get changed files with intelligent default base branch
 		return a.git.GetChangedFiles("main")
 	}
