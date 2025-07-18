@@ -137,7 +137,7 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 
 	// Check if CI mode is enabled
 	ciMode, _ := cmd.Flags().GetBool("ci-mode")
-	
+
 	// TODO: Handle CI-specific flags via environment variables or action.yaml
 
 	engine, err := gomu.NewEngineWithCIMode(cfg, ciMode)

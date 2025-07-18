@@ -146,6 +146,7 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 
 	// 3. Run the tests
 	timeout := 30 // intelligent default - 30 seconds
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 

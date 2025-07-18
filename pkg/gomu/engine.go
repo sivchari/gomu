@@ -57,6 +57,7 @@ func NewEngineWithCIMode(cfg *config.Config, ciMode bool) (*Engine, error) {
 	}
 
 	historyFile := ".gomu_history.json" // intelligent default
+
 	historyStore, err := history.New(historyFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create history store: %w", err)
@@ -90,8 +91,8 @@ func NewEngineWithCIMode(cfg *config.Config, ciMode bool) (*Engine, error) {
 func (e *Engine) initializeCIComponents() {
 	// Initialize quality gate with intelligent defaults
 	e.qualityGate = ci.NewQualityGateEvaluator(
-		true,  // enabled by default
-		80.0,  // 80% mutation score threshold
+		true, // enabled by default
+		80.0, // 80% mutation score threshold
 	)
 
 	// Initialize CI reporter with intelligent defaults
@@ -103,6 +104,7 @@ func (e *Engine) initializeCIComponents() {
 	ciConfig := ci.LoadConfigFromEnv()
 	if ciConfig.Mode == "pr" && ciConfig.PRNumber > 0 {
 		token := os.Getenv("GITHUB_TOKEN")
+
 		repo := os.Getenv("GITHUB_REPOSITORY")
 		if token != "" && repo != "" {
 			e.github = ci.NewGitHubIntegration(token, repo, ciConfig.PRNumber)

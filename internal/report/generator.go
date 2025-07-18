@@ -76,17 +76,16 @@ func (g *Generator) Generate(summary *Summary) error {
 	summary.Timestamp = time.Now()
 	summary.Version = gomuVersion
 
-	outputFormat := "json" // intelligent default
-	switch outputFormat {
-	case "json":
-		return g.generateJSON(summary)
-	case "text":
-		return g.generateText(summary)
-	case "html":
-		return g.generateHTML(summary)
-	default:
-		return g.generateJSON(summary)
+	// Generate all formats by default for comprehensive reporting
+	if err := g.generateJSON(summary); err != nil {
+		return err
 	}
+
+	if err := g.generateText(summary); err != nil {
+		return err
+	}
+
+	return g.generateHTML(summary)
 }
 
 func (g *Generator) calculateStatistics(results []mutation.Result) Statistics {

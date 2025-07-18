@@ -9,10 +9,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Config represents the configuration structure for the application.
+// All configuration is handled via CLI flags and environment variables.
 type Config struct {
 	// Empty - all configuration via CLI flags and environment
 }
 
+// Default returns a default configuration instance.
 func Default() *Config {
 	return &Config{}
 }
@@ -24,9 +27,7 @@ func Load(configFile string) (*Config, error) {
 
 	// Config files are optional - ignore errors and just use defaults
 	if configFile != "" {
-		if err := cfg.loadFromFile(configFile); err != nil {
-			// Just log and continue with defaults - config files are optional
-		}
+		_ = cfg.loadFromFile(configFile) // Config files are optional, ignore errors
 	}
 
 	// Validate and set defaults
