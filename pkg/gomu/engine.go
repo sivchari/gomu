@@ -34,6 +34,18 @@ type Engine struct {
 	github      *ci.GitHubIntegration
 }
 
+// RunOptions contains options for running mutation testing.
+type RunOptions struct {
+	Workers     int
+	Timeout     int
+	Output      string
+	Incremental bool
+	BaseBranch  string
+	Threshold   float64
+	FailOnGate  bool
+	Verbose     bool
+}
+
 // NewEngine creates a new mutation testing engine.
 func NewEngine(cfg *config.Config) (*Engine, error) {
 	return NewEngineWithCIMode(cfg, false)
@@ -41,6 +53,11 @@ func NewEngine(cfg *config.Config) (*Engine, error) {
 
 // NewEngineWithCIMode creates a new mutation testing engine with optional CI mode.
 func NewEngineWithCIMode(cfg *config.Config, ciMode bool) (*Engine, error) {
+	return NewEngineWithOptions(cfg, ciMode, nil)
+}
+
+// NewEngineWithOptions creates a new mutation testing engine with options.
+func NewEngineWithOptions(cfg *config.Config, ciMode bool, opts *RunOptions) (*Engine, error) {
 	analyzer, err := analysis.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create analyzer: %w", err)
@@ -81,22 +98,30 @@ func NewEngineWithCIMode(cfg *config.Config, ciMode bool) (*Engine, error) {
 
 	// Initialize CI-specific components if in CI mode
 	if ciMode {
-		engine.initializeCIComponents()
+		engine.initializeCIComponents(opts)
 	}
 
 	return engine, nil
 }
 
 // initializeCIComponents initializes CI-specific components.
-func (e *Engine) initializeCIComponents() {
-	// Initialize quality gate with intelligent defaults
+func (e *Engine) initializeCIComponents(opts *RunOptions) {
+	// Set intelligent defaults if opts is nil
+	threshold := 80.0
+	outputFormat := "json"
+
+	if opts != nil {
+		threshold = opts.Threshold
+		outputFormat = opts.Output
+	}
+
+	// Initialize quality gate
 	e.qualityGate = ci.NewQualityGateEvaluator(
 		true, // enabled by default
-		80.0, // 80% mutation score threshold
+		threshold,
 	)
 
-	// Initialize CI reporter with intelligent defaults
-	outputFormat := "json"
+	// Initialize CI reporter
 	outputDir := "."
 	e.ciReporter = ci.NewReporter(outputDir, outputFormat)
 
@@ -119,10 +144,31 @@ func (e *Engine) Run(path string) error {
 
 // RunWithContext executes mutation testing on the specified path with context.
 func (e *Engine) RunWithContext(ctx context.Context, path string) error {
+	return e.RunWithOptions(ctx, path, nil)
+}
+
+// RunWithOptions executes mutation testing on the specified path with options.
+func (e *Engine) RunWithOptions(ctx context.Context, path string, opts *RunOptions) error {
+	// Set defaults if options are not provided
+	if opts == nil {
+		opts = &RunOptions{
+			Workers:     4,
+			Timeout:     30,
+			Output:      "json",
+			Incremental: true,
+			BaseBranch:  "main",
+			Threshold:   80.0,
+			FailOnGate:  true,
+			Verbose:     false,
+		}
+	}
+
 	start := time.Now()
 
-	if false { // TODO: use CLI flag or env var for verbose
+	if opts.Verbose {
 		log.Printf("Starting mutation testing on path: %s", path)
+		log.Printf("Running with options: workers=%d, timeout=%d, output=%s, incremental=%t",
+			opts.Workers, opts.Timeout, opts.Output, opts.Incremental)
 	}
 
 	// Get absolute path for working directory
@@ -145,7 +191,7 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to analyze files: %w", err)
 	}
 
-	if false { // TODO: use CLI flag or env var for verbose
+	if opts.Verbose {
 		e.incrementalAnalyzer.PrintAnalysisReport(analysisResults)
 	}
 
@@ -155,13 +201,13 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to get files needing update: %w", err)
 	}
 
-	if false { // TODO: use CLI flag or env var for verbose
+	if opts.Verbose {
 		log.Printf("Processing %d files", len(files))
 	}
 
 	// If no files need processing, return early
 	if len(files) == 0 {
-		if false { // TODO: use CLI flag or env var for verbose
+		if opts.Verbose {
 			log.Println("No files need processing - all files are up to date")
 		}
 
@@ -176,7 +222,7 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 
 	// 3. Process each file
 	for _, file := range files {
-		if false { // TODO: use CLI flag or env var for verbose
+		if opts.Verbose {
 			log.Printf("Processing file: %s", file)
 		}
 
@@ -189,7 +235,7 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 		}
 
 		if len(mutants) == 0 {
-			if false { // TODO: use CLI flag or env var for verbose
+			if opts.Verbose {
 				log.Printf("No mutants generated for file: %s", file)
 			}
 
@@ -198,12 +244,12 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 
 		totalMutants += len(mutants)
 
-		if false { // TODO: use CLI flag or env var for verbose
+		if opts.Verbose {
 			log.Printf("Generated %d mutants for %s", len(mutants), file)
 		}
 
 		// Execute mutations
-		results, err := e.executor.RunMutations(mutants)
+		results, err := e.executor.RunMutationsWithOptions(mutants, opts.Workers, opts.Timeout)
 		if err != nil {
 			log.Printf("Warning: failed to execute mutations for %s: %v", file, err)
 
@@ -254,12 +300,12 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 
 	// 7. CI-specific processing
 	if e.ciMode {
-		if err := e.processCIWorkflow(ctx, summary); err != nil {
+		if err := e.processCIWorkflow(ctx, summary, opts); err != nil {
 			return fmt.Errorf("CI workflow failed: %w", err)
 		}
 	}
 
-	if false { // TODO: use CLI flag or env var for verbose
+	if opts.Verbose {
 		log.Printf("Mutation testing completed in %v", time.Since(start))
 	}
 
@@ -267,8 +313,8 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 }
 
 // processCIWorkflow handles CI-specific processing after mutation testing.
-func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary) error {
-	if false { // TODO: use CLI flag or env var for verbose
+func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary, opts *RunOptions) error {
+	if opts.Verbose {
 		log.Println("Processing CI workflow...")
 	}
 
@@ -305,7 +351,7 @@ func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary)
 	}
 
 	// Fail build if quality gate fails
-	if qualityResult != nil && !qualityResult.Pass && e.shouldFailOnQualityGate() {
+	if qualityResult != nil && !qualityResult.Pass && opts.FailOnGate {
 		return fmt.Errorf("quality gate failed: %s", qualityResult.Reason)
 	}
 
@@ -357,12 +403,6 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 		Duration:      summary.Duration,
 		Config:        summary.Config,
 	}
-}
-
-// shouldFailOnQualityGate determines if the build should fail on quality gate failure.
-func (e *Engine) shouldFailOnQualityGate() bool {
-	// Use intelligent default - fail on quality gate by default in CI
-	return true
 }
 
 // calculateTestHash calculates the combined hash of test files related to the given file.
