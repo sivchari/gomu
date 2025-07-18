@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"math"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -188,9 +187,6 @@ func TestCalculateStatistics_EmptyResults(t *testing.T) {
 }
 
 func TestGenerateJSON(t *testing.T) {
-	tmpDir := t.TempDir()
-	outputFile := filepath.Join(tmpDir, "output.json")
-
 	cfg := config.Default()
 
 	generator, err := New(cfg)
@@ -262,9 +258,6 @@ func TestGenerateJSON(t *testing.T) {
 }
 
 func TestGenerateText(t *testing.T) {
-	tmpDir := t.TempDir()
-	outputFile := filepath.Join(tmpDir, "output.txt")
-
 	cfg := config.Default()
 	// Output format and file are now handled by intelligent defaults
 
@@ -326,16 +319,20 @@ func TestGenerateText(t *testing.T) {
 		t.Fatalf("Failed to generate text report: %v", err)
 	}
 
-	// Verify file was created
-	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
-		t.Error("Output file was not created")
+	// Verify standard output file was created
+	standardFile := "mutation-report.txt"
+	if _, err := os.Stat(standardFile); os.IsNotExist(err) {
+		t.Error("Standard output file was not created")
 	}
 
 	// Verify text content
-	data, err := os.ReadFile(outputFile)
+	data, err := os.ReadFile(standardFile)
 	if err != nil {
 		t.Fatalf("Failed to read output file: %v", err)
 	}
+
+	// Cleanup
+	defer os.Remove(standardFile)
 
 	content := string(data)
 
@@ -463,9 +460,6 @@ func TestFormatTextReport_NoSurvivedMutants(t *testing.T) {
 }
 
 func TestGenerateHTML(t *testing.T) {
-	tmpDir := t.TempDir()
-	outputFile := filepath.Join(tmpDir, "output.html")
-
 	cfg := config.Default()
 	// Output format and file are now handled by intelligent defaults
 
@@ -567,16 +561,20 @@ func TestGenerateHTML(t *testing.T) {
 		t.Fatalf("Failed to generate HTML report: %v", err)
 	}
 
-	// Verify file was created
-	if _, err := os.Stat(outputFile); os.IsNotExist(err) {
-		t.Error("Output file was not created")
+	// Verify standard output file was created
+	standardFile := "mutation-report.html"
+	if _, err := os.Stat(standardFile); os.IsNotExist(err) {
+		t.Error("Standard output file was not created")
 	}
 
 	// Verify HTML content
-	data, err := os.ReadFile(outputFile)
+	data, err := os.ReadFile(standardFile)
 	if err != nil {
 		t.Fatalf("Failed to read output file: %v", err)
 	}
+
+	// Cleanup
+	defer os.Remove(standardFile)
 
 	content := string(data)
 

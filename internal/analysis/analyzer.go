@@ -105,7 +105,7 @@ func (a *Analyzer) FindChangedFiles(allFiles []string) ([]string, error) {
 
 	// Use intelligent default for base branch
 	baseBranch := "main"
-	
+
 	// Get changed files from git
 	// Validate base branch name to prevent command injection
 	if !isValidBranchName(baseBranch) {
