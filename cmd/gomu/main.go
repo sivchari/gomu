@@ -135,17 +135,52 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Check if CI mode is enabled
+	// Read CLI flags
 	ciMode, _ := cmd.Flags().GetBool("ci-mode")
+	workers, _ := cmd.Flags().GetInt("workers")
+	timeout, _ := cmd.Flags().GetInt("timeout")
+	output, _ := cmd.Flags().GetString("output")
+	incremental, _ := cmd.Flags().GetBool("incremental")
+	baseBranch, _ := cmd.Flags().GetString("base-branch")
+	threshold, _ := cmd.Flags().GetFloat64("threshold")
+	failOnGate, _ := cmd.Flags().GetBool("fail-on-gate")
 
-	// TODO: Handle CI-specific flags via environment variables or action.yaml
+	if verbose {
+		fmt.Printf("Running mutation testing with the following settings:\n")
+		fmt.Printf("  Path: %s\n", path)
+		fmt.Printf("  CI Mode: %t\n", ciMode)
+		fmt.Printf("  Workers: %d\n", workers)
+		fmt.Printf("  Timeout: %d seconds\n", timeout)
+		fmt.Printf("  Output: %s\n", output)
+		fmt.Printf("  Incremental: %t\n", incremental)
+		fmt.Printf("  Base Branch: %s\n", baseBranch)
+
+		if ciMode {
+			fmt.Printf("  Threshold: %.1f%%\n", threshold)
+			fmt.Printf("  Fail on Gate: %t\n", failOnGate)
+		}
+
+		fmt.Println()
+	}
 
 	engine, err := gomu.NewEngineWithCIMode(cfg, ciMode)
 	if err != nil {
 		return fmt.Errorf("failed to create engine: %w", err)
 	}
 
-	if err := engine.RunWithContext(cmd.Context(), path); err != nil {
+	// Create run options from CLI flags
+	opts := &gomu.RunOptions{
+		Workers:     workers,
+		Timeout:     timeout,
+		Output:      output,
+		Incremental: incremental,
+		BaseBranch:  baseBranch,
+		Threshold:   threshold,
+		FailOnGate:  failOnGate,
+		Verbose:     verbose,
+	}
+
+	if err := engine.RunWithOptions(cmd.Context(), path, opts); err != nil {
 		return fmt.Errorf("mutation testing failed: %w", err)
 	}
 
