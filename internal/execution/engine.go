@@ -56,7 +56,8 @@ func (e *Engine) RunMutations(mutants []mutation.Mutant) ([]mutation.Result, err
 	// Create worker pool
 	var wg sync.WaitGroup
 
-	semaphore := make(chan struct{}, e.config.Workers)
+	workers := 4 // intelligent default
+	semaphore := make(chan struct{}, workers)
 
 	// Start workers
 	for i, mutant := range mutants {
@@ -144,7 +145,8 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant) mutation.Result {
 	}
 
 	// 3. Run the tests
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(e.config.Test.Timeout)*time.Second)
+	timeout := 30 // intelligent default - 30 seconds
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 
 	// Get the directory containing the mutated file for running tests

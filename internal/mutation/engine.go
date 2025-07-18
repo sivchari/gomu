@@ -87,8 +87,9 @@ func New(cfg *config.Config) (*Engine, error) {
 		mutators: make([]Mutator, 0),
 	}
 
-	// Register mutators based on config
-	for _, mutatorName := range cfg.Mutation.Types {
+	// Register all mutators by default
+	mutatorNames := []string{"arithmetic", "conditional", "logical"}
+	for _, mutatorName := range mutatorNames {
 		mutator := engine.createMutator(mutatorName)
 		if mutator != nil {
 			engine.mutators = append(engine.mutators, mutator)
@@ -137,11 +138,6 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 				}
 
 				allMutants = append(allMutants, mutants...)
-
-				// Respect mutation limit
-				if e.config.Mutation.Limit > 0 && len(allMutants) >= e.config.Mutation.Limit {
-					return false
-				}
 			}
 		}
 

@@ -76,9 +76,9 @@ func (a *IncrementalAnalyzer) AnalyzeFiles() ([]FileAnalysisResult, error) {
 
 // getFilesToAnalyze returns the list of files that should be analyzed.
 func (a *IncrementalAnalyzer) getFilesToAnalyze() ([]string, error) {
-	if a.config.Incremental.UseGitDiff && a.git.IsGitRepository() {
-		// Use Git diff to get changed files
-		return a.git.GetChangedFiles(a.config.Incremental.BaseBranch)
+	if a.config.Incremental.Enabled && a.git.IsGitRepository() {
+		// Use Git diff to get changed files with intelligent default base branch
+		return a.git.GetChangedFiles("main")
 	}
 
 	// Fallback to all Go files
