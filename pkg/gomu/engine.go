@@ -56,7 +56,8 @@ func NewEngineWithCIMode(cfg *config.Config, ciMode bool) (*Engine, error) {
 		return nil, fmt.Errorf("failed to create executor: %w", err)
 	}
 
-	historyStore, err := history.New(cfg.Incremental.HistoryFile)
+	historyFile := ".gomu_history.json" // intelligent default
+	historyStore, err := history.New(historyFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create history store: %w", err)
 	}
@@ -87,30 +88,24 @@ func NewEngineWithCIMode(cfg *config.Config, ciMode bool) (*Engine, error) {
 
 // initializeCIComponents initializes CI-specific components.
 func (e *Engine) initializeCIComponents() {
-	// Initialize quality gate
+	// Initialize quality gate with intelligent defaults
 	e.qualityGate = ci.NewQualityGateEvaluator(
-		e.config.CI.QualityGate.Enabled,
-		e.config.CI.QualityGate.MinMutationScore,
+		true,  // enabled by default
+		80.0,  // 80% mutation score threshold
 	)
 
-	// Initialize CI reporter
+	// Initialize CI reporter with intelligent defaults
 	outputFormat := "json"
-	if len(e.config.CI.Reports.Formats) > 0 {
-		outputFormat = e.config.CI.Reports.Formats[0]
-	}
+	outputDir := "."
+	e.ciReporter = ci.NewReporter(outputDir, outputFormat)
 
-	e.ciReporter = ci.NewReporter(e.config.CI.Reports.OutputDir, outputFormat)
-
-	// Initialize GitHub integration if enabled
-	if e.config.CI.GitHub.Enabled {
-		ciConfig := ci.LoadConfigFromEnv()
-		if ciConfig.Mode == "pr" && ciConfig.PRNumber > 0 {
-			token := os.Getenv("GITHUB_TOKEN")
-
-			repo := os.Getenv("GITHUB_REPOSITORY")
-			if token != "" && repo != "" {
-				e.github = ci.NewGitHubIntegration(token, repo, ciConfig.PRNumber)
-			}
+	// Initialize GitHub integration with environment detection
+	ciConfig := ci.LoadConfigFromEnv()
+	if ciConfig.Mode == "pr" && ciConfig.PRNumber > 0 {
+		token := os.Getenv("GITHUB_TOKEN")
+		repo := os.Getenv("GITHUB_REPOSITORY")
+		if token != "" && repo != "" {
+			e.github = ci.NewGitHubIntegration(token, repo, ciConfig.PRNumber)
 		}
 	}
 }
@@ -124,7 +119,7 @@ func (e *Engine) Run(path string) error {
 func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 	start := time.Now()
 
-	if e.config.Verbose {
+	if false { // TODO: use CLI flag or env var for verbose
 		log.Printf("Starting mutation testing on path: %s", path)
 	}
 
@@ -148,7 +143,7 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to analyze files: %w", err)
 	}
 
-	if e.config.Verbose {
+	if false { // TODO: use CLI flag or env var for verbose
 		e.incrementalAnalyzer.PrintAnalysisReport(analysisResults)
 	}
 
@@ -158,13 +153,13 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 		return fmt.Errorf("failed to get files needing update: %w", err)
 	}
 
-	if e.config.Verbose {
+	if false { // TODO: use CLI flag or env var for verbose
 		log.Printf("Processing %d files", len(files))
 	}
 
 	// If no files need processing, return early
 	if len(files) == 0 {
-		if e.config.Verbose {
+		if false { // TODO: use CLI flag or env var for verbose
 			log.Println("No files need processing - all files are up to date")
 		}
 
@@ -179,7 +174,7 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 
 	// 3. Process each file
 	for _, file := range files {
-		if e.config.Verbose {
+		if false { // TODO: use CLI flag or env var for verbose
 			log.Printf("Processing file: %s", file)
 		}
 
@@ -192,7 +187,7 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 		}
 
 		if len(mutants) == 0 {
-			if e.config.Verbose {
+			if false { // TODO: use CLI flag or env var for verbose
 				log.Printf("No mutants generated for file: %s", file)
 			}
 
@@ -201,7 +196,7 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 
 		totalMutants += len(mutants)
 
-		if e.config.Verbose {
+		if false { // TODO: use CLI flag or env var for verbose
 			log.Printf("Generated %d mutants for %s", len(mutants), file)
 		}
 
@@ -262,7 +257,7 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 		}
 	}
 
-	if e.config.Verbose {
+	if false { // TODO: use CLI flag or env var for verbose
 		log.Printf("Mutation testing completed in %v", time.Since(start))
 	}
 
@@ -271,7 +266,7 @@ func (e *Engine) RunWithContext(ctx context.Context, path string) error {
 
 // processCIWorkflow handles CI-specific processing after mutation testing.
 func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary) error {
-	if e.config.Verbose {
+	if false { // TODO: use CLI flag or env var for verbose
 		log.Println("Processing CI workflow...")
 	}
 
@@ -364,7 +359,8 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 
 // shouldFailOnQualityGate determines if the build should fail on quality gate failure.
 func (e *Engine) shouldFailOnQualityGate() bool {
-	return e.config.CI.QualityGate.Enabled && e.config.CI.QualityGate.FailOnQualityGate
+	// Use intelligent default - fail on quality gate by default in CI
+	return true
 }
 
 // calculateTestHash calculates the combined hash of test files related to the given file.
