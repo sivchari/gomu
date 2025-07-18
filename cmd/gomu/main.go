@@ -108,9 +108,13 @@ func init() {
 
 	// Run command flags
 	runCmd.Flags().Bool("ci-mode", false, "enable CI mode with quality gates and reporting")
-	runCmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold (CI mode only)")
-	runCmd.Flags().String("format", "json", "output format for CI reports (CI mode only)")
-	runCmd.Flags().Bool("fail-on-gate", true, "fail build when quality gate is not met (CI mode only)")
+	runCmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold")
+	runCmd.Flags().String("output", "json", "output format (json, html, console)")
+	runCmd.Flags().Bool("fail-on-gate", true, "fail build when quality gate is not met")
+	runCmd.Flags().Int("workers", 4, "number of parallel workers")
+	runCmd.Flags().Int("timeout", 30, "test timeout in seconds")
+	runCmd.Flags().Bool("incremental", true, "enable incremental analysis")
+	runCmd.Flags().String("base-branch", "main", "base branch for incremental analysis")
 
 	// Config subcommands
 	configCmd.AddCommand(configInitCmd)
@@ -131,29 +135,10 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	if verbose {
-		cfg.Verbose = true
-	}
-
 	// Check if CI mode is enabled
 	ciMode, _ := cmd.Flags().GetBool("ci-mode")
-
-	// Override CI config with command line flags if in CI mode
-	if ciMode {
-		if threshold, _ := cmd.Flags().GetFloat64("threshold"); cmd.Flags().Changed("threshold") {
-			cfg.CI.QualityGate.MinMutationScore = threshold
-		}
-
-		if format, _ := cmd.Flags().GetString("format"); cmd.Flags().Changed("format") {
-			cfg.CI.Reports.Formats = []string{format}
-		}
-
-		if failOnGate, _ := cmd.Flags().GetBool("fail-on-gate"); cmd.Flags().Changed("fail-on-gate") {
-			cfg.CI.QualityGate.FailOnQualityGate = failOnGate
-		}
-		// Enable CI features
-		cfg.CI.QualityGate.Enabled = true
-	}
+	
+	// TODO: Handle CI-specific flags via environment variables or action.yaml
 
 	engine, err := gomu.NewEngineWithCIMode(cfg, ciMode)
 	if err != nil {
