@@ -156,7 +156,7 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 	historyWrapper := &historyStoreWrapper{store: e.history}
 
 	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(absPath, historyWrapper)
-	if err == nil {
+	if err != nil {
 		return fmt.Errorf("failed to create incremental analyzer: %w", err)
 	}
 
