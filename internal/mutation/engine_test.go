@@ -5,24 +5,16 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/sivchari/gomu/internal/config"
 )
 
 func TestNew(t *testing.T) {
-	cfg := config.Default()
-
-	engine, err := New(cfg)
+	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
 
 	if engine == nil {
 		t.Fatal("Expected engine to be non-nil")
-	}
-
-	if engine.config != cfg {
-		t.Error("Engine config does not match provided config")
 	}
 
 	if len(engine.mutators) != 3 {
@@ -44,10 +36,9 @@ func TestNew(t *testing.T) {
 }
 
 func TestNew_CustomMutators(t *testing.T) {
-	cfg := config.Default()
 	// All mutation types are now enabled by default
 
-	engine, err := New(cfg)
+	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
@@ -58,10 +49,9 @@ func TestNew_CustomMutators(t *testing.T) {
 }
 
 func TestNew_InvalidMutator(t *testing.T) {
-	cfg := config.Default()
 	// All mutation types are now enabled by default
 
-	engine, err := New(cfg)
+	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
@@ -97,9 +87,7 @@ func LogicalTest(a, b bool) bool {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 
-	cfg := config.Default()
-
-	engine, err := New(cfg)
+	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
@@ -189,10 +177,7 @@ func TestGenerateMutants_MutationLimit(t *testing.T) {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 
-	cfg := config.Default()
-	// Mutation limits are no longer supported - using unlimited
-
-	engine, err := New(cfg)
+	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
@@ -209,9 +194,7 @@ func TestGenerateMutants_MutationLimit(t *testing.T) {
 }
 
 func TestGenerateMutants_InvalidFile(t *testing.T) {
-	cfg := config.Default()
-
-	engine, err := New(cfg)
+	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
@@ -240,9 +223,7 @@ func Invalid() {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 
-	cfg := config.Default()
-
-	engine, err := New(cfg)
+	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
@@ -272,9 +253,7 @@ func NoMutations() {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 
-	cfg := config.Default()
-
-	engine, err := New(cfg)
+	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
@@ -291,9 +270,7 @@ func NoMutations() {
 }
 
 func TestCreateMutator(t *testing.T) {
-	cfg := config.Default()
-
-	engine, err := New(cfg)
+	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}

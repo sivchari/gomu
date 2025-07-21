@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/sivchari/gomu/internal/config"
 )
 
 // HistoryStore defines the interface for history storage.
@@ -24,7 +22,6 @@ type HistoryEntry struct {
 
 // IncrementalAnalyzer provides incremental analysis functionality.
 type IncrementalAnalyzer struct {
-	config  *config.Config
 	hasher  *FileHasher
 	git     *GitIntegration
 	history HistoryStore
@@ -32,9 +29,16 @@ type IncrementalAnalyzer struct {
 }
 
 // NewIncrementalAnalyzer creates a new incremental analyzer.
-func NewIncrementalAnalyzer(cfg *config.Config, workDir string, historyStore HistoryStore) (*IncrementalAnalyzer, error) {
+func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore) (*IncrementalAnalyzer, error) {
+	// Validate that the workDir exists
+	if _, err := os.Stat(workDir); err != nil {
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("work directory does not exist: %s", workDir)
+		}
+		return nil, fmt.Errorf("error accessing work directory: %w", err)
+	}
+	
 	return &IncrementalAnalyzer{
-		config:  cfg,
 		hasher:  NewFileHasher(),
 		git:     NewGitIntegration(workDir),
 		history: historyStore,

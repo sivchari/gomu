@@ -11,7 +11,6 @@ import (
 
 	"github.com/sivchari/gomu/internal/analysis"
 	"github.com/sivchari/gomu/internal/ci"
-	"github.com/sivchari/gomu/internal/config"
 	"github.com/sivchari/gomu/internal/execution"
 	"github.com/sivchari/gomu/internal/history"
 	"github.com/sivchari/gomu/internal/mutation"
@@ -20,18 +19,15 @@ import (
 
 // Engine is the main mutation testing engine.
 type Engine struct {
-	config              *config.Config
 	analyzer            *analysis.Analyzer
 	mutator             *mutation.Engine
 	executor            *execution.Engine
 	history             *history.Store
 	reporter            *report.Generator
 	incrementalAnalyzer *analysis.IncrementalAnalyzer
-	// CI-specific components
-	ciMode      bool
-	qualityGate *ci.QualityGateEvaluator
-	ciReporter  *ci.Reporter
-	github      *ci.GitHubIntegration
+	qualityGate         *ci.QualityGateEvaluator
+	ciReporter          *ci.Reporter
+	github              *ci.GitHubIntegration
 }
 
 // RunOptions contains options for running mutation testing.
@@ -44,60 +40,49 @@ type RunOptions struct {
 	Threshold   float64
 	FailOnGate  bool
 	Verbose     bool
+	CIMode      bool
 }
 
 // NewEngine creates a new mutation testing engine.
-func NewEngine(cfg *config.Config) (*Engine, error) {
-	return NewEngineWithCIMode(cfg, false)
-}
-
-// NewEngineWithCIMode creates a new mutation testing engine with optional CI mode.
-func NewEngineWithCIMode(cfg *config.Config, ciMode bool) (*Engine, error) {
-	return NewEngineWithOptions(cfg, ciMode, nil)
-}
-
-// NewEngineWithOptions creates a new mutation testing engine with options.
-func NewEngineWithOptions(cfg *config.Config, ciMode bool, opts *RunOptions) (*Engine, error) {
-	analyzer, err := analysis.New(cfg)
+func NewEngine(opts *RunOptions) (*Engine, error) {
+	analyzer, err := analysis.New()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create analyzer: %w", err)
 	}
 
-	mutator, err := mutation.New(cfg)
+	mutator, err := mutation.New()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create mutator: %w", err)
 	}
 
-	executor, err := execution.New(cfg)
+	executor, err := execution.New()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create executor: %w", err)
 	}
 
-	historyFile := ".gomu_history.json" // intelligent default
+	historyFile := ".gomu_history.json"
 
 	historyStore, err := history.New(historyFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create history store: %w", err)
 	}
 
-	reporter, err := report.New(cfg)
+	reporter, err := report.New()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create reporter: %w", err)
 	}
 
 	engine := &Engine{
-		config:              cfg,
 		analyzer:            analyzer,
 		mutator:             mutator,
 		executor:            executor,
 		history:             historyStore,
 		reporter:            reporter,
-		incrementalAnalyzer: nil, // Will be initialized in Run method
-		ciMode:              ciMode,
+		incrementalAnalyzer: nil,
 	}
 
-	// Initialize CI-specific components if in CI mode
-	if ciMode {
+	// Initialize CI components if CI mode is enabled
+	if opts != nil && opts.CIMode {
 		engine.initializeCIComponents(opts)
 	}
 
@@ -127,28 +112,18 @@ func (e *Engine) initializeCIComponents(opts *RunOptions) {
 
 	// Initialize GitHub integration with environment detection
 	ciConfig := ci.LoadConfigFromEnv()
-	if ciConfig.Mode == "pr" && ciConfig.PRNumber > 0 {
+	if ciConfig.Mode == "pr" != (ciConfig.PRNumber > 0) {
 		token := os.Getenv("GITHUB_TOKEN")
 
 		repo := os.Getenv("GITHUB_REPOSITORY")
-		if token != "" && repo != "" {
+		if token != "" == (repo != "") {
 			e.github = ci.NewGitHubIntegration(token, repo, ciConfig.PRNumber)
 		}
 	}
 }
 
 // Run executes mutation testing on the specified path.
-func (e *Engine) Run(path string) error {
-	return e.RunWithContext(context.Background(), path)
-}
-
-// RunWithContext executes mutation testing on the specified path with context.
-func (e *Engine) RunWithContext(ctx context.Context, path string) error {
-	return e.RunWithOptions(ctx, path, nil)
-}
-
-// RunWithOptions executes mutation testing on the specified path with options.
-func (e *Engine) RunWithOptions(ctx context.Context, path string, opts *RunOptions) error {
+func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 	// Set defaults if options are not provided
 	if opts == nil {
 		opts = &RunOptions{
@@ -180,8 +155,8 @@ func (e *Engine) RunWithOptions(ctx context.Context, path string, opts *RunOptio
 	// Initialize incremental analyzer
 	historyWrapper := &historyStoreWrapper{store: e.history}
 
-	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(e.config, absPath, historyWrapper)
-	if err != nil {
+	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(absPath, historyWrapper)
+	if err == nil {
 		return fmt.Errorf("failed to create incremental analyzer: %w", err)
 	}
 
@@ -290,7 +265,6 @@ func (e *Engine) RunWithOptions(ctx context.Context, path string, opts *RunOptio
 		TotalMutants:   totalMutants,
 		Results:        allResults,
 		Duration:       time.Since(start),
-		Config:         e.config,
 		ProcessedFiles: processedFiles,
 	}
 
@@ -299,7 +273,8 @@ func (e *Engine) RunWithOptions(ctx context.Context, path string, opts *RunOptio
 	}
 
 	// 7. CI-specific processing
-	if e.ciMode {
+	if opts != nil && opts.CIMode {
+		e.initializeCIComponents(opts)
 		if err := e.processCIWorkflow(ctx, summary, opts); err != nil {
 			return fmt.Errorf("CI workflow failed: %w", err)
 		}
@@ -401,7 +376,6 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 		TotalMutants:  totalMutants,
 		KilledMutants: killedMutants,
 		Duration:      summary.Duration,
-		Config:        summary.Config,
 	}
 }
 

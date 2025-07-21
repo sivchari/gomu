@@ -8,6 +8,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/sivchari/gomu/internal/mutation"
 )
@@ -19,8 +20,8 @@ type SourceMutator struct {
 
 // NewSourceMutator creates a new source mutator.
 func NewSourceMutator() (*SourceMutator, error) {
-	// Create backup directory
-	backupDir := filepath.Join(os.TempDir(), "gomu_backup")
+	// Create unique backup directory per mutator instance
+	backupDir := filepath.Join(os.TempDir(), fmt.Sprintf("gomu_backup_%d_%d", os.Getpid(), time.Now().UnixNano()))
 	if err := os.MkdirAll(backupDir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create backup directory: %w", err)
 	}
@@ -32,15 +33,15 @@ func NewSourceMutator() (*SourceMutator, error) {
 
 // ApplyMutation applies a mutation to the source file.
 func (sm *SourceMutator) ApplyMutation(mutant mutation.Mutant) error {
-	// 1. Backup original file
-	if err := sm.backupFile(mutant.FilePath); err != nil {
+	// 1. Backup original file with mutant ID for uniqueness
+	if err := sm.backupFile(mutant.FilePath, mutant.ID); err != nil {
 		return fmt.Errorf("failed to backup file: %w", err)
 	}
 
 	// 2. Apply mutation
 	if err := sm.mutateFile(mutant); err != nil {
 		// Restore original if mutation fails
-		if err := sm.RestoreOriginal(mutant.FilePath); err != nil {
+		if err := sm.RestoreOriginal(mutant.FilePath, mutant.ID); err != nil {
 			// Log error but continue with next mutant
 			fmt.Printf("Warning: failed to restore original file: %v\n", err)
 		}
@@ -52,8 +53,13 @@ func (sm *SourceMutator) ApplyMutation(mutant mutation.Mutant) error {
 }
 
 // RestoreOriginal restores the original file from backup.
-func (sm *SourceMutator) RestoreOriginal(filePath string) error {
-	backupPath := sm.getBackupPath(filePath)
+func (sm *SourceMutator) RestoreOriginal(filePath, mutantID string) error {
+	backupPath := sm.getBackupPath(filePath, mutantID)
+
+	// Check if backup exists to prevent errors
+	if _, err := os.Stat(backupPath); os.IsNotExist(err) {
+		return fmt.Errorf("backup file does not exist: %s", backupPath)
+	}
 
 	// Read backup content
 	content, err := os.ReadFile(backupPath)
@@ -64,6 +70,11 @@ func (sm *SourceMutator) RestoreOriginal(filePath string) error {
 	// Write back to original location
 	if err := os.WriteFile(filePath, content, 0644); err != nil {
 		return fmt.Errorf("failed to restore original file: %w", err)
+	}
+
+	// Clean up the backup file after successful restoration
+	if err := os.Remove(backupPath); err != nil {
+		fmt.Printf("Warning: failed to remove backup file %s: %v\n", backupPath, err)
 	}
 
 	return nil
@@ -78,18 +89,25 @@ func (sm *SourceMutator) Cleanup() error {
 	return nil
 }
 
-// backupFile creates a backup of the original file.
-func (sm *SourceMutator) backupFile(filePath string) error {
+// backupFile creates a backup of the original file with unique mutant ID.
+func (sm *SourceMutator) backupFile(filePath, mutantID string) error {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to read file for backup: %w", err)
 	}
 
-	backupPath := sm.getBackupPath(filePath)
+	backupPath := sm.getBackupPath(filePath, mutantID)
 	backupDir := filepath.Dir(backupPath)
 
 	if err := os.MkdirAll(backupDir, 0750); err != nil {
 		return fmt.Errorf("failed to create backup directory: %w", err)
+	}
+
+	// Remove existing backup if it exists (idempotent operation)
+	if _, err := os.Stat(backupPath); err == nil {
+		if err := os.Remove(backupPath); err != nil {
+			return fmt.Errorf("failed to remove existing backup: %w", err)
+		}
 	}
 
 	if err := os.WriteFile(backupPath, content, 0600); err != nil {
@@ -99,12 +117,10 @@ func (sm *SourceMutator) backupFile(filePath string) error {
 	return nil
 }
 
-// getBackupPath returns the backup path for a given file.
-func (sm *SourceMutator) getBackupPath(filePath string) string {
-	absPath, _ := filepath.Abs(filePath)
-	// Replace path separators with underscores for backup filename
-	backupName := filepath.Base(absPath) + "_" + fmt.Sprintf("%x", absPath) + "_original"
-
+// getBackupPath returns the backup path for a given file with mutant ID for uniqueness.
+func (sm *SourceMutator) getBackupPath(filePath, mutantID string) string {
+	// Create a shorter, unique backup name using just the filename and mutant ID
+	backupName := fmt.Sprintf("%s_%s_original", filepath.Base(filePath), mutantID)
 	return filepath.Join(sm.backupDir, backupName)
 }
 

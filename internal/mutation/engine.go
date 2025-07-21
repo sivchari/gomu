@@ -6,12 +6,10 @@ import (
 	"go/token"
 
 	"github.com/sivchari/gomu/internal/analysis"
-	"github.com/sivchari/gomu/internal/config"
 )
 
 // Engine handles mutation generation.
 type Engine struct {
-	config   *config.Config
 	analyzer *analysis.Analyzer
 	mutators []Mutator
 }
@@ -75,14 +73,13 @@ type Mutator interface {
 }
 
 // New creates a new mutation engine.
-func New(cfg *config.Config) (*Engine, error) {
-	analyzer, err := analysis.New(cfg)
+func New() (*Engine, error) {
+	analyzer, err := analysis.New()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create analyzer: %w", err)
 	}
 
 	engine := &Engine{
-		config:   cfg,
 		analyzer: analyzer,
 		mutators: make([]Mutator, 0),
 	}
@@ -152,14 +149,9 @@ func (e *Engine) GetFileSet() *token.FileSet {
 	return e.analyzer.GetFileSet()
 }
 
-// NewEngine creates a new mutation engine with specified config and workDir.
+// NewEngine creates a new mutation engine.
 func NewEngine(configInterface any) (*Engine, error) {
-	cfg, ok := configInterface.(*config.Config)
-	if !ok {
-		return nil, fmt.Errorf("invalid config type")
-	}
-
-	return New(cfg)
+	return New()
 }
 
 // CIResult represents results for CI integration.

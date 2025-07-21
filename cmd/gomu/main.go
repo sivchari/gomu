@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sivchari/gomu/internal/config"
 	"github.com/sivchari/gomu/pkg/gomu"
 	"github.com/spf13/cobra"
 )
 
 var (
-	configFile string
-	verbose    bool
+	verbose bool
 )
 
 var rootCmd = &cobra.Command{
@@ -45,66 +43,11 @@ var versionCmd = &cobra.Command{
 	},
 }
 
-var configCmd = &cobra.Command{
-	Use:   "config",
-	Short: "Manage gomu configuration",
-	Long:  "Commands for managing gomu configuration files",
-}
-
-var configInitCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize a new gomu configuration file",
-	RunE: func(cmd *cobra.Command, _ []string) error {
-		force, _ := cmd.Flags().GetBool("force")
-
-		filename := ".gomu.yaml"
-
-		// Check if file already exists
-		if _, err := os.Stat(filename); err == nil && !force {
-			return fmt.Errorf("configuration file %s already exists (use --force to overwrite)", filename)
-		}
-
-		cfg := config.Default()
-		if err := cfg.Save(filename); err != nil {
-			return fmt.Errorf("failed to save configuration file: %w", err)
-		}
-
-		fmt.Printf("✅ Created %s\n", filename)
-		fmt.Printf("💡 Edit the file to customize your mutation testing settings\n")
-
-		return nil
-	},
-}
-
-var configValidateCmd = &cobra.Command{
-	Use:   "validate [config-file]",
-	Short: "Validate configuration file",
-	RunE: func(_ *cobra.Command, args []string) error {
-		configFile := ""
-		if len(args) > 0 {
-			configFile = args[0]
-		}
-
-		_, err := config.Load(configFile)
-		if err != nil {
-			fmt.Printf("❌ Configuration validation failed: %v\n", err)
-
-			return fmt.Errorf("invalid configuration file: %w", err)
-		}
-
-		fmt.Printf("✅ Configuration is valid\n")
-
-		return nil
-	},
-}
-
 func init() {
-	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is .gomu.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(configCmd)
 
 	// Run command flags
 	runCmd.Flags().Bool("ci-mode", false, "enable CI mode with quality gates and reporting")
@@ -115,24 +58,12 @@ func init() {
 	runCmd.Flags().Int("timeout", 30, "test timeout in seconds")
 	runCmd.Flags().Bool("incremental", true, "enable incremental analysis")
 	runCmd.Flags().String("base-branch", "main", "base branch for incremental analysis")
-
-	// Config subcommands
-	configCmd.AddCommand(configInitCmd)
-	configCmd.AddCommand(configValidateCmd)
-
-	// Config init flags
-	configInitCmd.Flags().Bool("force", false, "overwrite existing config file")
 }
 
 func runMutationTesting(cmd *cobra.Command, args []string) error {
 	path := "."
 	if len(args) > 0 {
 		path = args[0]
-	}
-
-	cfg, err := config.Load(configFile)
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	// Read CLI flags
@@ -163,11 +94,6 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		fmt.Println()
 	}
 
-	engine, err := gomu.NewEngineWithCIMode(cfg, ciMode)
-	if err != nil {
-		return fmt.Errorf("failed to create engine: %w", err)
-	}
-
 	// Create run options from CLI flags
 	opts := &gomu.RunOptions{
 		Workers:     workers,
@@ -178,9 +104,15 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		Threshold:   threshold,
 		FailOnGate:  failOnGate,
 		Verbose:     verbose,
+		CIMode:      ciMode,
 	}
 
-	if err := engine.RunWithOptions(cmd.Context(), path, opts); err != nil {
+	engine, err := gomu.NewEngine(opts)
+	if err != nil {
+		return fmt.Errorf("failed to create engine: %w", err)
+	}
+
+	if err := engine.Run(cmd.Context(), path, opts); err != nil {
 		return fmt.Errorf("mutation testing failed: %w", err)
 	}
 

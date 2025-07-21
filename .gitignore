@@ -31,4 +31,6 @@ go.work.sum
 # .idea/
 # .vscode/
 
-gomu
+mutation-report.html
+mutation-report.json
+mutation-report.txt
