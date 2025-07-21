@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sivchari/gomu/internal/config"
 	"github.com/sivchari/gomu/internal/mutation"
 )
 
@@ -16,27 +15,8 @@ func abs(x float64) float64 {
 	return math.Abs(x)
 }
 
-func TestNew(t *testing.T) {
-	cfg := config.Default()
-
-	generator, err := New(cfg)
-	if err != nil {
-		t.Fatalf("Failed to create generator: %v", err)
-	}
-
-	if generator == nil {
-		t.Fatal("Expected generator to be non-nil")
-	}
-
-	if generator.config != cfg {
-		t.Error("Generator config does not match provided config")
-	}
-}
-
 func TestCalculateStatistics(t *testing.T) {
-	cfg := config.Default()
-
-	generator, err := New(cfg)
+	generator, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -140,9 +120,7 @@ func TestCalculateStatistics(t *testing.T) {
 }
 
 func TestCalculateStatistics_EmptyResults(t *testing.T) {
-	cfg := config.Default()
-
-	generator, err := New(cfg)
+	generator, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -187,9 +165,7 @@ func TestCalculateStatistics_EmptyResults(t *testing.T) {
 }
 
 func TestGenerateJSON(t *testing.T) {
-	cfg := config.Default()
-
-	generator, err := New(cfg)
+	generator, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -258,10 +234,7 @@ func TestGenerateJSON(t *testing.T) {
 }
 
 func TestGenerateText(t *testing.T) {
-	cfg := config.Default()
-	// Output format and file are now handled by intelligent defaults
-
-	generator, err := New(cfg)
+	generator, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -358,9 +331,7 @@ func TestGenerateText(t *testing.T) {
 }
 
 func TestFormatTextReport(t *testing.T) {
-	cfg := config.Default()
-
-	generator, err := New(cfg)
+	generator, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -426,9 +397,7 @@ func TestFormatTextReport(t *testing.T) {
 }
 
 func TestFormatTextReport_NoSurvivedMutants(t *testing.T) {
-	cfg := config.Default()
-
-	generator, err := New(cfg)
+	generator, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -460,10 +429,7 @@ func TestFormatTextReport_NoSurvivedMutants(t *testing.T) {
 }
 
 func TestGenerateHTML(t *testing.T) {
-	cfg := config.Default()
-	// Output format and file are now handled by intelligent defaults
-
-	generator, err := New(cfg)
+	generator, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}

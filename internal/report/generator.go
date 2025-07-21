@@ -9,14 +9,11 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/sivchari/gomu/internal/config"
 	"github.com/sivchari/gomu/internal/mutation"
 )
 
 // Generator handles report generation.
-type Generator struct {
-	config *config.Config
-}
+type Generator struct{}
 
 // Summary contains the complete results of a mutation testing run.
 type Summary struct {
@@ -27,7 +24,6 @@ type Summary struct {
 	Results        []mutation.Result      `json:"results"`
 	Files          map[string]*FileReport `json:"files"`
 	Duration       time.Duration          `json:"duration"`
-	Config         *config.Config         `json:"config,omitempty"`
 	Statistics     Statistics             `json:"statistics"`
 	Timestamp      time.Time              `json:"timestamp"`
 	Version        string                 `json:"version,omitempty"`
@@ -61,10 +57,8 @@ type TypeStatistics struct {
 }
 
 // New creates a new report generator.
-func New(cfg *config.Config) (*Generator, error) {
-	return &Generator{
-		config: cfg,
-	}, nil
+func New() (*Generator, error) {
+	return &Generator{}, nil
 }
 
 const gomuVersion = "0.1.0"

@@ -9,27 +9,24 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sivchari/gomu/internal/config"
 	"github.com/sivchari/gomu/internal/mutation"
 )
 
 // Engine handles test execution.
 type Engine struct {
-	config    *config.Config
 	mutator   *SourceMutator
 	fileLocks map[string]*sync.Mutex
 	fileMapMu sync.Mutex
 }
 
 // New creates a new execution engine.
-func New(cfg *config.Config) (*Engine, error) {
+func New() (*Engine, error) {
 	mutator, err := NewSourceMutator()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create source mutator: %w", err)
 	}
 
 	return &Engine{
-		config:    cfg,
 		mutator:   mutator,
 		fileLocks: make(map[string]*sync.Mutex),
 	}, nil
@@ -141,7 +138,7 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant, timeout int) mutation
 		result.Output = err.Error()
 
 		// Always restore the original code
-		if restoreErr := e.mutator.RestoreOriginal(mutant.FilePath); restoreErr != nil {
+		if restoreErr := e.mutator.RestoreOriginal(mutant.FilePath, mutant.ID); restoreErr != nil {
 			result.Error = fmt.Sprintf("Failed to restore original file after compilation check: %v", restoreErr)
 		}
 
@@ -160,7 +157,7 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant, timeout int) mutation
 	output, err := cmd.CombinedOutput()
 
 	// 4. Always restore the original code
-	restoreErr := e.mutator.RestoreOriginal(mutant.FilePath)
+	restoreErr := e.mutator.RestoreOriginal(mutant.FilePath, mutant.ID)
 	if restoreErr != nil {
 		result.Error = fmt.Sprintf("Failed to restore original file: %v", restoreErr)
 
@@ -203,8 +200,8 @@ func (e *Engine) checkCompilation(filePath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Run 'go build' to check compilation
-	cmd := exec.CommandContext(ctx, "go", "build", "./...")
+	// Run 'go build' on the specific file
+	cmd := exec.CommandContext(ctx, "go", "build", filepath.Base(filePath))
 	cmd.Dir = compileDir
 
 	output, err := cmd.CombinedOutput()

@@ -13,21 +13,17 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-
-	"github.com/sivchari/gomu/internal/config"
 )
 
 // Analyzer handles code analysis and file discovery.
 type Analyzer struct {
-	config   *config.Config
 	fileSet  *token.FileSet
 	typeInfo *types.Info
 }
 
 // New creates a new analyzer.
-func New(cfg *config.Config) (*Analyzer, error) {
+func New() (*Analyzer, error) {
 	return &Analyzer{
-		config:  cfg,
 		fileSet: token.NewFileSet(),
 		typeInfo: &types.Info{
 			Types: make(map[ast.Expr]types.TypeAndValue),
