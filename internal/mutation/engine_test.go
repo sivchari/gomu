@@ -37,7 +37,6 @@ func TestNew(t *testing.T) {
 
 func TestNew_CustomMutators(t *testing.T) {
 	// All mutation types are now enabled by default
-
 	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)
@@ -50,7 +49,6 @@ func TestNew_CustomMutators(t *testing.T) {
 
 func TestNew_InvalidMutator(t *testing.T) {
 	// All mutation types are now enabled by default
-
 	engine, err := New()
 	if err != nil {
 		t.Fatalf("Failed to create mutation engine: %v", err)

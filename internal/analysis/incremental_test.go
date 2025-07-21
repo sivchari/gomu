@@ -54,10 +54,6 @@ func TestIncrementalAnalyzer_NewIncrementalAnalyzer(t *testing.T) {
 		t.Fatalf("Failed to create incremental analyzer: %v", err)
 	}
 
-	if analyzer == nil {
-		t.Error("Expected non-nil analyzer")
-	}
-
 	if analyzer.workDir != tempDir {
 		t.Error("Work directory not set correctly")
 	}
@@ -69,12 +65,14 @@ func TestIncrementalAnalyzer_AnalyzeFiles(t *testing.T) {
 
 	// Create test Go files
 	testFile1 := filepath.Join(tempDir, "test1.go")
+
 	err := os.WriteFile(testFile1, []byte(testContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
 	testFile2 := filepath.Join(tempDir, "test2.go")
+
 	err = os.WriteFile(testFile2, []byte(testContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
@@ -82,6 +80,7 @@ func TestIncrementalAnalyzer_AnalyzeFiles(t *testing.T) {
 
 	// Create go.mod
 	goMod := "module test\n"
+
 	err = os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
@@ -104,10 +103,12 @@ func TestIncrementalAnalyzer_AnalyzeFiles(t *testing.T) {
 	// Verify results contain our test files
 	foundTest1 := false
 	foundTest2 := false
+
 	for _, result := range results {
 		if result.FilePath == testFile1 {
 			foundTest1 = true
 		}
+
 		if result.FilePath == testFile2 {
 			foundTest2 = true
 		}
@@ -116,6 +117,7 @@ func TestIncrementalAnalyzer_AnalyzeFiles(t *testing.T) {
 	if !foundTest1 {
 		t.Error("test1.go not found in results")
 	}
+
 	if !foundTest2 {
 		t.Error("test2.go not found in results")
 	}
@@ -126,6 +128,7 @@ func TestIncrementalAnalyzer_GetFilesNeedingUpdate(t *testing.T) {
 	history := NewMockHistoryStore()
 
 	testFile := filepath.Join(tempDir, "test.go")
+
 	err := os.WriteFile(testFile, []byte(testContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
@@ -133,6 +136,7 @@ func TestIncrementalAnalyzer_GetFilesNeedingUpdate(t *testing.T) {
 
 	// Create go.mod
 	goMod := "module test\n"
+
 	err = os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644)
 	if err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
@@ -155,6 +159,7 @@ func TestIncrementalAnalyzer_GetFilesNeedingUpdate(t *testing.T) {
 
 	// Add entry to history
 	hasher := NewFileHasher()
+
 	hash, err := hasher.HashFile(testFile)
 	if err != nil {
 		t.Fatalf("Failed to hash file: %v", err)

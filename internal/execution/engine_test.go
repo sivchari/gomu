@@ -29,16 +29,19 @@ func TestNew(t *testing.T) {
 				if err == nil {
 					t.Error("expected error but got none")
 				}
+
 				return
 			}
 
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
+
 				return
 			}
 
 			if engine == nil {
 				t.Error("engine should not be nil")
+
 				return
 			}
 
@@ -72,6 +75,7 @@ func TestEngineClose(t *testing.T) {
 			name: "close with valid mutator",
 			setupEngine: func() *Engine {
 				engine, _ := New()
+
 				return engine
 			},
 			wantErr: false,
@@ -81,6 +85,7 @@ func TestEngineClose(t *testing.T) {
 			setupEngine: func() *Engine {
 				engine, _ := New()
 				engine.mutator = nil
+
 				return engine
 			},
 			wantErr: false,
@@ -90,11 +95,12 @@ func TestEngineClose(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			engine := tt.setupEngine()
-			err := engine.Close()
 
+			err := engine.Close()
 			if tt.wantErr && err == nil {
 				t.Error("expected error but got none")
 			}
+
 			if !tt.wantErr && err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -132,10 +138,10 @@ func TestRunMutations(t *testing.T) {
 			defer engine.Close()
 
 			results, err := engine.RunMutations(tt.mutants)
-
 			if tt.wantErr && err == nil {
 				t.Error("expected error but got none")
 			}
+
 			if !tt.wantErr && err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -191,10 +197,10 @@ func TestRunMutationsWithOptions(t *testing.T) {
 			defer engine.Close()
 
 			results, err := engine.RunMutationsWithOptions(tt.mutants, tt.workers, tt.timeout)
-
 			if tt.wantErr && err == nil {
 				t.Error("expected error but got none")
 			}
+
 			if !tt.wantErr && err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -244,6 +250,7 @@ func TestGetFileLock(t *testing.T) {
 			firstLock := engine.getFileLock(tt.filePaths[0])
 			if firstLock == nil {
 				t.Error("first lock should not be nil")
+
 				return
 			}
 
@@ -251,6 +258,7 @@ func TestGetFileLock(t *testing.T) {
 				lock := engine.getFileLock(filePath)
 				if lock == nil {
 					t.Errorf("lock %d should not be nil", i)
+
 					continue
 				}
 
@@ -260,6 +268,7 @@ func TestGetFileLock(t *testing.T) {
 				if shouldBeEqual && !isEqual {
 					t.Errorf("lock %d should be equal to first lock but is not", i)
 				}
+
 				if !shouldBeEqual && isEqual {
 					t.Errorf("lock %d should be different from first lock but is the same", i)
 				}
@@ -373,7 +382,6 @@ func TestCheckCompilation(t *testing.T) {
 			defer engine.Close()
 
 			err = engine.checkCompilation(tt.filePath)
-
 			if tt.expectError && err == nil {
 				t.Error("expected compilation error but got none")
 			}
@@ -435,10 +443,12 @@ func TestEngineFileMapConcurrency(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func(id int) {
 			filePath := fmt.Sprintf("/test/file%d.go", id%3) // Use 3 different files
+
 			lock := engine.getFileLock(filePath)
 			if lock == nil {
 				t.Errorf("lock should not be nil for goroutine %d", id)
 			}
+
 			done <- true
 		}(i)
 	}
@@ -458,12 +468,13 @@ func TestEngineFileMapConcurrency(t *testing.T) {
 	}
 }
 
-// Helper function to create a temporary test project
+// Helper function to create a temporary test project.
 func createTempTestProject(t *testing.T) string {
 	tempDir := t.TempDir()
 
 	// Create go.mod
 	goMod := "module test\n\ngo 1.21\n"
+
 	err := os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644)
 	if err != nil {
 		t.Fatalf("failed to create go.mod: %v", err)
@@ -481,6 +492,7 @@ func main() {
 	println(result)
 }
 `
+
 	err = os.WriteFile(filepath.Join(tempDir, "valid.go"), []byte(validGoFile), 0644)
 	if err != nil {
 		t.Fatalf("failed to create valid.go: %v", err)
@@ -498,6 +510,7 @@ func TestAdd(t *testing.T) {
 	}
 }
 `
+
 	err = os.WriteFile(filepath.Join(tempDir, "valid_test.go"), []byte(testFile), 0644)
 	if err != nil {
 		t.Fatalf("failed to create valid_test.go: %v", err)
@@ -510,6 +523,7 @@ func main() {
 	println("hello"  // Missing closing parenthesis
 }
 `
+
 	err = os.WriteFile(filepath.Join(tempDir, "invalid.go"), []byte(invalidGoFile), 0644)
 	if err != nil {
 		t.Fatalf("failed to create invalid.go: %v", err)
@@ -539,10 +553,10 @@ func TestEngineCreationEdgeCases(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			engine, err := New()
-
 			if tt.expectErr && err == nil {
 				t.Error("expected error but got none")
 			}
+
 			if !tt.expectErr && err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -550,6 +564,7 @@ func TestEngineCreationEdgeCases(t *testing.T) {
 			if tt.expectNil && engine != nil {
 				t.Error("expected nil engine")
 			}
+
 			if !tt.expectNil && engine == nil {
 				t.Error("expected non-nil engine")
 			}

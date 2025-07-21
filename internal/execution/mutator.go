@@ -121,6 +121,7 @@ func (sm *SourceMutator) backupFile(filePath, mutantID string) error {
 func (sm *SourceMutator) getBackupPath(filePath, mutantID string) string {
 	// Create a shorter, unique backup name using just the filename and mutant ID
 	backupName := fmt.Sprintf("%s_%s_original", filepath.Base(filePath), mutantID)
+
 	return filepath.Join(sm.backupDir, backupName)
 }
 
