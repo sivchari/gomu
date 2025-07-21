@@ -275,6 +275,7 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 	// 7. CI-specific processing
 	if opts != nil && opts.CIMode {
 		e.initializeCIComponents(opts)
+
 		if err := e.processCIWorkflow(ctx, summary, opts); err != nil {
 			return fmt.Errorf("CI workflow failed: %w", err)
 		}

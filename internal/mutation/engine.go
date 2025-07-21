@@ -150,7 +150,7 @@ func (e *Engine) GetFileSet() *token.FileSet {
 }
 
 // NewEngine creates a new mutation engine.
-func NewEngine(configInterface any) (*Engine, error) {
+func NewEngine(_ any) (*Engine, error) {
 	return New()
 }
 

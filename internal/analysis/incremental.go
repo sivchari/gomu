@@ -35,9 +35,10 @@ func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore) (*Increme
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf("work directory does not exist: %s", workDir)
 		}
+
 		return nil, fmt.Errorf("error accessing work directory: %w", err)
 	}
-	
+
 	return &IncrementalAnalyzer{
 		hasher:  NewFileHasher(),
 		git:     NewGitIntegration(workDir),
