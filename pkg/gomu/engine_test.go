@@ -153,8 +153,8 @@ func TestInitializeCIComponents(t *testing.T) {
 				Output:    "xml",
 			},
 			setupEnv: map[string]string{
-				"CI_MODE":           "pr",
-				"CI_PR_NUMBER":      "123",
+				"CI_MODE":           "true",
+				"GITHUB_PR_NUMBER":  "123",
 				"GITHUB_TOKEN":      "test-token",
 				"GITHUB_REPOSITORY": "owner/repo",
 			},
@@ -170,8 +170,8 @@ func TestInitializeCIComponents(t *testing.T) {
 				Threshold: 80.0,
 			},
 			setupEnv: map[string]string{
-				"CI_MODE":           "pr",
-				"CI_PR_NUMBER":      "123",
+				"CI_MODE":           "true",
+				"GITHUB_PR_NUMBER":  "123",
 				"GITHUB_REPOSITORY": "owner/repo",
 				// No GITHUB_TOKEN
 			},
@@ -187,9 +187,9 @@ func TestInitializeCIComponents(t *testing.T) {
 				Threshold: 80.0,
 			},
 			setupEnv: map[string]string{
-				"CI_MODE":      "pr",
-				"CI_PR_NUMBER": "123",
-				"GITHUB_TOKEN": "test-token",
+				"CI_MODE":          "true",
+				"GITHUB_PR_NUMBER": "123",
+				"GITHUB_TOKEN":     "test-token",
 				// No GITHUB_REPOSITORY
 			},
 			verifyFunc: func(t *testing.T, e *Engine) {
