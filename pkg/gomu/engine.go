@@ -216,7 +216,9 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		// Generate mutations
 		mutants, err := e.mutator.GenerateMutants(file)
 		if err != nil {
-			log.Printf("Warning: failed to generate mutants for %s: %v", file, err)
+			if opts.Verbose {
+				log.Printf("Warning: failed to generate mutants for %s: %v", file, err)
+			}
 
 			continue
 		}
@@ -238,7 +240,9 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		// Execute mutations
 		results, err := e.executor.RunMutationsWithOptions(mutants, opts.Workers, opts.Timeout)
 		if err != nil {
-			log.Printf("Warning: failed to execute mutations for %s: %v", file, err)
+			if opts.Verbose {
+				log.Printf("Warning: failed to execute mutations for %s: %v", file, err)
+			}
 
 			continue
 		}
@@ -248,7 +252,9 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		// Calculate file and test hashes
 		fileHash, err := hasher.HashFile(file)
 		if err != nil {
-			log.Printf("Warning: failed to hash file %s: %v", file, err)
+			if opts.Verbose {
+				log.Printf("Warning: failed to hash file %s: %v", file, err)
+			}
 
 			fileHash = ""
 		}
@@ -263,12 +269,16 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 
 	// 4. Cleanup execution engine
 	if err := e.executor.Close(); err != nil {
-		log.Printf("Warning: failed to cleanup execution engine: %v", err)
+		if opts.Verbose {
+			log.Printf("Warning: failed to cleanup execution engine: %v", err)
+		}
 	}
 
 	// 5. Save history
 	if err := e.history.Save(); err != nil {
-		log.Printf("Warning: failed to save history: %v", err)
+		if opts.Verbose {
+			log.Printf("Warning: failed to save history: %v", err)
+		}
 	}
 
 	// 6. Generate report
