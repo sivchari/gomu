@@ -111,21 +111,26 @@ func (e *Engine) initializeCIComponents(opts *RunOptions) {
 	e.ciReporter = ci.NewReporter(outputDir, outputFormat)
 
 	// Initialize GitHub integration with environment detection
-	ciConfig := ci.LoadConfigFromEnv()
-	if ciConfig.Mode == "pr" && ciConfig.PRNumber > 0 {
-		token := os.Getenv("GITHUB_TOKEN")
-		repo := os.Getenv("GITHUB_REPOSITORY")
+	e.initializeGitHubIntegration(opts)
+}
 
-		if token != "" && repo != "" {
-			e.github = ci.NewGitHubIntegration(token, repo, ciConfig.PRNumber)
-			if opts != nil && opts.Verbose {
-				log.Printf("Initialized GitHub integration for PR #%d", ciConfig.PRNumber)
-			}
-		} else {
-			if opts != nil && opts.Verbose {
-				log.Printf("GitHub integration disabled: missing token or repository")
-			}
+// initializeGitHubIntegration initializes GitHub integration if conditions are met.
+func (e *Engine) initializeGitHubIntegration(opts *RunOptions) {
+	ciConfig := ci.LoadConfigFromEnv()
+	if !ciConfig.IsCIMode() || ciConfig.PRNumber <= 0 {
+		return
+	}
+
+	token := os.Getenv("GITHUB_TOKEN")
+	repo := os.Getenv("GITHUB_REPOSITORY")
+
+	if token != "" && repo != "" {
+		e.github = ci.NewGitHubIntegration(token, repo, ciConfig.PRNumber)
+		if opts != nil && opts.Verbose {
+			log.Printf("Initialized GitHub integration for PR #%d", ciConfig.PRNumber)
 		}
+	} else if opts != nil && opts.Verbose {
+		log.Printf("GitHub integration disabled: missing token or repository")
 	}
 }
 

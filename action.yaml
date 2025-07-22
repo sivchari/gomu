@@ -194,7 +194,7 @@ runs:
           echo "⚠️ No mutation report found"
         fi
       env:
-        CI_MODE: pr
+        CI_MODE: true
         GITHUB_PR_NUMBER: ${{ github.event.number }}
         GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
         GITHUB_HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
