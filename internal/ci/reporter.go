@@ -10,6 +10,8 @@ import (
 	"github.com/sivchari/gomu/internal/report"
 )
 
+const noQualityGateMessage = "No quality gate configured"
+
 // Reporter generates CI-specific reports.
 type Reporter struct {
 	outputDir    string
@@ -106,7 +108,7 @@ func (r *Reporter) generateJSONReport(summary *report.Summary, qualityResult *Qu
 
 		data["mutationScore"] = score
 		data["qualityGatePassed"] = "N/A"
-		data["qualityGateReason"] = "No quality gate configured"
+		data["qualityGateReason"] = noQualityGateMessage
 	}
 
 	jsonData, err := json.MarshalIndent(data, "", "  ")
@@ -161,7 +163,7 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
 			mutationScore = float64(summary.KilledMutants) / float64(summary.TotalMutants) * 100
 		}
 
-		qualityGateStatus = "No quality gate configured"
+		qualityGateStatus = noQualityGateMessage
 	}
 
 	html := fmt.Sprintf(`<!DOCTYPE html>

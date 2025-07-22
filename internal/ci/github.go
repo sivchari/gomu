@@ -179,15 +179,36 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 
 	buf.WriteString("## 🧬 Mutation Testing Results\n\n")
 
+	// Handle nil quality result
+	var mutationScore float64
+
+	var passed bool
+
+	var reason string
+
+	if qualityResult != nil {
+		mutationScore = qualityResult.MutationScore
+		passed = qualityResult.Pass
+		reason = qualityResult.Reason
+	} else {
+		// Calculate mutation score from summary if quality gate is not available
+		if summary.TotalMutants > 0 {
+			mutationScore = float64(summary.KilledMutants) / float64(summary.TotalMutants) * 100
+		}
+
+		passed = mutationScore >= 80.0 // Default threshold
+		reason = noQualityGateMessage
+	}
+
 	// Quality gate status
-	if qualityResult.Pass {
+	if passed {
 		buf.WriteString("✅ **Quality Gate: PASSED**\n\n")
 	} else {
 		buf.WriteString("❌ **Quality Gate: FAILED**\n\n")
 	}
 
 	// Summary
-	buf.WriteString(fmt.Sprintf("**Overall Mutation Score:** %.1f%%\n", qualityResult.MutationScore))
+	buf.WriteString(fmt.Sprintf("**Overall Mutation Score:** %.1f%%\n", mutationScore))
 	buf.WriteString(fmt.Sprintf("**Total Mutants:** %d\n", summary.TotalMutants))
 	buf.WriteString(fmt.Sprintf("**Killed:** %d\n", summary.KilledMutants))
 	buf.WriteString("\n")
@@ -212,8 +233,8 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	}
 
 	// Quality gate reason
-	if !qualityResult.Pass {
-		buf.WriteString(fmt.Sprintf("**Failure Reason:** %s\n", qualityResult.Reason))
+	if !passed {
+		buf.WriteString(fmt.Sprintf("**Failure Reason:** %s\n", reason))
 	}
 
 	buf.WriteString("\n---\n")

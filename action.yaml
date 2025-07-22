@@ -160,7 +160,7 @@ runs:
         
         echo "Running mutation testing with gomu..."
         # Pass all settings via CLI flags (no config file needed)
-        gomu run --ci-mode \
+        gomu run \
           --workers=${{ inputs.workers }} \
           --timeout=${{ inputs.timeout }} \
           --threshold=${{ inputs.threshold }} \
