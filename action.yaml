@@ -161,14 +161,14 @@ runs:
         echo "Running mutation testing with gomu..."
         # Pass all settings via CLI flags (no config file needed)
         gomu run \
+          --ci-mode \
           --workers=${{ inputs.workers }} \
           --timeout=${{ inputs.timeout }} \
           --threshold=${{ inputs.threshold }} \
           --incremental=${{ inputs.incremental }} \
           --base-branch=${{ inputs.base-branch }} \
           --output=${{ inputs.output }} \
-          --fail-on-gate=${{ inputs.fail-on-gate }} \
-          --verbose
+          --fail-on-gate=${{ inputs.fail-on-gate }}
         
         # Parse results if report exists
         if [ -f "mutation-report.json" ]; then
