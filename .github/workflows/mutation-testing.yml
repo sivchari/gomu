@@ -33,3 +33,5 @@ jobs:
         upload-artifacts: 'true'
         comment-pr: 'true'
         version: 'local'
+        workers: '2'
+        timeout: '10'
