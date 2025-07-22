@@ -2,7 +2,7 @@ package gomu
 
 import (
 	"context"
-	"errors"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,6 +15,11 @@ import (
 	"github.com/sivchari/gomu/internal/mutation"
 	"github.com/sivchari/gomu/internal/report"
 )
+
+const testModuleContent = `module test
+
+go 1.21
+`
 
 func TestNewEngine(t *testing.T) {
 	tests := []struct {
@@ -50,13 +55,14 @@ func TestNewEngine(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			engine, err := NewEngine(tt.opts)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
 				} else if tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
 					t.Errorf("expected error to contain %q, got %v", tt.errContains, err)
 				}
+
 				return
 			}
 
@@ -72,15 +78,19 @@ func TestNewEngine(t *testing.T) {
 			if engine.analyzer == nil {
 				t.Error("analyzer should not be nil")
 			}
+
 			if engine.mutator == nil {
 				t.Error("mutator should not be nil")
 			}
+
 			if engine.executor == nil {
 				t.Error("executor should not be nil")
 			}
+
 			if engine.history == nil {
 				t.Error("history should not be nil")
 			}
+
 			if engine.reporter == nil {
 				t.Error("reporter should not be nil")
 			}
@@ -90,6 +100,7 @@ func TestNewEngine(t *testing.T) {
 				if engine.qualityGate == nil {
 					t.Error("quality gate should not be nil in CI mode")
 				}
+
 				if engine.ciReporter == nil {
 					t.Error("CI reporter should not be nil in CI mode")
 				}
@@ -142,9 +153,9 @@ func TestInitializeCIComponents(t *testing.T) {
 				Output:    "xml",
 			},
 			setupEnv: map[string]string{
-				"CI_MODE":          "pr",
-				"CI_PR_NUMBER":     "123",
-				"GITHUB_TOKEN":     "test-token",
+				"CI_MODE":           "pr",
+				"CI_PR_NUMBER":      "123",
+				"GITHUB_TOKEN":      "test-token",
 				"GITHUB_REPOSITORY": "owner/repo",
 			},
 			verifyFunc: func(t *testing.T, e *Engine) {
@@ -159,8 +170,8 @@ func TestInitializeCIComponents(t *testing.T) {
 				Threshold: 80.0,
 			},
 			setupEnv: map[string]string{
-				"CI_MODE":          "pr",
-				"CI_PR_NUMBER":     "123",
+				"CI_MODE":           "pr",
+				"CI_PR_NUMBER":      "123",
 				"GITHUB_REPOSITORY": "owner/repo",
 				// No GITHUB_TOKEN
 			},
@@ -221,11 +232,9 @@ func TestRun(t *testing.T) {
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
 				// Create empty Go module
-				modContent := `module test
-
-go 1.21
-`
+				modContent := testModuleContent
 				os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(modContent), 0644)
+
 				return tempDir, func() {}
 			},
 			opts: &RunOptions{
@@ -244,14 +253,11 @@ go 1.21
 			name: "successful run with files to process",
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
-				
-				// Create go.mod
-				modContent := `module test
 
-go 1.21
-`
+				// Create go.mod
+				modContent := testModuleContent
 				os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(modContent), 0644)
-				
+
 				// Create a simple Go file
 				content := `package main
 
@@ -264,7 +270,7 @@ func Subtract(a, b int) int {
 }
 `
 				os.WriteFile(filepath.Join(tempDir, "math.go"), []byte(content), 0644)
-				
+
 				// Create test file
 				testContent := `package main
 
@@ -277,7 +283,7 @@ func TestAdd(t *testing.T) {
 }
 `
 				os.WriteFile(filepath.Join(tempDir, "math_test.go"), []byte(testContent), 0644)
-				
+
 				return tempDir, func() {
 					os.Remove(filepath.Join(tempDir, ".gomu_history.json"))
 				}
@@ -295,11 +301,9 @@ func TestAdd(t *testing.T) {
 			name: "run with nil options uses defaults",
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
-				modContent := `module test
-
-go 1.21
-`
+				modContent := testModuleContent
 				os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(modContent), 0644)
+
 				return tempDir, func() {}
 			},
 			opts:        nil,
@@ -309,12 +313,9 @@ go 1.21
 			name: "run with CI mode enabled",
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
-				modContent := `module test
-
-go 1.21
-`
+				modContent := testModuleContent
 				os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(modContent), 0644)
-				
+
 				// Create a file with mutations
 				content := `package main
 
@@ -326,25 +327,25 @@ func IsPositive(n int) bool {
 }
 `
 				os.WriteFile(filepath.Join(tempDir, "check.go"), []byte(content), 0644)
-				
+
 				return tempDir, func() {
 					os.Remove(filepath.Join(tempDir, ".gomu_history.json"))
 				}
 			},
 			opts: &RunOptions{
-				Workers:     1,
-				Timeout:     5,
-				Output:      "json",
-				CIMode:      true,
-				Threshold:   90.0,
-				FailOnGate:  false,
-				Verbose:     true,
+				Workers:    1,
+				Timeout:    5,
+				Output:     "json",
+				CIMode:     true,
+				Threshold:  90.0,
+				FailOnGate: false,
+				Verbose:    true,
 			},
 			expectError: false,
 		},
 		{
 			name: "invalid path returns error",
-			setupFunc: func(t *testing.T) (string, func()) {
+			setupFunc: func(_ *testing.T) (string, func()) {
 				return "/nonexistent/invalid/path", func() {}
 			},
 			opts: &RunOptions{
@@ -358,11 +359,9 @@ func IsPositive(n int) bool {
 			name: "context cancellation",
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
-				modContent := `module test
-
-go 1.21
-`
+				modContent := testModuleContent
 				os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(modContent), 0644)
+
 				return tempDir, func() {}
 			},
 			opts: &RunOptions{
@@ -371,6 +370,7 @@ go 1.21
 			setupContext: func() context.Context {
 				ctx, cancel := context.WithCancel(context.Background())
 				cancel() // Cancel immediately
+
 				return ctx
 			},
 			expectError: false, // Should handle cancelled context gracefully
@@ -416,12 +416,12 @@ go 1.21
 
 func TestProcessCIWorkflow(t *testing.T) {
 	tests := []struct {
-		name         string
-		setupEngine  func() *Engine
-		summary      *report.Summary
-		opts         *RunOptions
-		expectError  bool
-		errContains  string
+		name        string
+		setupEngine func() *Engine
+		summary     *report.Summary
+		opts        *RunOptions
+		expectError bool
+		errContains string
 	}{
 		{
 			name: "successful CI workflow with passing quality gate",
@@ -430,6 +430,7 @@ func TestProcessCIWorkflow(t *testing.T) {
 					qualityGate: ci.NewQualityGateEvaluator(true, 80.0),
 					ciReporter:  ci.NewReporter(".", "json"),
 				}
+
 				return e
 			},
 			summary: &report.Summary{
@@ -458,6 +459,7 @@ func TestProcessCIWorkflow(t *testing.T) {
 					qualityGate: ci.NewQualityGateEvaluator(true, 90.0),
 					ciReporter:  ci.NewReporter(".", "json"),
 				}
+
 				return e
 			},
 			summary: &report.Summary{
@@ -469,7 +471,7 @@ func TestProcessCIWorkflow(t *testing.T) {
 						Mutant: mutation.Mutant{
 							FilePath: "test.go",
 						},
-						Status: mutation.StatusKilled,
+						Status: mutation.StatusSurvived,
 					},
 				},
 			},
@@ -488,6 +490,7 @@ func TestProcessCIWorkflow(t *testing.T) {
 					ciReporter:  ci.NewReporter(".", "json"),
 					github:      &ci.GitHubIntegration{}, // Mock GitHub integration
 				}
+
 				return e
 			},
 			summary: &report.Summary{
@@ -507,13 +510,25 @@ func TestProcessCIWorkflow(t *testing.T) {
 				e := &Engine{
 					ciReporter: ci.NewReporter(".", "json"),
 				}
+
 				return e
 			},
 			summary: &report.Summary{
 				TotalMutants:  100,
 				KilledMutants: 85,
+				Duration:      time.Second,
+				Results: []mutation.Result{
+					{
+						Mutant: mutation.Mutant{
+							FilePath: "test.go",
+						},
+						Status: mutation.StatusKilled,
+					},
+				},
 			},
-			opts:        &RunOptions{},
+			opts: &RunOptions{
+				Verbose: false,
+			},
 			expectError: false,
 		},
 	}
@@ -521,7 +536,7 @@ func TestProcessCIWorkflow(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			engine := tt.setupEngine()
-			
+
 			err := engine.processCIWorkflow(context.Background(), tt.summary, tt.opts)
 
 			if tt.expectError {
@@ -546,12 +561,12 @@ func TestProcessCIWorkflow(t *testing.T) {
 
 func TestConvertToCISummary(t *testing.T) {
 	tests := []struct {
-		name            string
-		summary         *report.Summary
-		expectedFiles   int
-		expectedKilled  int
-		expectedTotal   int
-		expectedScores  map[string]float64
+		name           string
+		summary        *report.Summary
+		expectedFiles  int
+		expectedKilled int
+		expectedTotal  int
+		expectedScores map[string]float64
 	}{
 		{
 			name: "converts summary with multiple files",
@@ -639,7 +654,7 @@ func TestConvertToCISummary(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			engine := &Engine{}
-			
+
 			ciSummary := engine.convertToCISummary(tt.summary)
 
 			if ciSummary.TotalMutants != tt.expectedTotal {
@@ -657,8 +672,8 @@ func TestConvertToCISummary(t *testing.T) {
 			// Verify file scores
 			for filePath, expectedScore := range tt.expectedScores {
 				if fileReport, ok := ciSummary.Files[filePath]; ok {
-					if fileReport.MutationScore != expectedScore {
-						t.Errorf("file %s: expected score %.2f, got %.2f", 
+					if math.Abs(fileReport.MutationScore-expectedScore) > 0.01 {
+						t.Errorf("file %s: expected score %.2f, got %.2f",
 							filePath, expectedScore, fileReport.MutationScore)
 					}
 				} else {
@@ -684,7 +699,7 @@ func TestCalculateTestHash(t *testing.T) {
 			name: "calculates hash for file with test",
 			setupFiles: func(t *testing.T) (string, string) {
 				tempDir := t.TempDir()
-				
+
 				// Create main file
 				mainFile := filepath.Join(tempDir, "calc.go")
 				content := `package calc
@@ -694,7 +709,7 @@ func Add(a, b int) int {
 }
 `
 				os.WriteFile(mainFile, []byte(content), 0644)
-				
+
 				// Create test file
 				testFile := filepath.Join(tempDir, "calc_test.go")
 				testContent := `package calc
@@ -708,7 +723,7 @@ func TestAdd(t *testing.T) {
 }
 `
 				os.WriteFile(testFile, []byte(testContent), 0644)
-				
+
 				return mainFile, tempDir
 			},
 			expectHash: true,
@@ -717,14 +732,14 @@ func TestAdd(t *testing.T) {
 			name: "returns empty for file without test",
 			setupFiles: func(t *testing.T) (string, string) {
 				tempDir := t.TempDir()
-				
+
 				mainFile := filepath.Join(tempDir, "notested.go")
 				content := `package main
 
 func Untested() {}
 `
 				os.WriteFile(mainFile, []byte(content), 0644)
-				
+
 				return mainFile, tempDir
 			},
 			expectHash: false,
@@ -734,15 +749,16 @@ func Untested() {}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			filePath, _ := tt.setupFiles(t)
-			
+
 			engine := &Engine{}
 			hasher := analysis.NewFileHasher()
-			
+
 			hash := engine.calculateTestHash(filePath, hasher)
-			
+
 			if tt.expectHash && hash == "" {
 				t.Error("expected non-empty hash")
 			}
+
 			if !tt.expectHash && hash != "" {
 				t.Error("expected empty hash")
 			}
@@ -752,21 +768,21 @@ func Untested() {}
 
 func TestFindRelatedTestFiles(t *testing.T) {
 	tests := []struct {
-		name         string
-		setupFiles   func(t *testing.T) (string, []string)
+		name          string
+		setupFiles    func(t *testing.T) (string, []string)
 		expectedCount int
 	}{
 		{
 			name: "finds standard test file",
 			setupFiles: func(t *testing.T) (string, []string) {
 				tempDir := t.TempDir()
-				
+
 				mainFile := filepath.Join(tempDir, "utils.go")
 				testFile := filepath.Join(tempDir, "utils_test.go")
-				
+
 				os.WriteFile(mainFile, []byte("package utils"), 0644)
 				os.WriteFile(testFile, []byte("package utils"), 0644)
-				
+
 				return mainFile, []string{testFile}
 			},
 			expectedCount: 1,
@@ -775,13 +791,13 @@ func TestFindRelatedTestFiles(t *testing.T) {
 			name: "finds test_ prefixed file",
 			setupFiles: func(t *testing.T) (string, []string) {
 				tempDir := t.TempDir()
-				
+
 				mainFile := filepath.Join(tempDir, "helper.go")
 				testFile := filepath.Join(tempDir, "test_helper.go")
-				
+
 				os.WriteFile(mainFile, []byte("package main"), 0644)
 				os.WriteFile(testFile, []byte("package main"), 0644)
-				
+
 				return mainFile, []string{testFile}
 			},
 			expectedCount: 1,
@@ -790,10 +806,10 @@ func TestFindRelatedTestFiles(t *testing.T) {
 			name: "no test files found",
 			setupFiles: func(t *testing.T) (string, []string) {
 				tempDir := t.TempDir()
-				
+
 				mainFile := filepath.Join(tempDir, "lonely.go")
 				os.WriteFile(mainFile, []byte("package main"), 0644)
-				
+
 				return mainFile, []string{}
 			},
 			expectedCount: 0,
@@ -802,15 +818,15 @@ func TestFindRelatedTestFiles(t *testing.T) {
 			name: "finds multiple test patterns",
 			setupFiles: func(t *testing.T) (string, []string) {
 				tempDir := t.TempDir()
-				
+
 				mainFile := filepath.Join(tempDir, "core.go")
 				test1 := filepath.Join(tempDir, "core_test.go")
 				test2 := filepath.Join(tempDir, "test_core.go")
-				
+
 				os.WriteFile(mainFile, []byte("package main"), 0644)
 				os.WriteFile(test1, []byte("package main"), 0644)
 				os.WriteFile(test2, []byte("package main"), 0644)
-				
+
 				return mainFile, []string{test1, test2}
 			},
 			expectedCount: 2,
@@ -820,23 +836,26 @@ func TestFindRelatedTestFiles(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			filePath, expectedFiles := tt.setupFiles(t)
-			
+
 			engine := &Engine{}
 			testFiles := engine.findRelatedTestFiles(filePath)
-			
+
 			if len(testFiles) != tt.expectedCount {
 				t.Errorf("expected %d test files, found %d", tt.expectedCount, len(testFiles))
 			}
-			
+
 			// Verify correct files were found
 			for _, expected := range expectedFiles {
 				found := false
+
 				for _, actual := range testFiles {
 					if actual == expected {
 						found = true
+
 						break
 					}
 				}
+
 				if !found && tt.expectedCount > 0 {
 					t.Errorf("expected to find test file %s", expected)
 				}
@@ -858,10 +877,10 @@ func TestHistoryStoreWrapper(t *testing.T) {
 			setupStore: func(t *testing.T) *historyStoreWrapper {
 				tempFile := filepath.Join(t.TempDir(), "history.json")
 				store, _ := history.New(tempFile)
-				
+
 				// Add an entry
 				store.UpdateFileWithHashes("test.go", nil, nil, "hash123", "testhash456")
-				
+
 				return &historyStoreWrapper{store: store}
 			},
 			filePath:    "test.go",
@@ -873,6 +892,7 @@ func TestHistoryStoreWrapper(t *testing.T) {
 			setupStore: func(t *testing.T) *historyStoreWrapper {
 				tempFile := filepath.Join(t.TempDir(), "history.json")
 				store, _ := history.New(tempFile)
+
 				return &historyStoreWrapper{store: store}
 			},
 			filePath:    "notfound.go",
@@ -883,13 +903,13 @@ func TestHistoryStoreWrapper(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			wrapper := tt.setupStore(t)
-			
+
 			entry, exists := wrapper.GetEntry(tt.filePath)
-			
+
 			if exists != tt.expectEntry {
 				t.Errorf("expected exists=%v, got %v", tt.expectEntry, exists)
 			}
-			
+
 			if tt.expectEntry && entry.FileHash != tt.expectHash {
 				t.Errorf("expected hash %s, got %s", tt.expectHash, entry.FileHash)
 			}
@@ -899,10 +919,10 @@ func TestHistoryStoreWrapper(t *testing.T) {
 
 func TestHistoryStoreWrapperHasChanged(t *testing.T) {
 	tests := []struct {
-		name         string
-		setupStore   func(t *testing.T) *historyStoreWrapper
-		filePath     string
-		currentHash  string
+		name          string
+		setupStore    func(t *testing.T) *historyStoreWrapper
+		filePath      string
+		currentHash   string
 		expectChanged bool
 	}{
 		{
@@ -910,10 +930,10 @@ func TestHistoryStoreWrapperHasChanged(t *testing.T) {
 			setupStore: func(t *testing.T) *historyStoreWrapper {
 				tempFile := filepath.Join(t.TempDir(), "history.json")
 				store, _ := history.New(tempFile)
-				
+
 				// Add entry with old hash
 				store.UpdateFileWithHashes("changed.go", nil, nil, "oldhash", "")
-				
+
 				return &historyStoreWrapper{store: store}
 			},
 			filePath:      "changed.go",
@@ -925,10 +945,10 @@ func TestHistoryStoreWrapperHasChanged(t *testing.T) {
 			setupStore: func(t *testing.T) *historyStoreWrapper {
 				tempFile := filepath.Join(t.TempDir(), "history.json")
 				store, _ := history.New(tempFile)
-				
+
 				// Add entry with same hash
 				store.UpdateFileWithHashes("same.go", nil, nil, "samehash", "")
-				
+
 				return &historyStoreWrapper{store: store}
 			},
 			filePath:      "same.go",
@@ -940,6 +960,7 @@ func TestHistoryStoreWrapperHasChanged(t *testing.T) {
 			setupStore: func(t *testing.T) *historyStoreWrapper {
 				tempFile := filepath.Join(t.TempDir(), "history.json")
 				store, _ := history.New(tempFile)
+
 				return &historyStoreWrapper{store: store}
 			},
 			filePath:      "new.go",
@@ -951,70 +972,12 @@ func TestHistoryStoreWrapperHasChanged(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			wrapper := tt.setupStore(t)
-			
+
 			changed := wrapper.HasChanged(tt.filePath, tt.currentHash)
-			
+
 			if changed != tt.expectChanged {
 				t.Errorf("expected changed=%v, got %v", tt.expectChanged, changed)
 			}
 		})
 	}
-}
-
-// Mock implementations for error testing
-type mockAnalyzer struct {
-	shouldError bool
-}
-
-func (m *mockAnalyzer) Analyze() error {
-	if m.shouldError {
-		return errors.New("analyzer error")
-	}
-	return nil
-}
-
-type mockMutator struct {
-	shouldError bool
-}
-
-func (m *mockMutator) GenerateMutants(file string) ([]mutation.Mutant, error) {
-	if m.shouldError {
-		return nil, errors.New("mutator error")
-	}
-	return []mutation.Mutant{
-		{
-			ID:       "1",
-			FilePath: file,
-			Line:     1,
-			Column:   1,
-			Type:     "arithmetic",
-			Original: "+",
-			Mutated:  "-",
-		},
-	}, nil
-}
-
-type mockExecutor struct {
-	shouldError bool
-}
-
-func (m *mockExecutor) RunMutationsWithOptions(mutants []mutation.Mutant, workers, timeout int) ([]mutation.Result, error) {
-	if m.shouldError {
-		return nil, errors.New("executor error")
-	}
-	results := make([]mutation.Result, len(mutants))
-	for i, mutant := range mutants {
-		results[i] = mutation.Result{
-			Mutant: mutant,
-			Status: mutation.StatusKilled,
-		}
-	}
-	return results, nil
-}
-
-func (m *mockExecutor) Close() error {
-	if m.shouldError {
-		return errors.New("close error")
-	}
-	return nil
 }

@@ -803,7 +803,7 @@ func Add(x, y int) int {
 				ID:       "arith-1",
 				Type:     "arithmetic_binary",
 				Line:     4,
-				Column:   12, // Adjust column to match actual position
+				Column:   9, // Column of the start of expression
 				Original: "+",
 				Mutated:  "-",
 			},
@@ -821,7 +821,7 @@ func Multiply(a, b int) int {
 				ID:       "arith-2",
 				Type:     "arithmetic_binary",
 				Line:     4,
-				Column:   12, // Adjust column to match actual position
+				Column:   9, // Column of the start of expression
 				Original: "*",
 				Mutated:  "/",
 			},
@@ -839,7 +839,7 @@ func Modulo(x, y int) int {
 				ID:       "arith-3",
 				Type:     "arithmetic_binary",
 				Line:     4,
-				Column:   12, // Adjust column to match actual position
+				Column:   9, // Column of the start of expression
 				Original: "%",
 				Mutated:  "*",
 			},
@@ -857,7 +857,7 @@ func Something(x, y int) int {
 				ID:       "arith-4",
 				Type:     "arithmetic_binary",
 				Line:     4,
-				Column:   12, // Adjust column to match actual position
+				Column:   9, // Column of the start of expression
 				Original: "+",
 				Mutated:  "invalid",
 			},
@@ -875,16 +875,16 @@ func Something(x, y int) int {
 
 			tempDir := t.TempDir()
 			testFile := filepath.Join(tempDir, "arith.go")
-			
+
 			err = os.WriteFile(testFile, []byte(tt.fileContent), 0644)
 			if err != nil {
 				t.Fatalf("failed to create test file: %v", err)
 			}
 
 			tt.mutant.FilePath = testFile
-			
+
 			err = mutator.ApplyMutation(tt.mutant)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
@@ -893,7 +893,7 @@ func Something(x, y int) int {
 				if err != nil {
 					t.Errorf("unexpected error: %v", err)
 				}
-				
+
 				content, _ := os.ReadFile(testFile)
 				if !strings.Contains(string(content), tt.expected) {
 					t.Errorf("expected content to contain %q, got: %s", tt.expected, string(content))
@@ -958,19 +958,19 @@ func Scale(factor int) {
 
 			tempDir := t.TempDir()
 			testFile := filepath.Join(tempDir, "assign.go")
-			
+
 			err = os.WriteFile(testFile, []byte(tt.fileContent), 0644)
 			if err != nil {
 				t.Fatalf("failed to create test file: %v", err)
 			}
 
 			tt.mutant.FilePath = testFile
-			
+
 			err = mutator.ApplyMutation(tt.mutant)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
-			
+
 			content, _ := os.ReadFile(testFile)
 			if !strings.Contains(string(content), tt.expected) {
 				t.Errorf("expected content to contain %q, got: %s", tt.expected, string(content))
@@ -1034,19 +1034,19 @@ func Decrement(x int) int {
 
 			tempDir := t.TempDir()
 			testFile := filepath.Join(tempDir, "incdec.go")
-			
+
 			err = os.WriteFile(testFile, []byte(tt.fileContent), 0644)
 			if err != nil {
 				t.Fatalf("failed to create test file: %v", err)
 			}
 
 			tt.mutant.FilePath = testFile
-			
+
 			err = mutator.ApplyMutation(tt.mutant)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
-			
+
 			content, _ := os.ReadFile(testFile)
 			if !strings.Contains(string(content), tt.expected) {
 				t.Errorf("expected content to contain %q, got: %s", tt.expected, string(content))
@@ -1073,7 +1073,7 @@ func IsGreater(a, b int) bool {
 				ID:       "cond-1",
 				Type:     "conditional_binary",
 				Line:     4,
-				Column:   12, // Adjust column to match actual position
+				Column:   9, // Column of the start of expression
 				Original: ">",
 				Mutated:  "<",
 			},
@@ -1090,7 +1090,7 @@ func IsEqual(x, y int) bool {
 				ID:       "cond-2",
 				Type:     "conditional_binary",
 				Line:     4,
-				Column:   12, // Adjust column to match actual position
+				Column:   9, // Column of the start of expression
 				Original: "==",
 				Mutated:  "!=",
 			},
@@ -1107,7 +1107,7 @@ func IsLessOrEqual(m, n int) bool {
 				ID:       "cond-3",
 				Type:     "conditional_binary",
 				Line:     4,
-				Column:   12, // Adjust column to match actual position
+				Column:   9, // Column of the start of expression
 				Original: "<=",
 				Mutated:  ">=",
 			},
@@ -1125,19 +1125,19 @@ func IsLessOrEqual(m, n int) bool {
 
 			tempDir := t.TempDir()
 			testFile := filepath.Join(tempDir, "cond.go")
-			
+
 			err = os.WriteFile(testFile, []byte(tt.fileContent), 0644)
 			if err != nil {
 				t.Fatalf("failed to create test file: %v", err)
 			}
 
 			tt.mutant.FilePath = testFile
-			
+
 			err = mutator.ApplyMutation(tt.mutant)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
-			
+
 			content, _ := os.ReadFile(testFile)
 			if !strings.Contains(string(content), tt.expected) {
 				t.Errorf("expected content to contain %q, got: %s", tt.expected, string(content))
@@ -1164,7 +1164,7 @@ func BothTrue(a, b bool) bool {
 				ID:       "logic-1",
 				Type:     "logical_binary",
 				Line:     4,
-				Column:   12, // Adjust column to match actual position
+				Column:   9, // Column of the start of expression
 				Original: "&&",
 				Mutated:  "||",
 			},
@@ -1181,7 +1181,7 @@ func EitherTrue(x, y bool) bool {
 				ID:       "logic-2",
 				Type:     "logical_binary",
 				Line:     4,
-				Column:   12, // Adjust column to match actual position
+				Column:   9, // Column of the start of expression
 				Original: "||",
 				Mutated:  "&&",
 			},
@@ -1199,19 +1199,19 @@ func EitherTrue(x, y bool) bool {
 
 			tempDir := t.TempDir()
 			testFile := filepath.Join(tempDir, "logic.go")
-			
+
 			err = os.WriteFile(testFile, []byte(tt.fileContent), 0644)
 			if err != nil {
 				t.Fatalf("failed to create test file: %v", err)
 			}
 
 			tt.mutant.FilePath = testFile
-			
+
 			err = mutator.ApplyMutation(tt.mutant)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
-			
+
 			content, _ := os.ReadFile(testFile)
 			if !strings.Contains(string(content), tt.expected) {
 				t.Errorf("expected content to contain %q, got: %s", tt.expected, string(content))
@@ -1231,14 +1231,14 @@ func TestWriteModifiedAST(t *testing.T) {
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
 				testFile := filepath.Join(tempDir, "write.go")
-				
+
 				content := `package main
 
 func Test() {
 	x := 1 + 2
 }`
 				os.WriteFile(testFile, []byte(content), 0644)
-				
+
 				return testFile, func() {}
 			},
 			expectError: false,
@@ -1248,15 +1248,15 @@ func Test() {
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
 				testFile := filepath.Join(tempDir, "readonly.go")
-				
+
 				content := `package main
 
 func Test() {}`
 				os.WriteFile(testFile, []byte(content), 0644)
-				
+
 				// Make directory read-only
 				os.Chmod(tempDir, 0555)
-				
+
 				return testFile, func() {
 					os.Chmod(tempDir, 0755)
 				}
@@ -1282,13 +1282,13 @@ func Test() {}`
 				Type:     "arithmetic_binary",
 				FilePath: testFile,
 				Line:     4,
-				Column:   8, // Adjust column to match actual position
+				Column:   7, // Column of the start of expression (1 in "1 + 2")
 				Original: "+",
 				Mutated:  "-",
 			}
 
 			err = mutator.ApplyMutation(mutant)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
@@ -1316,6 +1316,7 @@ func TestBackupFileEdgeCases(t *testing.T) {
 				tempDir := t.TempDir()
 				testFile := filepath.Join(tempDir, "file-with-dashes_and_underscores.go")
 				os.WriteFile(testFile, []byte("package main"), 0644)
+
 				return mutator, testFile
 			},
 			mutantID:    "special-123",
@@ -1327,13 +1328,14 @@ func TestBackupFileEdgeCases(t *testing.T) {
 				mutator, _ := NewSourceMutator()
 				tempDir := t.TempDir()
 				testFile := filepath.Join(tempDir, "large.go")
-				
+
 				// Create a large file (1MB)
 				largeContent := make([]byte, 1024*1024)
 				for i := range largeContent {
 					largeContent[i] = byte('a' + (i % 26))
 				}
 				os.WriteFile(testFile, largeContent, 0644)
+
 				return mutator, testFile
 			},
 			mutantID:    "large-1",
@@ -1346,9 +1348,10 @@ func TestBackupFileEdgeCases(t *testing.T) {
 				tempDir := t.TempDir()
 				testFile := filepath.Join(tempDir, "vanish.go")
 				os.WriteFile(testFile, []byte("package main"), 0644)
-				
+
 				// Delete file after creation
 				os.Remove(testFile)
+
 				return mutator, testFile
 			},
 			mutantID:    "vanish-1",
@@ -1362,7 +1365,7 @@ func TestBackupFileEdgeCases(t *testing.T) {
 			defer mutator.Cleanup()
 
 			err := mutator.backupFile(testFile, tt.mutantID)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
@@ -1371,7 +1374,7 @@ func TestBackupFileEdgeCases(t *testing.T) {
 				if err != nil {
 					t.Errorf("unexpected error: %v", err)
 				}
-				
+
 				// Verify backup exists
 				backupPath := mutator.getBackupPath(testFile, tt.mutantID)
 				if _, err := os.Stat(backupPath); err != nil {
@@ -1394,14 +1397,14 @@ func TestRestoreOriginalEdgeCases(t *testing.T) {
 				mutator, _ := NewSourceMutator()
 				tempDir := t.TempDir()
 				testFile := filepath.Join(tempDir, "delete.go")
-				
+
 				// Create and backup file
 				os.WriteFile(testFile, []byte("original"), 0644)
 				mutator.backupFile(testFile, "del-1")
-				
+
 				// Delete original
 				os.Remove(testFile)
-				
+
 				return mutator, testFile, "del-1"
 			},
 			expectError: false, // Should still restore
@@ -1412,14 +1415,14 @@ func TestRestoreOriginalEdgeCases(t *testing.T) {
 				mutator, _ := NewSourceMutator()
 				tempDir := t.TempDir()
 				testFile := filepath.Join(tempDir, "corrupt.go")
-				
+
 				os.WriteFile(testFile, []byte("original"), 0644)
 				mutator.backupFile(testFile, "cor-1")
-				
+
 				// Corrupt the backup
 				backupPath := mutator.getBackupPath(testFile, "cor-1")
 				os.Remove(backupPath)
-				
+
 				return mutator, testFile, "cor-1"
 			},
 			expectError: true,
@@ -1432,7 +1435,7 @@ func TestRestoreOriginalEdgeCases(t *testing.T) {
 			defer mutator.Cleanup()
 
 			err := mutator.RestoreOriginal(testFile, mutantID)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
@@ -1454,29 +1457,29 @@ func TestCleanupEdgeCases(t *testing.T) {
 	}{
 		{
 			name: "cleanup with nested directories",
-			setupFunc: func(t *testing.T) *SourceMutator {
+			setupFunc: func(_ *testing.T) *SourceMutator {
 				mutator, _ := NewSourceMutator()
-				
+
 				// Create nested structure
 				nestedDir := filepath.Join(mutator.backupDir, "nested", "deep", "dir")
 				os.MkdirAll(nestedDir, 0750)
-				
+
 				// Add some files
 				os.WriteFile(filepath.Join(nestedDir, "file1.bak"), []byte("data"), 0600)
 				os.WriteFile(filepath.Join(mutator.backupDir, "file2.bak"), []byte("data"), 0600)
-				
+
 				return mutator
 			},
 			expectError: false,
 		},
 		{
 			name: "cleanup already cleaned directory",
-			setupFunc: func(t *testing.T) *SourceMutator {
+			setupFunc: func(_ *testing.T) *SourceMutator {
 				mutator, _ := NewSourceMutator()
-				
+
 				// Pre-cleanup
 				os.RemoveAll(mutator.backupDir)
-				
+
 				return mutator
 			},
 			expectError: false, // RemoveAll doesn't error on non-existent
@@ -1488,7 +1491,7 @@ func TestCleanupEdgeCases(t *testing.T) {
 			mutator := tt.setupFunc(t)
 
 			err := mutator.Cleanup()
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
@@ -1497,7 +1500,7 @@ func TestCleanupEdgeCases(t *testing.T) {
 				if err != nil {
 					t.Errorf("unexpected error: %v", err)
 				}
-				
+
 				// Verify directory is gone
 				if _, err := os.Stat(mutator.backupDir); !os.IsNotExist(err) {
 					t.Error("backup directory should not exist after cleanup")
