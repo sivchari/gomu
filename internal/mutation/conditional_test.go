@@ -257,3 +257,88 @@ func TestConditionalMutator_GetConditionalMutations(t *testing.T) {
 		}
 	}
 }
+
+func TestConditionalMutator_AllMutationsGenerated(t *testing.T) {
+	mutator := &ConditionalMutator{}
+	fset := token.NewFileSet()
+
+	tests := []struct {
+		name     string
+		code     string
+		expected []string // All mutations should be generated (including invalid ones)
+	}{
+		{
+			name:     "err != nil - generates all mutations including invalid ones",
+			code:     "err != nil",
+			expected: []string{"==", "<", "<=", ">", ">="}, // All mutations, even invalid ordering operators
+		},
+		{
+			name:     "x == nil - generates all mutations including invalid ones",
+			code:     "x == nil",
+			expected: []string{"!=", "<", "<=", ">", ">="}, // All mutations, even invalid ordering operators
+		},
+		{
+			name:     "a != b - generates all mutations",
+			code:     "a != b",
+			expected: []string{"==", "<", "<=", ">", ">="}, // All mutations
+		},
+		{
+			name:     "a < b - generates all mutations",
+			code:     "a < b",
+			expected: []string{"<=", ">", ">=", "==", "!="}, // All mutations
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			src := "package main\nfunc test() { _ = " + tt.code + " }"
+
+			file, err := parser.ParseFile(fset, "test.go", src, 0)
+			if err != nil {
+				t.Fatalf("Failed to parse file: %v", err)
+			}
+
+			// Find the binary expression
+			var expr ast.Expr
+
+			ast.Inspect(file, func(node ast.Node) bool {
+				if be, ok := node.(*ast.BinaryExpr); ok {
+					expr = be
+
+					return false
+				}
+
+				return true
+			})
+
+			if expr == nil {
+				t.Fatalf("Binary expression not found in: %s", tt.code)
+			}
+
+			mutants := mutator.Mutate(expr, fset)
+
+			if len(mutants) != len(tt.expected) {
+				t.Errorf("Expected %d mutants, got %d", len(tt.expected), len(mutants))
+			}
+
+			// Check that all expected mutations are present
+			mutatedOps := make(map[string]bool)
+			for _, mutant := range mutants {
+				mutatedOps[mutant.Mutated] = true
+			}
+
+			for _, expectedOp := range tt.expected {
+				if !mutatedOps[expectedOp] {
+					t.Errorf("Expected mutation to %s not found", expectedOp)
+				}
+			}
+
+			// Verify all mutations are generated (standard mutation testing behavior)
+			for _, mutant := range mutants {
+				if mutant.Type != "conditional_binary" {
+					t.Errorf("Expected mutant type 'conditional_binary', got %s", mutant.Type)
+				}
+			}
+		})
+	}
+}

@@ -43,7 +43,7 @@ func (m *ConditionalMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Po
 	mutations := m.getConditionalMutations(expr.Op)
 
 	// Generate all mutations - validation will be done at compile time
-	// No pre-filtering based on type safety
+	// Invalid mutations will be classified as NOT_VIABLE during execution
 
 	mutants := make([]Mutant, 0, len(mutations))
 
