@@ -86,13 +86,27 @@ func (r *Reporter) Generate(summary *report.Summary, qualityGate *QualityGateEva
 // generateJSONReport generates a JSON report.
 func (r *Reporter) generateJSONReport(summary *report.Summary, qualityResult *QualityGateResult) error {
 	data := map[string]any{
-		"totalMutants":      summary.TotalMutants,
-		"killedMutants":     summary.KilledMutants,
-		"mutationScore":     qualityResult.MutationScore,
-		"qualityGatePassed": qualityResult.Pass,
-		"qualityGateReason": qualityResult.Reason,
-		"files":             summary.Files,
-		"timestamp":         time.Now(),
+		"totalMutants":  summary.TotalMutants,
+		"killedMutants": summary.KilledMutants,
+		"files":         summary.Files,
+		"timestamp":     time.Now(),
+	}
+
+	// Add quality gate results if available
+	if qualityResult != nil {
+		data["mutationScore"] = qualityResult.MutationScore
+		data["qualityGatePassed"] = qualityResult.Pass
+		data["qualityGateReason"] = qualityResult.Reason
+	} else {
+		// Calculate mutation score from summary
+		score := 0.0
+		if summary.TotalMutants > 0 {
+			score = float64(summary.KilledMutants) / float64(summary.TotalMutants) * 100
+		}
+
+		data["mutationScore"] = score
+		data["qualityGatePassed"] = "N/A"
+		data["qualityGateReason"] = "No quality gate configured"
 	}
 
 	jsonData, err := json.MarshalIndent(data, "", "  ")
@@ -129,6 +143,27 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
         </tr>`, file.FilePath, file.TotalMutants, file.KilledMutants, score)
 	}
 
+	// Handle nil quality result
+	mutationScore := 0.0
+
+	var qualityGateStatus string
+
+	if qualityResult != nil {
+		mutationScore = qualityResult.MutationScore
+		if qualityResult.Pass {
+			qualityGateStatus = "PASSED"
+		} else {
+			qualityGateStatus = fmt.Sprintf("FAILED - %s", qualityResult.Reason)
+		}
+	} else {
+		// Calculate score from summary
+		if summary.TotalMutants > 0 {
+			mutationScore = float64(summary.KilledMutants) / float64(summary.TotalMutants) * 100
+		}
+
+		qualityGateStatus = "No quality gate configured"
+	}
+
 	html := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
@@ -163,9 +198,9 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
     </table>
 </body>
 </html>`,
-		r.getScoreColor(qualityResult.MutationScore),
-		qualityResult.MutationScore,
-		map[bool]string{true: "PASSED", false: "FAILED"}[qualityResult.Pass],
+		r.getScoreColor(mutationScore),
+		mutationScore,
+		qualityGateStatus,
 		summary.TotalMutants,
 		summary.KilledMutants,
 		len(summary.Files),

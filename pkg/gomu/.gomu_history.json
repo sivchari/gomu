@@ -1,0 +1,301 @@
+{
+  "entries": {
+    "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go": {
+      "fileHash": "cba2a609e75d26434a7b1dbdcf46a4402eeec23913124a69a69a9d1074c514bd",
+      "testHash": "",
+      "mutants": [
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go_0",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go",
+          "line": 4,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "\u003e",
+          "mutated": "\u003e=",
+          "description": "Replace \u003e with \u003e="
+        },
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go_1",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go",
+          "line": 4,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "\u003e",
+          "mutated": "\u003c",
+          "description": "Replace \u003e with \u003c"
+        },
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go_2",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go",
+          "line": 4,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "\u003e",
+          "mutated": "\u003c=",
+          "description": "Replace \u003e with \u003c="
+        },
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go_3",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go",
+          "line": 4,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "\u003e",
+          "mutated": "==",
+          "description": "Replace \u003e with =="
+        },
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go_4",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go",
+          "line": 4,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "\u003e",
+          "mutated": "!=",
+          "description": "Replace \u003e with !="
+        }
+      ],
+      "results": [
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go_0",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go",
+            "line": 4,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "\u003e",
+            "mutated": "\u003e=",
+            "description": "Replace \u003e with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        },
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go_1",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go",
+            "line": 4,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "\u003e",
+            "mutated": "\u003c",
+            "description": "Replace \u003e with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        },
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go_2",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go",
+            "line": 4,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "\u003e",
+            "mutated": "\u003c=",
+            "description": "Replace \u003e with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        },
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go_3",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go",
+            "line": 4,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "\u003e",
+            "mutated": "==",
+            "description": "Replace \u003e with =="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        },
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go_4",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunrun_with_CI_mode_enabled3022378486/001/check.go",
+            "line": 4,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "\u003e",
+            "mutated": "!=",
+            "description": "Replace \u003e with !="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        }
+      ],
+      "timestamp": "2025-07-22T11:52:09.285449+09:00",
+      "mutationScore": 0
+    },
+    "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go": {
+      "fileHash": "0afd932e60b4a051c8d6f1deb334cafc7bfffb91fffbbcce5abbde417ae4c8b4",
+      "testHash": "e67b9da5fb461f5a37cfcd99847f538bca0aa9d19d40d9963afba47df8a16ab6",
+      "mutants": [
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_0",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+          "line": 4,
+          "column": 9,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "-",
+          "description": "Replace + with -"
+        },
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_1",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+          "line": 4,
+          "column": 9,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "*",
+          "description": "Replace + with *"
+        },
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_2",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+          "line": 4,
+          "column": 9,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "/",
+          "description": "Replace + with /"
+        },
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_3",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+          "line": 8,
+          "column": 9,
+          "type": "arithmetic_binary",
+          "original": "-",
+          "mutated": "+",
+          "description": "Replace - with +"
+        },
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_4",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+          "line": 8,
+          "column": 9,
+          "type": "arithmetic_binary",
+          "original": "-",
+          "mutated": "*",
+          "description": "Replace - with *"
+        },
+        {
+          "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_5",
+          "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+          "line": 8,
+          "column": 9,
+          "type": "arithmetic_binary",
+          "original": "-",
+          "mutated": "/",
+          "description": "Replace - with /"
+        }
+      ],
+      "results": [
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_0",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+            "line": 4,
+            "column": 9,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "-",
+            "description": "Replace + with -"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        },
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_1",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+            "line": 4,
+            "column": 9,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "*",
+            "description": "Replace + with *"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        },
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_2",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+            "line": 4,
+            "column": 9,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "/",
+            "description": "Replace + with /"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        },
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_3",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+            "line": 8,
+            "column": 9,
+            "type": "arithmetic_binary",
+            "original": "-",
+            "mutated": "+",
+            "description": "Replace - with +"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        },
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_4",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+            "line": 8,
+            "column": 9,
+            "type": "arithmetic_binary",
+            "original": "-",
+            "mutated": "*",
+            "description": "Replace - with *"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        },
+        {
+          "mutant": {
+            "id": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go_5",
+            "filePath": "/var/folders/98/t175c6ds7hxg8zvrbyrwlm_h0000gn/T/TestRunsuccessful_run_with_files_to_process98832544/001/math.go",
+            "line": 8,
+            "column": 9,
+            "type": "arithmetic_binary",
+            "original": "-",
+            "mutated": "/",
+            "description": "Replace - with /"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\nruntime.main_main·f: function main is undeclared in the main package\n"
+        }
+      ],
+      "timestamp": "2025-07-22T11:52:08.717548+09:00",
+      "mutationScore": 0
+    }
+  },
+  "savedAt": "2025-07-22T11:52:09.287133+09:00",
+  "version": "v0.0.0"
+}

@@ -427,7 +427,7 @@ func (e *Engine) findRelatedTestFiles(filePath string) []string {
 
 	for _, pattern := range patterns {
 		testFile := filepath.Join(dir, pattern)
-		if _, err := filepath.Abs(testFile); err == nil {
+		if _, err := os.Stat(testFile); err == nil {
 			testFiles = append(testFiles, testFile)
 		}
 	}

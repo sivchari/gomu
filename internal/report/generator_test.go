@@ -623,9 +623,11 @@ func TestCalculateStatistics_UnknownMutationType(t *testing.T) {
 	if unknownStats.Total != 2 {
 		t.Errorf("Expected unknown total 2, got %d", unknownStats.Total)
 	}
+
 	if unknownStats.Killed != 1 {
 		t.Errorf("Expected unknown killed 1, got %d", unknownStats.Killed)
 	}
+
 	if unknownStats.Survived != 1 {
 		t.Errorf("Expected unknown survived 1, got %d", unknownStats.Survived)
 	}
@@ -664,10 +666,12 @@ func TestGenerateJSON_WriteError(t *testing.T) {
 
 	// Create a read-only directory to force write error
 	tempDir := t.TempDir()
+
 	oldWd, _ := os.Getwd()
 	defer os.Chdir(oldWd)
-	
+
 	os.Chdir(tempDir)
+
 	os.Chmod(tempDir, 0555) // Read-only
 	defer os.Chmod(tempDir, 0755)
 
@@ -884,7 +888,7 @@ func TestFormatTextReport_EdgeCases(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			report := generator.formatTextReport(tt.summary)
-			
+
 			for _, expected := range tt.contains {
 				if !strings.Contains(report, expected) {
 					t.Errorf("Expected report to contain %q", expected)
@@ -901,7 +905,7 @@ func TestGenerate_Timestamp(t *testing.T) {
 	}
 
 	beforeTime := time.Now()
-	
+
 	summary := &Summary{
 		TotalFiles:   1,
 		TotalMutants: 1,
@@ -933,7 +937,7 @@ func TestGenerate_Timestamp(t *testing.T) {
 
 	// Cleanup
 	defer os.Remove("mutation-report.json")
-	defer os.Remove("mutation-report.txt") 
+	defer os.Remove("mutation-report.txt")
 	defer os.Remove("mutation-report.html")
 }
 
@@ -944,6 +948,7 @@ func TestNew_AlwaysSucceeds(t *testing.T) {
 		if err != nil {
 			t.Errorf("New() should never return error, got: %v", err)
 		}
+
 		if generator == nil {
 			t.Error("New() should always return a non-nil generator")
 		}

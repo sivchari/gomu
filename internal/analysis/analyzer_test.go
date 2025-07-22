@@ -25,11 +25,12 @@ func TestNew(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			analyzer, err := New()
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
 				}
+
 				return
 			}
 
@@ -38,7 +39,7 @@ func TestNew(t *testing.T) {
 			}
 
 			if analyzer == nil {
-				t.Error("analyzer should not be nil")
+				t.Fatal("analyzer should not be nil")
 			}
 
 			if analyzer.fileSet == nil {
@@ -47,17 +48,19 @@ func TestNew(t *testing.T) {
 
 			if analyzer.typeInfo == nil {
 				t.Error("typeInfo should not be nil")
-			}
+			} else {
+				// Verify typeInfo is properly initialized
+				if analyzer.typeInfo.Types == nil {
+					t.Error("Types map should be initialized")
+				}
 
-			// Verify typeInfo is properly initialized
-			if analyzer.typeInfo.Types == nil {
-				t.Error("Types map should be initialized")
-			}
-			if analyzer.typeInfo.Uses == nil {
-				t.Error("Uses map should be initialized")
-			}
-			if analyzer.typeInfo.Defs == nil {
-				t.Error("Defs map should be initialized")
+				if analyzer.typeInfo.Uses == nil {
+					t.Error("Uses map should be initialized")
+				}
+
+				if analyzer.typeInfo.Defs == nil {
+					t.Error("Defs map should be initialized")
+				}
 			}
 		})
 	}
@@ -65,27 +68,27 @@ func TestNew(t *testing.T) {
 
 func TestFindTargetFiles(t *testing.T) {
 	tests := []struct {
-		name         string
-		setupFiles   func(t *testing.T) string
-		expectError  bool
-		expectCount  int
-		expectFiles  []string
+		name        string
+		setupFiles  func(t *testing.T) string
+		expectError bool
+		expectCount int
+		expectFiles []string
 	}{
 		{
 			name: "finds go files in simple directory",
 			setupFiles: func(t *testing.T) string {
 				tempDir := t.TempDir()
-				
+
 				// Create some Go files
 				os.WriteFile(filepath.Join(tempDir, "main.go"), []byte("package main"), 0644)
 				os.WriteFile(filepath.Join(tempDir, "util.go"), []byte("package main"), 0644)
-				
+
 				// Create a test file (should be excluded)
 				os.WriteFile(filepath.Join(tempDir, "main_test.go"), []byte("package main"), 0644)
-				
+
 				// Create a non-Go file (should be excluded)
 				os.WriteFile(filepath.Join(tempDir, "README.md"), []byte("# README"), 0644)
-				
+
 				return tempDir
 			},
 			expectError: false,
@@ -96,14 +99,14 @@ func TestFindTargetFiles(t *testing.T) {
 			name: "excludes vendor directory",
 			setupFiles: func(t *testing.T) string {
 				tempDir := t.TempDir()
-				
+
 				os.WriteFile(filepath.Join(tempDir, "main.go"), []byte("package main"), 0644)
-				
+
 				// Create vendor directory with Go files
 				vendorDir := filepath.Join(tempDir, "vendor", "github.com", "pkg")
 				os.MkdirAll(vendorDir, 0755)
 				os.WriteFile(filepath.Join(vendorDir, "vendor.go"), []byte("package pkg"), 0644)
-				
+
 				return tempDir
 			},
 			expectError: false,
@@ -114,14 +117,14 @@ func TestFindTargetFiles(t *testing.T) {
 			name: "excludes testdata directory",
 			setupFiles: func(t *testing.T) string {
 				tempDir := t.TempDir()
-				
+
 				os.WriteFile(filepath.Join(tempDir, "analyzer.go"), []byte("package main"), 0644)
-				
+
 				// Create testdata directory with Go files
 				testdataDir := filepath.Join(tempDir, "testdata")
 				os.MkdirAll(testdataDir, 0755)
 				os.WriteFile(filepath.Join(testdataDir, "test.go"), []byte("package test"), 0644)
-				
+
 				return tempDir
 			},
 			expectError: false,
@@ -132,15 +135,15 @@ func TestFindTargetFiles(t *testing.T) {
 			name: "handles nested directories",
 			setupFiles: func(t *testing.T) string {
 				tempDir := t.TempDir()
-				
+
 				// Create nested structure
 				os.WriteFile(filepath.Join(tempDir, "main.go"), []byte("package main"), 0644)
-				
+
 				subDir := filepath.Join(tempDir, "pkg", "utils")
 				os.MkdirAll(subDir, 0755)
 				os.WriteFile(filepath.Join(subDir, "helper.go"), []byte("package utils"), 0644)
 				os.WriteFile(filepath.Join(subDir, "helper_test.go"), []byte("package utils"), 0644)
-				
+
 				return tempDir
 			},
 			expectError: false,
@@ -158,7 +161,7 @@ func TestFindTargetFiles(t *testing.T) {
 		},
 		{
 			name: "handles non-existent directory",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				return "/non/existent/path"
 			},
 			expectError: true,
@@ -170,6 +173,7 @@ func TestFindTargetFiles(t *testing.T) {
 				tempDir := t.TempDir()
 				os.WriteFile(filepath.Join(tempDir, "foo_test.go"), []byte("package main"), 0644)
 				os.WriteFile(filepath.Join(tempDir, "bar_test.go"), []byte("package main"), 0644)
+
 				return tempDir
 			},
 			expectError: false,
@@ -181,18 +185,19 @@ func TestFindTargetFiles(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rootPath := tt.setupFiles(t)
-			
+
 			analyzer, err := New()
 			if err != nil {
 				t.Fatalf("failed to create analyzer: %v", err)
 			}
 
 			files, err := analyzer.FindTargetFiles(rootPath)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
 				}
+
 				return
 			}
 
@@ -207,12 +212,15 @@ func TestFindTargetFiles(t *testing.T) {
 			// Verify expected files are found
 			for _, expectedFile := range tt.expectFiles {
 				found := false
+
 				for _, file := range files {
 					if strings.HasSuffix(file, expectedFile) {
 						found = true
+
 						break
 					}
 				}
+
 				if !found {
 					t.Errorf("expected to find file %s", expectedFile)
 				}
@@ -223,11 +231,11 @@ func TestFindTargetFiles(t *testing.T) {
 
 func TestFindChangedFiles(t *testing.T) {
 	tests := []struct {
-		name         string
-		allFiles     []string
-		setupGit     func(t *testing.T) func()
-		expectError  bool
-		expectFiles  []string
+		name        string
+		allFiles    []string
+		setupGit    func(t *testing.T) func()
+		expectError bool
+		expectFiles []string
 	}{
 		{
 			name: "finds changed files from git diff",
@@ -241,6 +249,7 @@ func TestFindChangedFiles(t *testing.T) {
 				if _, err := os.Stat(".git"); os.IsNotExist(err) {
 					t.Skip("Not in a git repository")
 				}
+
 				return func() {}
 			},
 			expectError: false,
@@ -249,7 +258,7 @@ func TestFindChangedFiles(t *testing.T) {
 		{
 			name:     "handles empty file list",
 			allFiles: []string{},
-			setupGit: func(t *testing.T) func() {
+			setupGit: func(_ *testing.T) func() {
 				return func() {}
 			},
 			expectError: false,
@@ -268,11 +277,12 @@ func TestFindChangedFiles(t *testing.T) {
 			}
 
 			files, err := analyzer.FindChangedFiles(tt.allFiles)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
 				}
+
 				return
 			}
 
@@ -288,12 +298,15 @@ func TestFindChangedFiles(t *testing.T) {
 			// Verify result is a subset of input files
 			for _, file := range files {
 				found := false
+
 				for _, allFile := range tt.allFiles {
 					if file == allFile {
 						found = true
+
 						break
 					}
 				}
+
 				if !found {
 					t.Errorf("returned file %s not in input files", file)
 				}
@@ -323,6 +336,7 @@ func main() {
 }
 `
 				os.WriteFile(filePath, []byte(content), 0644)
+
 				return filePath
 			},
 			expectError: false,
@@ -353,13 +367,14 @@ func main() {
 }
 `
 				os.WriteFile(filePath, []byte(content), 0644)
+
 				return filePath
 			},
 			expectError: true,
 		},
 		{
 			name: "handles non-existent file",
-			setupFile: func(t *testing.T) string {
+			setupFile: func(_ *testing.T) string {
 				return "/non/existent/file.go"
 			},
 			expectError: true,
@@ -382,6 +397,7 @@ func Subtract(a, b int) int {
 }
 `
 				os.WriteFile(filePath, []byte(content), 0644)
+
 				return filePath
 			},
 			expectError: false,
@@ -389,7 +405,7 @@ func Subtract(a, b int) int {
 				if info.FileAST.Name.Name != "utils" {
 					t.Errorf("expected package name 'utils', got %s", info.FileAST.Name.Name)
 				}
-				
+
 				funcCount := 0
 				for _, decl := range info.FileAST.Decls {
 					if _, ok := decl.(*ast.FuncDecl); ok {
@@ -407,6 +423,7 @@ func Subtract(a, b int) int {
 				tempDir := t.TempDir()
 				filePath := filepath.Join(tempDir, "empty.go")
 				os.WriteFile(filePath, []byte(""), 0644)
+
 				return filePath
 			},
 			expectError: true,
@@ -416,18 +433,19 @@ func Subtract(a, b int) int {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			filePath := tt.setupFile(t)
-			
+
 			analyzer, err := New()
 			if err != nil {
 				t.Fatalf("failed to create analyzer: %v", err)
 			}
 
 			info, err := analyzer.ParseFile(filePath)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
 				}
+
 				return
 			}
 
@@ -462,24 +480,28 @@ func TestGetPosition(t *testing.T) {
 func test() {
 	x := 1
 }`
-	
+
 	file, err := parser.ParseFile(analyzer.fileSet, "test.go", src, parser.ParseComments)
 	if err != nil {
 		t.Fatalf("failed to parse test file: %v", err)
 	}
 
 	// Get position of the function declaration
-	funcDecl := file.Decls[0].(*ast.FuncDecl)
+	funcDecl, ok := file.Decls[0].(*ast.FuncDecl)
+	if !ok {
+		t.Fatal("expected function declaration")
+	}
+
 	pos := analyzer.GetPosition(funcDecl.Pos())
-	
+
 	if pos.Filename != "test.go" {
 		t.Errorf("expected filename 'test.go', got %s", pos.Filename)
 	}
-	
+
 	if pos.Line != 3 {
 		t.Errorf("expected line 3, got %d", pos.Line)
 	}
-	
+
 	if pos.Column != 1 {
 		t.Errorf("expected column 1, got %d", pos.Column)
 	}
@@ -492,11 +514,11 @@ func TestGetFileSet(t *testing.T) {
 	}
 
 	fileSet := analyzer.GetFileSet()
-	
+
 	if fileSet == nil {
 		t.Error("fileSet should not be nil")
 	}
-	
+
 	// Verify it's the same instance
 	if fileSet != analyzer.fileSet {
 		t.Error("GetFileSet should return the same fileSet instance")
@@ -529,7 +551,7 @@ func TestCalculateFileHash(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			hash := calculateFileHash(tt.content)
-			
+
 			if hash != tt.expected {
 				t.Errorf("expected hash %s, got %s", tt.expected, hash)
 			}
@@ -569,7 +591,7 @@ func TestIsValidBranchName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := isValidBranchName(tt.branch)
-			
+
 			if result != tt.expected {
 				t.Errorf("isValidBranchName(%q) = %v, expected %v", tt.branch, result, tt.expected)
 			}
@@ -595,10 +617,10 @@ func Add(a, b int) int {
 }
 `
 				os.WriteFile(filePath, []byte(content), 0644)
-				
+
 				fset := token.NewFileSet()
 				file, _ := parser.ParseFile(fset, filePath, content, parser.ParseComments)
-				
+
 				return filePath, file
 			},
 			expectNil: false,
@@ -608,7 +630,7 @@ func Add(a, b int) int {
 			setupFile: func(t *testing.T) (string, *ast.File) {
 				tempDir := t.TempDir()
 				filePath := filepath.Join(tempDir, "broken.go")
-				
+
 				// Create a file that parses but has type errors
 				content := `package main
 
@@ -617,10 +639,10 @@ func Broken() {
 }
 `
 				os.WriteFile(filePath, []byte(content), 0644)
-				
+
 				fset := token.NewFileSet()
 				file, _ := parser.ParseFile(fset, filePath, content, parser.ParseComments)
-				
+
 				return filePath, file
 			},
 			expectNil: true, // Type checking will fail
@@ -635,16 +657,13 @@ func Broken() {
 			}
 
 			filePath, fileAST := tt.setupFile(t)
-			
+
 			typeInfo := analyzer.getTypeInfo(fileAST, filePath)
-			
+
 			if tt.expectNil {
 				if typeInfo != nil {
 					t.Error("expected nil typeInfo")
 				}
-			} else {
-				// Type info might still be nil if package parsing fails
-				// This is acceptable behavior
 			}
 		})
 	}
@@ -661,13 +680,13 @@ func TestParsePackageFiles(t *testing.T) {
 			name: "parses all non-test files in package",
 			setupFiles: func(t *testing.T) string {
 				tempDir := t.TempDir()
-				
+
 				// Create several Go files
 				os.WriteFile(filepath.Join(tempDir, "main.go"), []byte("package main"), 0644)
 				os.WriteFile(filepath.Join(tempDir, "util.go"), []byte("package main"), 0644)
 				os.WriteFile(filepath.Join(tempDir, "main_test.go"), []byte("package main"), 0644)
 				os.WriteFile(filepath.Join(tempDir, "README.md"), []byte("# README"), 0644)
-				
+
 				return tempDir
 			},
 			expectError: false,
@@ -677,10 +696,10 @@ func TestParsePackageFiles(t *testing.T) {
 			name: "handles directory with only test files",
 			setupFiles: func(t *testing.T) string {
 				tempDir := t.TempDir()
-				
+
 				os.WriteFile(filepath.Join(tempDir, "foo_test.go"), []byte("package main"), 0644)
 				os.WriteFile(filepath.Join(tempDir, "bar_test.go"), []byte("package main"), 0644)
-				
+
 				return tempDir
 			},
 			expectError: false,
@@ -698,13 +717,13 @@ func TestParsePackageFiles(t *testing.T) {
 			name: "skips files with parse errors",
 			setupFiles: func(t *testing.T) string {
 				tempDir := t.TempDir()
-				
+
 				// Valid file
 				os.WriteFile(filepath.Join(tempDir, "valid.go"), []byte("package main"), 0644)
-				
+
 				// Invalid file
 				os.WriteFile(filepath.Join(tempDir, "invalid.go"), []byte("not valid go code!"), 0644)
-				
+
 				return tempDir
 			},
 			expectError: false,
@@ -715,18 +734,19 @@ func TestParsePackageFiles(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pkgDir := tt.setupFiles(t)
-			
+
 			analyzer, err := New()
 			if err != nil {
 				t.Fatalf("failed to create analyzer: %v", err)
 			}
 
 			files, err := analyzer.parsePackageFiles(pkgDir)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("expected error but got none")
 				}
+
 				return
 			}
 
