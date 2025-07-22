@@ -784,6 +784,729 @@ func Calculate(a, b int) int {
 	}
 }
 
+func TestMutateArithmeticBinary(t *testing.T) {
+	tests := []struct {
+		name        string
+		fileContent string
+		mutant      mutation.Mutant
+		expectError bool
+		expected    string
+	}{
+		{
+			name: "mutates addition to subtraction",
+			fileContent: `package main
+
+func Add(x, y int) int {
+	return x + y
+}`,
+			mutant: mutation.Mutant{
+				ID:       "arith-1",
+				Type:     "arithmetic_binary",
+				Line:     4,
+				Column:   12, // Adjust column to match actual position
+				Original: "+",
+				Mutated:  "-",
+			},
+			expectError: false,
+			expected:    "x - y",
+		},
+		{
+			name: "mutates multiplication to division",
+			fileContent: `package main
+
+func Multiply(a, b int) int {
+	return a * b
+}`,
+			mutant: mutation.Mutant{
+				ID:       "arith-2",
+				Type:     "arithmetic_binary",
+				Line:     4,
+				Column:   12, // Adjust column to match actual position
+				Original: "*",
+				Mutated:  "/",
+			},
+			expectError: false,
+			expected:    "a / b",
+		},
+		{
+			name: "mutates modulo to multiplication",
+			fileContent: `package main
+
+func Modulo(x, y int) int {
+	return x % y
+}`,
+			mutant: mutation.Mutant{
+				ID:       "arith-3",
+				Type:     "arithmetic_binary",
+				Line:     4,
+				Column:   12, // Adjust column to match actual position
+				Original: "%",
+				Mutated:  "*",
+			},
+			expectError: false,
+			expected:    "x * y",
+		},
+		{
+			name: "fails with invalid token",
+			fileContent: `package main
+
+func Something(x, y int) int {
+	return x + y
+}`,
+			mutant: mutation.Mutant{
+				ID:       "arith-4",
+				Type:     "arithmetic_binary",
+				Line:     4,
+				Column:   12, // Adjust column to match actual position
+				Original: "+",
+				Mutated:  "invalid",
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mutator, err := NewSourceMutator()
+			if err != nil {
+				t.Fatalf("failed to create mutator: %v", err)
+			}
+			defer mutator.Cleanup()
+
+			tempDir := t.TempDir()
+			testFile := filepath.Join(tempDir, "arith.go")
+			
+			err = os.WriteFile(testFile, []byte(tt.fileContent), 0644)
+			if err != nil {
+				t.Fatalf("failed to create test file: %v", err)
+			}
+
+			tt.mutant.FilePath = testFile
+			
+			err = mutator.ApplyMutation(tt.mutant)
+			
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+				
+				content, _ := os.ReadFile(testFile)
+				if !strings.Contains(string(content), tt.expected) {
+					t.Errorf("expected content to contain %q, got: %s", tt.expected, string(content))
+				}
+			}
+		})
+	}
+}
+
+func TestMutateArithmeticAssign(t *testing.T) {
+	tests := []struct {
+		name        string
+		fileContent string
+		mutant      mutation.Mutant
+		expected    string
+	}{
+		{
+			name: "mutates += to -=",
+			fileContent: `package main
+
+func Accumulate(x int) {
+	sum := 0
+	sum += x
+}`,
+			mutant: mutation.Mutant{
+				ID:       "assign-1",
+				Type:     "arithmetic_assign",
+				Line:     5,
+				Column:   2, // Adjust column to match actual position
+				Original: "+=",
+				Mutated:  "-=",
+			},
+			expected: "sum -= x",
+		},
+		{
+			name: "mutates *= to /=",
+			fileContent: `package main
+
+func Scale(factor int) {
+	value := 10
+	value *= factor
+}`,
+			mutant: mutation.Mutant{
+				ID:       "assign-2",
+				Type:     "arithmetic_assign",
+				Line:     5,
+				Column:   2, // Adjust column to match actual position
+				Original: "*=",
+				Mutated:  "/=",
+			},
+			expected: "value /= factor",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mutator, err := NewSourceMutator()
+			if err != nil {
+				t.Fatalf("failed to create mutator: %v", err)
+			}
+			defer mutator.Cleanup()
+
+			tempDir := t.TempDir()
+			testFile := filepath.Join(tempDir, "assign.go")
+			
+			err = os.WriteFile(testFile, []byte(tt.fileContent), 0644)
+			if err != nil {
+				t.Fatalf("failed to create test file: %v", err)
+			}
+
+			tt.mutant.FilePath = testFile
+			
+			err = mutator.ApplyMutation(tt.mutant)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			
+			content, _ := os.ReadFile(testFile)
+			if !strings.Contains(string(content), tt.expected) {
+				t.Errorf("expected content to contain %q, got: %s", tt.expected, string(content))
+			}
+		})
+	}
+}
+
+func TestMutateIncDec(t *testing.T) {
+	tests := []struct {
+		name        string
+		fileContent string
+		mutant      mutation.Mutant
+		expected    string
+	}{
+		{
+			name: "mutates ++ to --",
+			fileContent: `package main
+
+func Increment(x int) int {
+	x++
+	return x
+}`,
+			mutant: mutation.Mutant{
+				ID:       "incdec-1",
+				Type:     "arithmetic_incdec",
+				Line:     4,
+				Column:   2,
+				Original: "++",
+				Mutated:  "--",
+			},
+			expected: "x--",
+		},
+		{
+			name: "mutates -- to ++",
+			fileContent: `package main
+
+func Decrement(x int) int {
+	x--
+	return x
+}`,
+			mutant: mutation.Mutant{
+				ID:       "incdec-2",
+				Type:     "arithmetic_incdec",
+				Line:     4,
+				Column:   2,
+				Original: "--",
+				Mutated:  "++",
+			},
+			expected: "x++",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mutator, err := NewSourceMutator()
+			if err != nil {
+				t.Fatalf("failed to create mutator: %v", err)
+			}
+			defer mutator.Cleanup()
+
+			tempDir := t.TempDir()
+			testFile := filepath.Join(tempDir, "incdec.go")
+			
+			err = os.WriteFile(testFile, []byte(tt.fileContent), 0644)
+			if err != nil {
+				t.Fatalf("failed to create test file: %v", err)
+			}
+
+			tt.mutant.FilePath = testFile
+			
+			err = mutator.ApplyMutation(tt.mutant)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			
+			content, _ := os.ReadFile(testFile)
+			if !strings.Contains(string(content), tt.expected) {
+				t.Errorf("expected content to contain %q, got: %s", tt.expected, string(content))
+			}
+		})
+	}
+}
+
+func TestMutateConditional(t *testing.T) {
+	tests := []struct {
+		name        string
+		fileContent string
+		mutant      mutation.Mutant
+		expected    string
+	}{
+		{
+			name: "mutates > to <",
+			fileContent: `package main
+
+func IsGreater(a, b int) bool {
+	return a > b
+}`,
+			mutant: mutation.Mutant{
+				ID:       "cond-1",
+				Type:     "conditional_binary",
+				Line:     4,
+				Column:   12, // Adjust column to match actual position
+				Original: ">",
+				Mutated:  "<",
+			},
+			expected: "a < b",
+		},
+		{
+			name: "mutates == to !=",
+			fileContent: `package main
+
+func IsEqual(x, y int) bool {
+	return x == y
+}`,
+			mutant: mutation.Mutant{
+				ID:       "cond-2",
+				Type:     "conditional_binary",
+				Line:     4,
+				Column:   12, // Adjust column to match actual position
+				Original: "==",
+				Mutated:  "!=",
+			},
+			expected: "x != y",
+		},
+		{
+			name: "mutates <= to >=",
+			fileContent: `package main
+
+func IsLessOrEqual(m, n int) bool {
+	return m <= n
+}`,
+			mutant: mutation.Mutant{
+				ID:       "cond-3",
+				Type:     "conditional_binary",
+				Line:     4,
+				Column:   12, // Adjust column to match actual position
+				Original: "<=",
+				Mutated:  ">=",
+			},
+			expected: "m >= n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mutator, err := NewSourceMutator()
+			if err != nil {
+				t.Fatalf("failed to create mutator: %v", err)
+			}
+			defer mutator.Cleanup()
+
+			tempDir := t.TempDir()
+			testFile := filepath.Join(tempDir, "cond.go")
+			
+			err = os.WriteFile(testFile, []byte(tt.fileContent), 0644)
+			if err != nil {
+				t.Fatalf("failed to create test file: %v", err)
+			}
+
+			tt.mutant.FilePath = testFile
+			
+			err = mutator.ApplyMutation(tt.mutant)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			
+			content, _ := os.ReadFile(testFile)
+			if !strings.Contains(string(content), tt.expected) {
+				t.Errorf("expected content to contain %q, got: %s", tt.expected, string(content))
+			}
+		})
+	}
+}
+
+func TestMutateLogicalBinary(t *testing.T) {
+	tests := []struct {
+		name        string
+		fileContent string
+		mutant      mutation.Mutant
+		expected    string
+	}{
+		{
+			name: "mutates && to ||",
+			fileContent: `package main
+
+func BothTrue(a, b bool) bool {
+	return a && b
+}`,
+			mutant: mutation.Mutant{
+				ID:       "logic-1",
+				Type:     "logical_binary",
+				Line:     4,
+				Column:   12, // Adjust column to match actual position
+				Original: "&&",
+				Mutated:  "||",
+			},
+			expected: "a || b",
+		},
+		{
+			name: "mutates || to &&",
+			fileContent: `package main
+
+func EitherTrue(x, y bool) bool {
+	return x || y
+}`,
+			mutant: mutation.Mutant{
+				ID:       "logic-2",
+				Type:     "logical_binary",
+				Line:     4,
+				Column:   12, // Adjust column to match actual position
+				Original: "||",
+				Mutated:  "&&",
+			},
+			expected: "x && y",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mutator, err := NewSourceMutator()
+			if err != nil {
+				t.Fatalf("failed to create mutator: %v", err)
+			}
+			defer mutator.Cleanup()
+
+			tempDir := t.TempDir()
+			testFile := filepath.Join(tempDir, "logic.go")
+			
+			err = os.WriteFile(testFile, []byte(tt.fileContent), 0644)
+			if err != nil {
+				t.Fatalf("failed to create test file: %v", err)
+			}
+
+			tt.mutant.FilePath = testFile
+			
+			err = mutator.ApplyMutation(tt.mutant)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			
+			content, _ := os.ReadFile(testFile)
+			if !strings.Contains(string(content), tt.expected) {
+				t.Errorf("expected content to contain %q, got: %s", tt.expected, string(content))
+			}
+		})
+	}
+}
+
+func TestWriteModifiedAST(t *testing.T) {
+	tests := []struct {
+		name        string
+		setupFunc   func(t *testing.T) (string, func())
+		expectError bool
+	}{
+		{
+			name: "successfully writes modified AST",
+			setupFunc: func(t *testing.T) (string, func()) {
+				tempDir := t.TempDir()
+				testFile := filepath.Join(tempDir, "write.go")
+				
+				content := `package main
+
+func Test() {
+	x := 1 + 2
+}`
+				os.WriteFile(testFile, []byte(content), 0644)
+				
+				return testFile, func() {}
+			},
+			expectError: false,
+		},
+		{
+			name: "handles write permission error",
+			setupFunc: func(t *testing.T) (string, func()) {
+				tempDir := t.TempDir()
+				testFile := filepath.Join(tempDir, "readonly.go")
+				
+				content := `package main
+
+func Test() {}`
+				os.WriteFile(testFile, []byte(content), 0644)
+				
+				// Make directory read-only
+				os.Chmod(tempDir, 0555)
+				
+				return testFile, func() {
+					os.Chmod(tempDir, 0755)
+				}
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testFile, cleanup := tt.setupFunc(t)
+			defer cleanup()
+
+			mutator, err := NewSourceMutator()
+			if err != nil {
+				t.Fatalf("failed to create mutator: %v", err)
+			}
+			defer mutator.Cleanup()
+
+			// Apply a simple mutation to test writeModifiedAST
+			mutant := mutation.Mutant{
+				ID:       "test-1",
+				Type:     "arithmetic_binary",
+				FilePath: testFile,
+				Line:     4,
+				Column:   8, // Adjust column to match actual position
+				Original: "+",
+				Mutated:  "-",
+			}
+
+			err = mutator.ApplyMutation(mutant)
+			
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestBackupFileEdgeCases(t *testing.T) {
+	tests := []struct {
+		name        string
+		setupFunc   func(t *testing.T) (*SourceMutator, string)
+		mutantID    string
+		expectError bool
+	}{
+		{
+			name: "backup file with special characters in name",
+			setupFunc: func(t *testing.T) (*SourceMutator, string) {
+				mutator, _ := NewSourceMutator()
+				tempDir := t.TempDir()
+				testFile := filepath.Join(tempDir, "file-with-dashes_and_underscores.go")
+				os.WriteFile(testFile, []byte("package main"), 0644)
+				return mutator, testFile
+			},
+			mutantID:    "special-123",
+			expectError: false,
+		},
+		{
+			name: "backup very large file",
+			setupFunc: func(t *testing.T) (*SourceMutator, string) {
+				mutator, _ := NewSourceMutator()
+				tempDir := t.TempDir()
+				testFile := filepath.Join(tempDir, "large.go")
+				
+				// Create a large file (1MB)
+				largeContent := make([]byte, 1024*1024)
+				for i := range largeContent {
+					largeContent[i] = byte('a' + (i % 26))
+				}
+				os.WriteFile(testFile, largeContent, 0644)
+				return mutator, testFile
+			},
+			mutantID:    "large-1",
+			expectError: false,
+		},
+		{
+			name: "backup file that gets deleted during operation",
+			setupFunc: func(t *testing.T) (*SourceMutator, string) {
+				mutator, _ := NewSourceMutator()
+				tempDir := t.TempDir()
+				testFile := filepath.Join(tempDir, "vanish.go")
+				os.WriteFile(testFile, []byte("package main"), 0644)
+				
+				// Delete file after creation
+				os.Remove(testFile)
+				return mutator, testFile
+			},
+			mutantID:    "vanish-1",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mutator, testFile := tt.setupFunc(t)
+			defer mutator.Cleanup()
+
+			err := mutator.backupFile(testFile, tt.mutantID)
+			
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+				
+				// Verify backup exists
+				backupPath := mutator.getBackupPath(testFile, tt.mutantID)
+				if _, err := os.Stat(backupPath); err != nil {
+					t.Errorf("backup file should exist: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestRestoreOriginalEdgeCases(t *testing.T) {
+	tests := []struct {
+		name        string
+		setupFunc   func(t *testing.T) (*SourceMutator, string, string)
+		expectError bool
+	}{
+		{
+			name: "restore when original file is deleted",
+			setupFunc: func(t *testing.T) (*SourceMutator, string, string) {
+				mutator, _ := NewSourceMutator()
+				tempDir := t.TempDir()
+				testFile := filepath.Join(tempDir, "delete.go")
+				
+				// Create and backup file
+				os.WriteFile(testFile, []byte("original"), 0644)
+				mutator.backupFile(testFile, "del-1")
+				
+				// Delete original
+				os.Remove(testFile)
+				
+				return mutator, testFile, "del-1"
+			},
+			expectError: false, // Should still restore
+		},
+		{
+			name: "restore when backup is corrupted",
+			setupFunc: func(t *testing.T) (*SourceMutator, string, string) {
+				mutator, _ := NewSourceMutator()
+				tempDir := t.TempDir()
+				testFile := filepath.Join(tempDir, "corrupt.go")
+				
+				os.WriteFile(testFile, []byte("original"), 0644)
+				mutator.backupFile(testFile, "cor-1")
+				
+				// Corrupt the backup
+				backupPath := mutator.getBackupPath(testFile, "cor-1")
+				os.Remove(backupPath)
+				
+				return mutator, testFile, "cor-1"
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mutator, testFile, mutantID := tt.setupFunc(t)
+			defer mutator.Cleanup()
+
+			err := mutator.RestoreOriginal(testFile, mutantID)
+			
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestCleanupEdgeCases(t *testing.T) {
+	tests := []struct {
+		name        string
+		setupFunc   func(t *testing.T) *SourceMutator
+		expectError bool
+	}{
+		{
+			name: "cleanup with nested directories",
+			setupFunc: func(t *testing.T) *SourceMutator {
+				mutator, _ := NewSourceMutator()
+				
+				// Create nested structure
+				nestedDir := filepath.Join(mutator.backupDir, "nested", "deep", "dir")
+				os.MkdirAll(nestedDir, 0750)
+				
+				// Add some files
+				os.WriteFile(filepath.Join(nestedDir, "file1.bak"), []byte("data"), 0600)
+				os.WriteFile(filepath.Join(mutator.backupDir, "file2.bak"), []byte("data"), 0600)
+				
+				return mutator
+			},
+			expectError: false,
+		},
+		{
+			name: "cleanup already cleaned directory",
+			setupFunc: func(t *testing.T) *SourceMutator {
+				mutator, _ := NewSourceMutator()
+				
+				// Pre-cleanup
+				os.RemoveAll(mutator.backupDir)
+				
+				return mutator
+			},
+			expectError: false, // RemoveAll doesn't error on non-existent
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mutator := tt.setupFunc(t)
+
+			err := mutator.Cleanup()
+			
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+				
+				// Verify directory is gone
+				if _, err := os.Stat(mutator.backupDir); !os.IsNotExist(err) {
+					t.Error("backup directory should not exist after cleanup")
+				}
+			}
+		})
+	}
+}
+
 func TestConcurrentBackupOperations(t *testing.T) {
 	mutator, err := NewSourceMutator()
 	if err != nil {

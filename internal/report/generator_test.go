@@ -2,6 +2,7 @@ package report
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"os"
 	"strings"
@@ -584,6 +585,367 @@ func TestPercentage(t *testing.T) {
 		result := percentage(tt.part, tt.total)
 		if result != tt.expected {
 			t.Errorf("percentage(%d, %d) = %f, expected %f", tt.part, tt.total, result, tt.expected)
+		}
+	}
+}
+
+func TestCalculateStatistics_UnknownMutationType(t *testing.T) {
+	generator, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create generator: %v", err)
+	}
+
+	results := []mutation.Result{
+		{
+			Mutant: mutation.Mutant{
+				ID:   "1",
+				Type: "", // Empty type should become "unknown"
+			},
+			Status: mutation.StatusKilled,
+		},
+		{
+			Mutant: mutation.Mutant{
+				ID:   "2",
+				Type: "", // Another empty type
+			},
+			Status: mutation.StatusSurvived,
+		},
+	}
+
+	stats := generator.calculateStatistics(results)
+
+	// Check that unknown type is tracked
+	if _, ok := stats.MutationTypes["unknown"]; !ok {
+		t.Error("Expected 'unknown' mutation type to be tracked")
+	}
+
+	unknownStats := stats.MutationTypes["unknown"]
+	if unknownStats.Total != 2 {
+		t.Errorf("Expected unknown total 2, got %d", unknownStats.Total)
+	}
+	if unknownStats.Killed != 1 {
+		t.Errorf("Expected unknown killed 1, got %d", unknownStats.Killed)
+	}
+	if unknownStats.Survived != 1 {
+		t.Errorf("Expected unknown survived 1, got %d", unknownStats.Survived)
+	}
+}
+
+func TestCalculateStatistics_AllNotViable(t *testing.T) {
+	generator, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create generator: %v", err)
+	}
+
+	results := []mutation.Result{
+		{
+			Mutant: mutation.Mutant{ID: "1"},
+			Status: mutation.StatusNotViable,
+		},
+		{
+			Mutant: mutation.Mutant{ID: "2"},
+			Status: mutation.StatusNotViable,
+		},
+	}
+
+	stats := generator.calculateStatistics(results)
+
+	// When all mutants are not viable, score should be 0
+	if stats.Score != 0 {
+		t.Errorf("Expected Score 0 when all mutants are not viable, got %f", stats.Score)
+	}
+}
+
+func TestGenerateJSON_WriteError(t *testing.T) {
+	generator, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create generator: %v", err)
+	}
+
+	// Create a read-only directory to force write error
+	tempDir := t.TempDir()
+	oldWd, _ := os.Getwd()
+	defer os.Chdir(oldWd)
+	
+	os.Chdir(tempDir)
+	os.Chmod(tempDir, 0555) // Read-only
+	defer os.Chmod(tempDir, 0755)
+
+	summary := &Summary{
+		TotalFiles:   1,
+		TotalMutants: 1,
+		Results:      []mutation.Result{},
+		Duration:     time.Second,
+	}
+
+	err = generator.Generate(summary)
+	if err == nil {
+		t.Error("Expected error when unable to write file")
+	}
+}
+
+func TestGenerateText_LargeSummary(t *testing.T) {
+	generator, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create generator: %v", err)
+	}
+
+	// Create a large summary with many survived mutants
+	var results []mutation.Result
+	for i := 0; i < 100; i++ {
+		results = append(results, mutation.Result{
+			Mutant: mutation.Mutant{
+				ID:          fmt.Sprintf("test%d", i),
+				FilePath:    fmt.Sprintf("file%d.go", i/10),
+				Line:        i + 1,
+				Column:      5,
+				Type:        "arithmetic",
+				Original:    "+",
+				Mutated:     "-",
+				Description: fmt.Sprintf("Mutation %d", i),
+			},
+			Status: mutation.StatusSurvived,
+		})
+	}
+
+	summary := &Summary{
+		TotalFiles:     10,
+		ProcessedFiles: 10,
+		TotalMutants:   100,
+		Results:        results,
+		Duration:       time.Minute * 5,
+	}
+
+	// This should not panic or error
+	err = generator.Generate(summary)
+	if err != nil {
+		t.Fatalf("Failed to generate report for large summary: %v", err)
+	}
+
+	// Cleanup
+	defer os.Remove("mutation-report.json")
+	defer os.Remove("mutation-report.txt")
+	defer os.Remove("mutation-report.html")
+}
+
+func TestGenerateHTML_ComplexData(t *testing.T) {
+	generator, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create generator: %v", err)
+	}
+
+	// Test with special characters in strings that could break HTML
+	summary := &Summary{
+		TotalFiles:     1,
+		ProcessedFiles: 1,
+		TotalMutants:   2,
+		Results: []mutation.Result{
+			{
+				Mutant: mutation.Mutant{
+					ID:          "test1",
+					FilePath:    "test<script>alert('xss')</script>.go",
+					Line:        10,
+					Column:      5,
+					Type:        "arithmetic",
+					Original:    "<",
+					Mutated:     ">",
+					Description: "Replace < with >",
+					Function:    "Compare<T>",
+					Context:     "if a < b { return \"less\" }",
+				},
+				Status: mutation.StatusKilled,
+				TestOutput: []mutation.TestInfo{
+					{
+						Name:   "TestCompare<>",
+						Output: "Error: Expected '<', got '>'",
+					},
+				},
+			},
+		},
+		Duration: time.Second,
+		Files: map[string]*FileReport{
+			"test.go": {
+				FilePath:      "test.go",
+				TotalMutants:  2,
+				KilledMutants: 1,
+				MutationScore: 50.0,
+			},
+		},
+	}
+
+	err = generator.generateHTML(summary)
+	if err != nil {
+		t.Fatalf("Failed to generate HTML with special characters: %v", err)
+	}
+
+	// Verify file was created
+	if _, err := os.Stat("mutation-report.html"); os.IsNotExist(err) {
+		t.Error("HTML file was not created")
+	}
+
+	// Cleanup
+	defer os.Remove("mutation-report.html")
+}
+
+func TestFormatTextReport_EdgeCases(t *testing.T) {
+	generator, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create generator: %v", err)
+	}
+
+	tests := []struct {
+		name     string
+		summary  *Summary
+		contains []string
+	}{
+		{
+			name: "zero duration",
+			summary: &Summary{
+				TotalFiles:     1,
+				ProcessedFiles: 0,
+				TotalMutants:   0,
+				Results:        []mutation.Result{},
+				Duration:       0,
+				Statistics: Statistics{
+					Killed:   0,
+					Survived: 0,
+					Score:    0,
+				},
+			},
+			contains: []string{
+				"Duration:        0s",
+				"Files processed: 0/1",
+			},
+		},
+		{
+			name: "all mutation types present",
+			summary: &Summary{
+				TotalFiles:     1,
+				ProcessedFiles: 1,
+				TotalMutants:   5,
+				Results: []mutation.Result{
+					{Status: mutation.StatusKilled},
+					{Status: mutation.StatusSurvived},
+					{Status: mutation.StatusTimedOut},
+					{Status: mutation.StatusError},
+					{Status: mutation.StatusNotViable},
+				},
+				Duration: time.Hour + time.Minute + time.Second,
+				Statistics: Statistics{
+					Killed:    1,
+					Survived:  1,
+					TimedOut:  1,
+					Errors:    1,
+					NotViable: 1,
+					Score:     25.0,
+				},
+			},
+			contains: []string{
+				"Killed:     1 (20.0%)",
+				"Survived:   1 (20.0%)",
+				"Timed out:  1 (20.0%)",
+				"Errors:     1 (20.0%)",
+				"Not viable: 1 (20.0%)",
+				"Mutation Score: 25.0%",
+			},
+		},
+		{
+			name: "long file paths",
+			summary: &Summary{
+				TotalFiles:     1,
+				ProcessedFiles: 1,
+				TotalMutants:   1,
+				Results: []mutation.Result{
+					{
+						Mutant: mutation.Mutant{
+							FilePath:    "/very/long/path/to/some/deeply/nested/source/file/that/might/break/formatting.go",
+							Line:        12345,
+							Column:      999,
+							Description: "Very long description that goes on and on and on",
+							Original:    "veryLongOriginalValueThatMightBreakFormatting",
+							Mutated:     "veryLongMutatedValueThatMightBreakFormatting",
+						},
+						Status: mutation.StatusSurvived,
+					},
+				},
+				Duration: time.Millisecond * 123,
+				Statistics: Statistics{
+					Survived: 1,
+					Score:    0,
+				},
+			},
+			contains: []string{
+				"Survived Mutants:",
+				"/very/long/path/to/some/deeply/nested/source/file/that/might/break/formatting.go:12345:999",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			report := generator.formatTextReport(tt.summary)
+			
+			for _, expected := range tt.contains {
+				if !strings.Contains(report, expected) {
+					t.Errorf("Expected report to contain %q", expected)
+				}
+			}
+		})
+	}
+}
+
+func TestGenerate_Timestamp(t *testing.T) {
+	generator, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create generator: %v", err)
+	}
+
+	beforeTime := time.Now()
+	
+	summary := &Summary{
+		TotalFiles:   1,
+		TotalMutants: 1,
+		Results:      []mutation.Result{},
+		Duration:     time.Second,
+	}
+
+	err = generator.Generate(summary)
+	if err != nil {
+		t.Fatalf("Failed to generate report: %v", err)
+	}
+
+	afterTime := time.Now()
+
+	// Verify timestamp was set
+	if summary.Timestamp.IsZero() {
+		t.Error("Timestamp should be set")
+	}
+
+	// Verify timestamp is within expected range
+	if summary.Timestamp.Before(beforeTime) || summary.Timestamp.After(afterTime) {
+		t.Error("Timestamp should be between test start and end times")
+	}
+
+	// Verify version is set
+	if summary.Version == "" {
+		t.Error("Version should be set")
+	}
+
+	// Cleanup
+	defer os.Remove("mutation-report.json")
+	defer os.Remove("mutation-report.txt") 
+	defer os.Remove("mutation-report.html")
+}
+
+func TestNew_AlwaysSucceeds(t *testing.T) {
+	// Test that New() always returns a valid generator
+	for i := 0; i < 10; i++ {
+		generator, err := New()
+		if err != nil {
+			t.Errorf("New() should never return error, got: %v", err)
+		}
+		if generator == nil {
+			t.Error("New() should always return a non-nil generator")
 		}
 	}
 }
