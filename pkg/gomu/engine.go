@@ -148,6 +148,7 @@ func (e *Engine) setDefaultOptions(opts *RunOptions) *RunOptions {
 			Verbose:     false,
 		}
 	}
+
 	return opts
 }
 
@@ -166,6 +167,7 @@ func (e *Engine) getAbsolutePath(path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute path: %w", err)
 	}
+
 	return absPath, nil
 }
 
@@ -175,6 +177,7 @@ func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions) ([
 	historyWrapper := &historyStoreWrapper{store: e.history}
 
 	var err error
+
 	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(absPath, historyWrapper)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create incremental analyzer: %w", err)
@@ -224,13 +227,11 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		if opts.Verbose {
 			log.Println("No files need processing - all files are up to date")
 		}
+
 		return nil
 	}
 
-	allResults, totalMutants, processedFiles, err := e.processFiles(files, opts)
-	if err != nil {
-		return err
-	}
+	allResults, totalMutants, processedFiles := e.processFiles(files, opts)
 
 	if err := e.cleanupAndSave(opts); err != nil {
 		return err
@@ -254,10 +255,13 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 }
 
 // processFiles processes all files for mutation testing.
-func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Result, int, int, error) {
-	var allResults []mutation.Result
-	totalMutants := 0
-	processedFiles := 0
+func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Result, int, int) {
+	var (
+		allResults     []mutation.Result
+		totalMutants   int
+		processedFiles int
+	)
+
 	hasher := analysis.NewFileHasher()
 
 	for _, file := range files {
@@ -270,6 +274,7 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 			if opts.Verbose {
 				log.Printf("Warning: failed to generate mutants for %s: %v", file, err)
 			}
+
 			continue
 		}
 
@@ -277,6 +282,7 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 			if opts.Verbose {
 				log.Printf("No mutants generated for file: %s", file)
 			}
+
 			continue
 		}
 
@@ -291,6 +297,7 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 			if opts.Verbose {
 				log.Printf("Warning: failed to execute mutations for %s: %v", file, err)
 			}
+
 			continue
 		}
 
@@ -301,15 +308,17 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 			if opts.Verbose {
 				log.Printf("Warning: failed to hash file %s: %v", file, err)
 			}
+
 			fileHash = ""
 		}
 
 		testHash := e.calculateTestHash(file, hasher)
 		e.history.UpdateFileWithHashes(file, mutants, results, fileHash, testHash)
+
 		processedFiles++
 	}
 
-	return allResults, totalMutants, processedFiles, nil
+	return allResults, totalMutants, processedFiles
 }
 
 // cleanupAndSave handles cleanup and saving operations.
