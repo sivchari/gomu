@@ -134,11 +134,10 @@ func (e *Engine) initializeGitHubIntegration(opts *RunOptions) {
 	}
 }
 
-// Run executes mutation testing on the specified path.
-func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
-	// Set defaults if options are not provided
+// setDefaultOptions sets default values for options if not provided.
+func (e *Engine) setDefaultOptions(opts *RunOptions) *RunOptions {
 	if opts == nil {
-		opts = &RunOptions{
+		return &RunOptions{
 			Workers:     4,
 			Timeout:     30,
 			Output:      "json",
@@ -149,77 +148,128 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 			Verbose:     false,
 		}
 	}
+	return opts
+}
 
-	start := time.Now()
-
+// logStartupInfo logs startup information if verbose mode is enabled.
+func (e *Engine) logStartupInfo(path string, opts *RunOptions) {
 	if opts.Verbose {
 		log.Printf("Starting mutation testing on path: %s", path)
 		log.Printf("Running with options: workers=%d, timeout=%d, output=%s, incremental=%t",
 			opts.Workers, opts.Timeout, opts.Output, opts.Incremental)
 	}
+}
 
-	// Get absolute path for working directory
+// getAbsolutePath gets the absolute path for the working directory.
+func (e *Engine) getAbsolutePath(path string) (string, error) {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
-		return fmt.Errorf("failed to get absolute path: %w", err)
+		return "", fmt.Errorf("failed to get absolute path: %w", err)
 	}
+	return absPath, nil
+}
 
+// performIncrementalAnalysis performs incremental analysis and returns results and files to process.
+func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions) ([]analysis.FileAnalysisResult, []string, error) {
 	// Initialize incremental analyzer
 	historyWrapper := &historyStoreWrapper{store: e.history}
 
+	var err error
 	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(absPath, historyWrapper)
 	if err != nil {
-		return fmt.Errorf("failed to create incremental analyzer: %w", err)
+		return nil, nil, fmt.Errorf("failed to create incremental analyzer: %w", err)
 	}
 
-	// 1. Perform incremental analysis
+	// Perform incremental analysis
 	analysisResults, err := e.incrementalAnalyzer.AnalyzeFiles()
 	if err != nil {
-		return fmt.Errorf("failed to analyze files: %w", err)
+		return nil, nil, fmt.Errorf("failed to analyze files: %w", err)
 	}
 
 	if opts.Verbose {
 		e.incrementalAnalyzer.PrintAnalysisReport(analysisResults)
 	}
 
-	// 2. Get files that need processing
+	// Get files that need processing
 	files, err := e.incrementalAnalyzer.GetFilesNeedingUpdate()
 	if err != nil {
-		return fmt.Errorf("failed to get files needing update: %w", err)
+		return nil, nil, fmt.Errorf("failed to get files needing update: %w", err)
 	}
 
 	if opts.Verbose {
 		log.Printf("Processing %d files", len(files))
 	}
 
-	// If no files need processing, return early
+	return analysisResults, files, nil
+}
+
+// Run executes mutation testing on the specified path.
+func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
+	opts = e.setDefaultOptions(opts)
+	start := time.Now()
+
+	e.logStartupInfo(path, opts)
+
+	absPath, err := e.getAbsolutePath(path)
+	if err != nil {
+		return err
+	}
+
+	analysisResults, files, err := e.performIncrementalAnalysis(absPath, opts)
+	if err != nil {
+		return err
+	}
+
 	if len(files) == 0 {
 		if opts.Verbose {
 			log.Println("No files need processing - all files are up to date")
 		}
-
 		return nil
 	}
 
-	var allResults []mutation.Result
+	allResults, totalMutants, processedFiles, err := e.processFiles(files, opts)
+	if err != nil {
+		return err
+	}
 
+	if err := e.cleanupAndSave(opts); err != nil {
+		return err
+	}
+
+	summary := e.buildSummary(analysisResults, totalMutants, allResults, processedFiles, start)
+
+	if err := e.reporter.Generate(summary); err != nil {
+		return fmt.Errorf("failed to generate report: %w", err)
+	}
+
+	if err := e.handleCIWorkflow(ctx, summary, opts); err != nil {
+		return err
+	}
+
+	if opts.Verbose {
+		log.Printf("Mutation testing completed in %v", time.Since(start))
+	}
+
+	return nil
+}
+
+// processFiles processes all files for mutation testing.
+func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Result, int, int, error) {
+	var allResults []mutation.Result
 	totalMutants := 0
 	processedFiles := 0
 	hasher := analysis.NewFileHasher()
 
-	// 3. Process each file
 	for _, file := range files {
 		if opts.Verbose {
 			log.Printf("Processing file: %s", file)
 		}
 
-		// Generate mutations
 		mutants, err := e.mutator.GenerateMutants(file)
 		if err != nil {
 			if opts.Verbose {
 				log.Printf("Warning: failed to generate mutants for %s: %v", file, err)
 			}
-
 			continue
 		}
 
@@ -227,7 +277,6 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 			if opts.Verbose {
 				log.Printf("No mutants generated for file: %s", file)
 			}
-
 			continue
 		}
 
@@ -237,74 +286,70 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 			log.Printf("Generated %d mutants for %s", len(mutants), file)
 		}
 
-		// Execute mutations
 		results, err := e.executor.RunMutationsWithOptions(mutants, opts.Workers, opts.Timeout)
 		if err != nil {
 			if opts.Verbose {
 				log.Printf("Warning: failed to execute mutations for %s: %v", file, err)
 			}
-
 			continue
 		}
 
 		allResults = append(allResults, results...)
 
-		// Calculate file and test hashes
 		fileHash, err := hasher.HashFile(file)
 		if err != nil {
 			if opts.Verbose {
 				log.Printf("Warning: failed to hash file %s: %v", file, err)
 			}
-
 			fileHash = ""
 		}
 
 		testHash := e.calculateTestHash(file, hasher)
-
-		// Update history with hashes
 		e.history.UpdateFileWithHashes(file, mutants, results, fileHash, testHash)
-
 		processedFiles++
 	}
 
-	// 4. Cleanup execution engine
+	return allResults, totalMutants, processedFiles, nil
+}
+
+// cleanupAndSave handles cleanup and saving operations.
+func (e *Engine) cleanupAndSave(opts *RunOptions) error {
 	if err := e.executor.Close(); err != nil {
 		if opts.Verbose {
 			log.Printf("Warning: failed to cleanup execution engine: %v", err)
 		}
 	}
 
-	// 5. Save history
 	if err := e.history.Save(); err != nil {
 		if opts.Verbose {
 			log.Printf("Warning: failed to save history: %v", err)
 		}
 	}
 
-	// 6. Generate report
-	summary := &report.Summary{
+	return nil
+}
+
+// buildSummary builds the mutation testing summary.
+func (e *Engine) buildSummary(analysisResults []analysis.FileAnalysisResult, totalMutants int, allResults []mutation.Result, processedFiles int, start time.Time) *report.Summary {
+	return &report.Summary{
 		TotalFiles:     len(analysisResults),
 		TotalMutants:   totalMutants,
 		Results:        allResults,
 		Duration:       time.Since(start),
 		ProcessedFiles: processedFiles,
 	}
+}
 
-	if err := e.reporter.Generate(summary); err != nil {
-		return fmt.Errorf("failed to generate report: %w", err)
+// handleCIWorkflow handles CI-specific processing if CI mode is enabled.
+func (e *Engine) handleCIWorkflow(ctx context.Context, summary *report.Summary, opts *RunOptions) error {
+	if opts == nil || !opts.CIMode {
+		return nil
 	}
 
-	// 7. CI-specific processing
-	if opts != nil && opts.CIMode {
-		e.initializeCIComponents(opts)
+	e.initializeCIComponents(opts)
 
-		if err := e.processCIWorkflow(ctx, summary, opts); err != nil {
-			return fmt.Errorf("CI workflow failed: %w", err)
-		}
-	}
-
-	if opts.Verbose {
-		log.Printf("Mutation testing completed in %v", time.Since(start))
+	if err := e.processCIWorkflow(ctx, summary, opts); err != nil {
+		return fmt.Errorf("CI workflow failed: %w", err)
 	}
 
 	return nil
@@ -316,10 +361,8 @@ func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary,
 		log.Println("Processing CI workflow...")
 	}
 
-	// Convert summary to CI format
 	ciSummary := e.convertToCISummary(summary)
 
-	// Evaluate quality gate
 	var qualityResult *ci.QualityGateResult
 	if e.qualityGate != nil {
 		qualityResult = e.qualityGate.Evaluate(ciSummary)
@@ -332,14 +375,12 @@ func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary,
 		}
 	}
 
-	// Generate CI reports
 	if e.ciReporter != nil {
 		if err := e.ciReporter.Generate(ciSummary, e.qualityGate); err != nil {
 			return fmt.Errorf("failed to generate CI reports: %w", err)
 		}
 	}
 
-	// Create GitHub PR comment
 	if e.github != nil && qualityResult != nil {
 		if err := e.github.CreatePRComment(ctx, ciSummary, qualityResult); err != nil {
 			fmt.Printf("Warning: Failed to create PR comment: %v\n", err)
@@ -348,7 +389,6 @@ func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary,
 		}
 	}
 
-	// Fail build if quality gate fails
 	if qualityResult != nil && !qualityResult.Pass && opts.FailOnGate {
 		return fmt.Errorf("quality gate failed: %s", qualityResult.Reason)
 	}
