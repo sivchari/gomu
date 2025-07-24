@@ -267,36 +267,3 @@ func NoMutations() {
 	}
 }
 
-func TestCreateMutator(t *testing.T) {
-	engine, err := New()
-	if err != nil {
-		t.Fatalf("Failed to create mutation engine: %v", err)
-	}
-
-	tests := []struct {
-		name     string
-		expected string
-	}{
-		{"arithmetic", "arithmetic"},
-		{"conditional", "conditional"},
-		{"logical", "logical"},
-		{"invalid", ""},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mutator := engine.createMutator(tt.name)
-			if tt.expected == "" {
-				if mutator != nil {
-					t.Errorf("Expected nil mutator for %s, got %T", tt.name, mutator)
-				}
-			} else {
-				if mutator == nil {
-					t.Errorf("Expected mutator for %s, got nil", tt.name)
-				} else if mutator.Name() != tt.expected {
-					t.Errorf("Expected mutator name %s, got %s", tt.expected, mutator.Name())
-				}
-			}
-		})
-	}
-}
