@@ -266,4 +266,3 @@ func NoMutations() {
 		t.Errorf("Expected 0 mutants for file with no mutations, got %d", len(mutants))
 	}
 }
-

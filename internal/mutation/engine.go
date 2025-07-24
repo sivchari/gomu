@@ -92,7 +92,6 @@ func New() (*Engine, error) {
 	return engine, nil
 }
 
-
 // GenerateMutants generates all possible mutants for a given file.
 func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 	fileInfo, err := e.analyzer.ParseFile(filePath)

@@ -1,3 +1,4 @@
+// Package main provides a scaffold tool for generating mutation testing mutators.
 package main
 
 import (
@@ -81,7 +82,7 @@ func findMutationDir() (string, error) {
 	// Try to find the mutation directory relative to current working directory
 	wd, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get working directory: %w", err)
 	}
 
 	// First check if we're already in the mutation directory
@@ -113,6 +114,7 @@ func findMutationDir() (string, error) {
 	if ok {
 		// cmd/scaffold/main.go -> ../../internal/mutation
 		cmdDir := filepath.Dir(filepath.Dir(filename))
+
 		mutationDir := filepath.Join(filepath.Dir(cmdDir), "internal", "mutation")
 		if _, err := os.Stat(filepath.Join(mutationDir, "engine.go")); err == nil {
 			return mutationDir, nil
