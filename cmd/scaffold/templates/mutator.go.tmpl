@@ -27,19 +27,5 @@ func (m *{{.StructName}}Mutator) Mutate(node ast.Node, fset *token.FileSet) []Mu
 	// TODO: Implement mutation generation
 	var mutants []Mutant
 
-	pos := fset.Position(node.Pos())
-
-	// Example mutant generation (remove this when implementing):
-	_ = pos // Remove this line when implementing
-	
-	// mutants = append(mutants, Mutant{
-	//     Line:        pos.Line,
-	//     Column:      pos.Column,
-	//     Type:        "{{.LowerName}}_example",
-	//     Original:    "TODO",
-	//     Mutated:     "TODO", 
-	//     Description: "TODO: Replace with actual mutation description",
-	// })
-
 	return mutants
 }

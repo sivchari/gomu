@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"flag"
 	"fmt"
 	"go/build"
 	"os"
@@ -24,13 +25,16 @@ type mutatorData struct {
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s <mutator_name>\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Example: %s bitwise\n", os.Args[0])
+	var mutatorName = flag.String("mutator", "", "Name of the mutator to generate")
+	flag.Parse()
+
+	if *mutatorName == "" {
+		fmt.Fprintf(os.Stderr, "Usage: %s -mutator=<mutator_name>\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Example: %s -mutator=bitwise\n", os.Args[0])
 		os.Exit(1)
 	}
 
-	name := strings.ToLower(os.Args[1])
+	name := strings.ToLower(*mutatorName)
 	structName := strings.Title(name)
 
 	data := mutatorData{

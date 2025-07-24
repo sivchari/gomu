@@ -20,7 +20,7 @@ golangci-lint-fix: golangci-lint ## Run golangci-lint over the codebase and run 
 
 .PHONY: scaffold-mutator
 scaffold-mutator: ## Generate a new mutator (usage: make scaffold-mutator MUTATOR=bitwise)
-	go run cmd/scaffold/main.go $(MUTATOR)
+	go run cmd/scaffold/main.go -mutator=$(MUTATOR)
 
 .PHONY: generate-registry
 generate-registry: ## Generate mutation registry from existing mutators
