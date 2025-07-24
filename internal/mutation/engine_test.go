@@ -266,3 +266,211 @@ func NoMutations() {
 		t.Errorf("Expected 0 mutants for file with no mutations, got %d", len(mutants))
 	}
 }
+
+func TestGetFileSet(t *testing.T) {
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create mutation engine: %v", err)
+	}
+
+	fset := engine.GetFileSet()
+	if fset == nil {
+		t.Error("Expected FileSet to be non-nil")
+	}
+}
+
+func TestNewEngine(t *testing.T) {
+	engine, err := NewEngine(nil)
+	if err != nil {
+		t.Fatalf("Failed to create mutation engine with NewEngine: %v", err)
+	}
+
+	if engine == nil {
+		t.Fatal("Expected engine to be non-nil")
+	}
+
+	// Should behave the same as New()
+	if len(engine.mutators) != 3 {
+		t.Errorf("Expected 3 mutators, got %d", len(engine.mutators))
+	}
+}
+
+func TestRunOnFiles(t *testing.T) {
+	// Create temporary Go files
+	tmpDir := t.TempDir()
+
+	testFiles := []string{
+		filepath.Join(tmpDir, "test1.go"),
+		filepath.Join(tmpDir, "test2.go"),
+	}
+
+	testCode1 := `package main
+
+func Add(a, b int) int {
+	return a + b
+}
+`
+
+	testCode2 := `package main
+
+func Subtract(a, b int) int {
+	return a - b
+}
+`
+
+	err := os.WriteFile(testFiles[0], []byte(testCode1), 0600)
+	if err != nil {
+		t.Fatalf("Failed to write test file 1: %v", err)
+	}
+
+	err = os.WriteFile(testFiles[1], []byte(testCode2), 0600)
+	if err != nil {
+		t.Fatalf("Failed to write test file 2: %v", err)
+	}
+
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create mutation engine: %v", err)
+	}
+
+	results, err := engine.RunOnFiles(testFiles)
+	if err != nil {
+		t.Fatalf("Failed to run on files: %v", err)
+	}
+
+	if len(results) != 2 {
+		t.Errorf("Expected 2 results, got %d", len(results))
+	}
+
+	// Check that results have the correct file paths
+	expectedPaths := map[string]bool{
+		testFiles[0]: false,
+		testFiles[1]: false,
+	}
+
+	for _, result := range results {
+		if _, exists := expectedPaths[result.FilePath]; exists {
+			expectedPaths[result.FilePath] = true
+		} else {
+			t.Errorf("Unexpected file path in results: %s", result.FilePath)
+		}
+
+		// Check that mutations were generated
+		if len(result.Mutations) == 0 {
+			t.Errorf("Expected mutations for file %s, got 0", result.FilePath)
+		}
+
+		// Check that mutations have status
+		for _, mutation := range result.Mutations {
+			if mutation.Status != "killed" && mutation.Status != "survived" {
+				t.Errorf("Unexpected mutation status: %s", mutation.Status)
+			}
+		}
+	}
+
+	// Check that all expected paths were found
+	for path, found := range expectedPaths {
+		if !found {
+			t.Errorf("Expected to find result for file %s", path)
+		}
+	}
+}
+
+func TestRunOnFiles_InvalidFiles(t *testing.T) {
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create mutation engine: %v", err)
+	}
+
+	// Test with nonexistent files
+	files := []string{"/nonexistent/file1.go", "/nonexistent/file2.go"}
+
+	results, err := engine.RunOnFiles(files)
+	if err != nil {
+		t.Fatalf("RunOnFiles should not return error for invalid files: %v", err)
+	}
+
+	// Should skip invalid files and return empty results
+	if len(results) != 0 {
+		t.Errorf("Expected 0 results for invalid files, got %d", len(results))
+	}
+}
+
+func TestRunOnFiles_EmptyFileList(t *testing.T) {
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create mutation engine: %v", err)
+	}
+
+	results, err := engine.RunOnFiles([]string{})
+	if err != nil {
+		t.Fatalf("RunOnFiles should not return error for empty file list: %v", err)
+	}
+
+	if len(results) != 0 {
+		t.Errorf("Expected 0 results for empty file list, got %d", len(results))
+	}
+}
+
+func TestMutantIDGeneration(t *testing.T) {
+	// Create temporary Go file
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test.go")
+
+	testCode := `package main
+
+func Add(a, b int) int {
+	return a + b
+}
+`
+
+	err := os.WriteFile(testFile, []byte(testCode), 0600)
+	if err != nil {
+		t.Fatalf("Failed to write test file: %v", err)
+	}
+
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create mutation engine: %v", err)
+	}
+
+	mutants, err := engine.GenerateMutants(testFile)
+	if err != nil {
+		t.Fatalf("Failed to generate mutants: %v", err)
+	}
+
+	// Check that all IDs are unique and follow expected format
+	seenIDs := make(map[string]bool)
+	for _, mutant := range mutants {
+		if seenIDs[mutant.ID] {
+			t.Errorf("Duplicate mutant ID found: %s", mutant.ID)
+		}
+
+		seenIDs[mutant.ID] = true
+
+		// ID should start with file path
+		if !strings.HasPrefix(mutant.ID, testFile) {
+			t.Errorf("Mutant ID should start with file path, got: %s", mutant.ID)
+		}
+	}
+}
+
+func TestStatusConstants(t *testing.T) {
+	// Test that status constants have expected values
+	tests := []struct {
+		status Status
+		want   string
+	}{
+		{StatusKilled, "KILLED"},
+		{StatusSurvived, "SURVIVED"},
+		{StatusTimedOut, "TIMED_OUT"},
+		{StatusError, "ERROR"},
+		{StatusNotViable, "NOT_VIABLE"},
+	}
+
+	for _, tt := range tests {
+		if string(tt.status) != tt.want {
+			t.Errorf("Expected status %v to equal %s, got %s", tt.status, tt.want, string(tt.status))
+		}
+	}
+}
