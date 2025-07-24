@@ -17,3 +17,15 @@ golangci-lint: ## Run golangci-lint over the codebase.
 .PHONY: golangci-lint-fix
 golangci-lint-fix: GOLANGCI_LINT_EXTRA_ARGS := --fix
 golangci-lint-fix: golangci-lint ## Run golangci-lint over the codebase and run auto-fixers if supported by the linter
+
+.PHONY: scaffold-mutator
+scaffold-mutator: ## Generate a new mutator (usage: make scaffold-mutator MUTATOR=bitwise)
+ifndef MUTATOR
+	@echo "Error: MUTATOR variable is required. Usage: make scaffold-mutator MUTATOR=bitwise"
+	@exit 1
+endif
+	go run cmd/scaffold/main.go $(MUTATOR)
+
+.PHONY: generate-registry
+generate-registry: ## Generate mutation registry from existing mutators
+	cd internal/mutation && go generate
