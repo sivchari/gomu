@@ -1,3 +1,5 @@
+//go:generate go run generate.go
+
 package mutation
 
 import (
@@ -84,30 +86,12 @@ func New() (*Engine, error) {
 		mutators: make([]Mutator, 0),
 	}
 
-	// Register all mutators by default
-	mutatorNames := []string{"arithmetic", "conditional", "logical"}
-	for _, mutatorName := range mutatorNames {
-		mutator := engine.createMutator(mutatorName)
-		if mutator != nil {
-			engine.mutators = append(engine.mutators, mutator)
-		}
-	}
+	// Register all mutators from generated registry
+	engine.mutators = getAllMutators()
 
 	return engine, nil
 }
 
-func (e *Engine) createMutator(name string) Mutator {
-	switch name {
-	case "arithmetic":
-		return &ArithmeticMutator{}
-	case "conditional":
-		return &ConditionalMutator{}
-	case "logical":
-		return &LogicalMutator{}
-	default:
-		return nil
-	}
-}
 
 // GenerateMutants generates all possible mutants for a given file.
 func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
