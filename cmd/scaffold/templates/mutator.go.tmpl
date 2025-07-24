@@ -1,0 +1,45 @@
+package mutation
+
+import (
+	"go/ast"
+	"go/token"
+)
+
+const {{.LowerName}}MutatorName = "{{.LowerName}}"
+
+// {{.StructName}}Mutator mutates {{.Description}}.
+type {{.StructName}}Mutator struct {
+}
+
+// Name returns the name of the mutator.
+func (m *{{.StructName}}Mutator) Name() string {
+	return {{.LowerName}}MutatorName
+}
+
+// CanMutate returns true if the node can be mutated by this mutator.
+func (m *{{.StructName}}Mutator) CanMutate(node ast.Node) bool {
+	// TODO: Implement mutation logic
+	return false
+}
+
+// Mutate generates mutants for the given node.
+func (m *{{.StructName}}Mutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
+	// TODO: Implement mutation generation
+	var mutants []Mutant
+
+	pos := fset.Position(node.Pos())
+
+	// Example mutant generation (remove this when implementing):
+	_ = pos // Remove this line when implementing
+	
+	// mutants = append(mutants, Mutant{
+	//     Line:        pos.Line,
+	//     Column:      pos.Column,
+	//     Type:        "{{.LowerName}}_example",
+	//     Original:    "TODO",
+	//     Mutated:     "TODO", 
+	//     Description: "TODO: Replace with actual mutation description",
+	// })
+
+	return mutants
+}

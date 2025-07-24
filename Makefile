@@ -20,10 +20,6 @@ golangci-lint-fix: golangci-lint ## Run golangci-lint over the codebase and run 
 
 .PHONY: scaffold-mutator
 scaffold-mutator: ## Generate a new mutator (usage: make scaffold-mutator MUTATOR=bitwise)
-ifndef MUTATOR
-	@echo "Error: MUTATOR variable is required. Usage: make scaffold-mutator MUTATOR=bitwise"
-	@exit 1
-endif
 	go run cmd/scaffold/main.go $(MUTATOR)
 
 .PHONY: generate-registry
