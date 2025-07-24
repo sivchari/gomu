@@ -34,3 +34,5 @@ go.work.sum
 mutation-report.html
 mutation-report.json
 mutation-report.txt
+
+pkg/gomu/.gomu_history.json
