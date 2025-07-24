@@ -10,6 +10,9 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 //go:embed templates/mutator.go.tmpl
@@ -35,7 +38,7 @@ func main() {
 	}
 
 	name := strings.ToLower(*mutatorName)
-	structName := strings.Title(name)
+	structName := cases.Title(language.English).String(name)
 
 	data := mutatorData{
 		LowerName:   name,
