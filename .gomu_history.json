@@ -490,6 +490,1721 @@
       "timestamp": "2025-07-22T17:15:45.438737+09:00",
       "mutationScore": 0
     },
+    "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go": {
+      "fileHash": "ee1f26aac994e16b08a748e4989c7b3a091cdae5717e2106373b484090bcfe5c",
+      "testHash": "9e2fa222b7089c4b8a97791ebc78ed401c9cac42f8dbb095780421e2b5f7c826",
+      "mutants": [
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_0",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 35,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "!=",
+          "description": "Replace == with !="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_1",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 35,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003c",
+          "description": "Replace == with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_2",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 35,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003c=",
+          "description": "Replace == with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_3",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 35,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003e",
+          "description": "Replace == with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_4",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 35,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003e=",
+          "description": "Replace == with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_5",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 47,
+          "column": 16,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "-",
+          "description": "Replace + with -"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_6",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 47,
+          "column": 16,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "*",
+          "description": "Replace + with *"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_7",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 47,
+          "column": 16,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "/",
+          "description": "Replace + with /"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_8",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 52,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "==",
+          "description": "Replace != with =="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_9",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 52,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c",
+          "description": "Replace != with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_10",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 52,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c=",
+          "description": "Replace != with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_11",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 52,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e",
+          "description": "Replace != with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_12",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 52,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e=",
+          "description": "Replace != with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_13",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 58,
+          "column": 44,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "-",
+          "description": "Replace + with -"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_14",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 58,
+          "column": 44,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "*",
+          "description": "Replace + with *"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_15",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 58,
+          "column": 44,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "/",
+          "description": "Replace + with /"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_16",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 59,
+          "column": 62,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "==",
+          "description": "Replace != with =="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_17",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 59,
+          "column": 62,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c",
+          "description": "Replace != with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_18",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 59,
+          "column": 62,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c=",
+          "description": "Replace != with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_19",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 59,
+          "column": 62,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e",
+          "description": "Replace != with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_20",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 59,
+          "column": 62,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e=",
+          "description": "Replace != with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_21",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 65,
+          "column": 41,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "-",
+          "description": "Replace + with -"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_22",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 65,
+          "column": 41,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "*",
+          "description": "Replace + with *"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_23",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 65,
+          "column": 41,
+          "type": "arithmetic_binary",
+          "original": "+",
+          "mutated": "/",
+          "description": "Replace + with /"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_24",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 66,
+          "column": 56,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "==",
+          "description": "Replace != with =="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_25",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 66,
+          "column": 56,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c",
+          "description": "Replace != with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_26",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 66,
+          "column": 56,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c=",
+          "description": "Replace != with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_27",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 66,
+          "column": 56,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e",
+          "description": "Replace != with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_28",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 66,
+          "column": 56,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e=",
+          "description": "Replace != with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_29",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 84,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "==",
+          "description": "Replace != with =="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_30",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 84,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c",
+          "description": "Replace != with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_31",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 84,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c=",
+          "description": "Replace != with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_32",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 84,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e",
+          "description": "Replace != with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_33",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 84,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e=",
+          "description": "Replace != with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_34",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 89,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "!=",
+          "description": "Replace == with !="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_35",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 89,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003c",
+          "description": "Replace == with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_36",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 89,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003c=",
+          "description": "Replace == with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_37",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 89,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003e",
+          "description": "Replace == with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_38",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 89,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003e=",
+          "description": "Replace == with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_39",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 101,
+          "column": 64,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "!=",
+          "description": "Replace == with !="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_40",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 101,
+          "column": 64,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003c",
+          "description": "Replace == with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_41",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 101,
+          "column": 64,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003c=",
+          "description": "Replace == with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_42",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 101,
+          "column": 64,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003e",
+          "description": "Replace == with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_43",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 101,
+          "column": 64,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003e=",
+          "description": "Replace == with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_44",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 108,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "!=",
+          "description": "Replace == with !="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_45",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 108,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003c",
+          "description": "Replace == with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_46",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 108,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003c=",
+          "description": "Replace == with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_47",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 108,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003e",
+          "description": "Replace == with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_48",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 108,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003e=",
+          "description": "Replace == with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_49",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 119,
+          "column": 66,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "!=",
+          "description": "Replace == with !="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_50",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 119,
+          "column": 66,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003c",
+          "description": "Replace == with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_51",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 119,
+          "column": 66,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003c=",
+          "description": "Replace == with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_52",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 119,
+          "column": 66,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003e",
+          "description": "Replace == with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_53",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 119,
+          "column": 66,
+          "type": "conditional_binary",
+          "original": "==",
+          "mutated": "\u003e=",
+          "description": "Replace == with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_54",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 129,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "==",
+          "description": "Replace != with =="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_55",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 129,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c",
+          "description": "Replace != with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_56",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 129,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c=",
+          "description": "Replace != with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_57",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 129,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e",
+          "description": "Replace != with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_58",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 129,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e=",
+          "description": "Replace != with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_59",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 134,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "==",
+          "description": "Replace != with =="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_60",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 134,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c",
+          "description": "Replace != with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_61",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 134,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c=",
+          "description": "Replace != with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_62",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 134,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e",
+          "description": "Replace != with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_63",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 134,
+          "column": 5,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e=",
+          "description": "Replace != with \u003e="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_64",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 139,
+          "column": 38,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "==",
+          "description": "Replace != with =="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_65",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 139,
+          "column": 38,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c",
+          "description": "Replace != with \u003c"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_66",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 139,
+          "column": 38,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003c=",
+          "description": "Replace != with \u003c="
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_67",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 139,
+          "column": 38,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e",
+          "description": "Replace != with \u003e"
+        },
+        {
+          "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_68",
+          "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+          "line": 139,
+          "column": 38,
+          "type": "conditional_binary",
+          "original": "!=",
+          "mutated": "\u003e=",
+          "description": "Replace != with \u003e="
+        }
+      ],
+      "results": [
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_0",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 35,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "!=",
+            "description": "Replace == with !="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t(cached)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_1",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 35,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003c",
+            "description": "Replace == with \u003c"
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t0.375s\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_2",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 35,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003c=",
+            "description": "Replace == with \u003c="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t(cached)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_3",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 35,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003e",
+            "description": "Replace == with \u003e"
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t(cached)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_4",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 35,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003e=",
+            "description": "Replace == with \u003e="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t(cached)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_5",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 47,
+            "column": 16,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "-",
+            "description": "Replace + with -"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:47:16: invalid operation: operator - not defined on name (variable of type string)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:47:16: invalid operation: operator - not defined on name (variable of type string)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_6",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 47,
+            "column": 16,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "*",
+            "description": "Replace + with *"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:47:16: invalid operation: operator * not defined on name (variable of type string)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:47:16: invalid operation: operator * not defined on name (variable of type string)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_7",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 47,
+            "column": 16,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "/",
+            "description": "Replace + with /"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:47:16: invalid operation: operator / not defined on name (variable of type string)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:47:16: invalid operation: operator / not defined on name (variable of type string)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_8",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 52,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "==",
+            "description": "Replace != with =="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t(cached)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_9",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 52,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c",
+            "description": "Replace != with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:52:5: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:52:5: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_10",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 52,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c=",
+            "description": "Replace != with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:52:5: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:52:5: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_11",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 52,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e",
+            "description": "Replace != with \u003e"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:52:5: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:52:5: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_12",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 52,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e=",
+            "description": "Replace != with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:52:5: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:52:5: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_13",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 58,
+            "column": 44,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "-",
+            "description": "Replace + with -"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:58:44: invalid operation: operator - not defined on name (variable of type string)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:58:44: invalid operation: operator - not defined on name (variable of type string)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_14",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 58,
+            "column": 44,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "*",
+            "description": "Replace + with *"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:58:44: invalid operation: operator * not defined on name (variable of type string)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:58:44: invalid operation: operator * not defined on name (variable of type string)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_15",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 58,
+            "column": 44,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "/",
+            "description": "Replace + with /"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:58:44: invalid operation: operator / not defined on name (variable of type string)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:58:44: invalid operation: operator / not defined on name (variable of type string)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_16",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 59,
+            "column": 62,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "==",
+            "description": "Replace != with =="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t(cached)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_17",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 59,
+            "column": 62,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c",
+            "description": "Replace != with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:59:62: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:59:62: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_18",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 59,
+            "column": 62,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c=",
+            "description": "Replace != with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:59:62: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:59:62: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_19",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 59,
+            "column": 62,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e",
+            "description": "Replace != with \u003e"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:59:62: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:59:62: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_20",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 59,
+            "column": 62,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e=",
+            "description": "Replace != with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:59:62: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:59:62: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_21",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 65,
+            "column": 41,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "-",
+            "description": "Replace + with -"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:65:41: invalid operation: operator - not defined on name (variable of type string)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:65:41: invalid operation: operator - not defined on name (variable of type string)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_22",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 65,
+            "column": 41,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "*",
+            "description": "Replace + with *"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:65:41: invalid operation: operator * not defined on name (variable of type string)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:65:41: invalid operation: operator * not defined on name (variable of type string)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_23",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 65,
+            "column": 41,
+            "type": "arithmetic_binary",
+            "original": "+",
+            "mutated": "/",
+            "description": "Replace + with /"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:65:41: invalid operation: operator / not defined on name (variable of type string)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:65:41: invalid operation: operator / not defined on name (variable of type string)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_24",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 66,
+            "column": 56,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "==",
+            "description": "Replace != with =="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t(cached)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_25",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 66,
+            "column": 56,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c",
+            "description": "Replace != with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:66:56: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:66:56: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_26",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 66,
+            "column": 56,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c=",
+            "description": "Replace != with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:66:56: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:66:56: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_27",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 66,
+            "column": 56,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e",
+            "description": "Replace != with \u003e"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:66:56: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:66:56: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_28",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 66,
+            "column": 56,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e=",
+            "description": "Replace != with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:66:56: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:66:56: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_29",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 84,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "==",
+            "description": "Replace != with =="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t0.227s\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_30",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 84,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c",
+            "description": "Replace != with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:84:5: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:84:5: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_31",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 84,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c=",
+            "description": "Replace != with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:84:5: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:84:5: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_32",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 84,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e",
+            "description": "Replace != with \u003e"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:84:5: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:84:5: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_33",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 84,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e=",
+            "description": "Replace != with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:84:5: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:84:5: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_34",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 89,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "!=",
+            "description": "Replace == with !="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t0.240s\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_35",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 89,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003c",
+            "description": "Replace == with \u003c"
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t0.282s\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_36",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 89,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003c=",
+            "description": "Replace == with \u003c="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t0.358s\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_37",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 89,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003e",
+            "description": "Replace == with \u003e"
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t0.292s\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_38",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 89,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003e=",
+            "description": "Replace == with \u003e="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t0.271s\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_39",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 101,
+            "column": 64,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "!=",
+            "description": "Replace == with !="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t0.214s\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_40",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 101,
+            "column": 64,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003c",
+            "description": "Replace == with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:101:64: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:101:64: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_41",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 101,
+            "column": 64,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003c=",
+            "description": "Replace == with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:101:64: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:101:64: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_42",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 101,
+            "column": 64,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003e",
+            "description": "Replace == with \u003e"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:101:64: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:101:64: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_43",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 101,
+            "column": 64,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003e=",
+            "description": "Replace == with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:101:64: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:101:64: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_44",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 108,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "!=",
+            "description": "Replace == with !="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t0.302s\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_45",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 108,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003c",
+            "description": "Replace == with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:108:5: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:108:5: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_46",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 108,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003c=",
+            "description": "Replace == with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:108:5: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:108:5: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_47",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 108,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003e",
+            "description": "Replace == with \u003e"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:108:5: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:108:5: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_48",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 108,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003e=",
+            "description": "Replace == with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:108:5: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:108:5: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_49",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 119,
+            "column": 66,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "!=",
+            "description": "Replace == with !="
+          },
+          "status": "SURVIVED",
+          "output": "ok  \tgithub.com/sivchari/gomu/cmd/scaffold\t0.297s\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_50",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 119,
+            "column": 66,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003c",
+            "description": "Replace == with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:119:66: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:119:66: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_51",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 119,
+            "column": 66,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003c=",
+            "description": "Replace == with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:119:66: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:119:66: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_52",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 119,
+            "column": 66,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003e",
+            "description": "Replace == with \u003e"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:119:66: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:119:66: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_53",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 119,
+            "column": 66,
+            "type": "conditional_binary",
+            "original": "==",
+            "mutated": "\u003e=",
+            "description": "Replace == with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:119:66: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:119:66: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_54",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 129,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "==",
+            "description": "Replace != with =="
+          },
+          "status": "KILLED",
+          "output": "--- FAIL: TestGenerateFile (0.00s)\n    --- FAIL: TestGenerateFile/generates_file_with_template_data (0.00s)\n        main_test.go:60: generateFile() error = failed to parse template: %!w(\u003cnil\u003e), wantErr false\n    --- FAIL: TestGenerateFile/handles_template_with_description (0.00s)\n        main_test.go:60: generateFile() error = failed to parse template: %!w(\u003cnil\u003e), wantErr false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/cmd/scaffold\t0.306s\nFAIL\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_55",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 129,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c",
+            "description": "Replace != with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:129:5: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:129:5: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_56",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 129,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c=",
+            "description": "Replace != with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:129:5: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:129:5: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_57",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 129,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e",
+            "description": "Replace != with \u003e"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:129:5: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:129:5: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_58",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 129,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e=",
+            "description": "Replace != with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:129:5: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:129:5: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_59",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 134,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "==",
+            "description": "Replace != with =="
+          },
+          "status": "KILLED",
+          "output": "--- FAIL: TestGenerateFile (0.00s)\n    --- FAIL: TestGenerateFile/generates_file_with_template_data (0.00s)\n        main_test.go:60: generateFile() error = failed to create file: %!w(\u003cnil\u003e), wantErr false\n    --- FAIL: TestGenerateFile/handles_template_with_description (0.00s)\n        main_test.go:60: generateFile() error = failed to create file: %!w(\u003cnil\u003e), wantErr false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/cmd/scaffold\t0.233s\nFAIL\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_60",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 134,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c",
+            "description": "Replace != with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:134:5: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:134:5: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_61",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 134,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c=",
+            "description": "Replace != with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:134:5: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:134:5: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_62",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 134,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e",
+            "description": "Replace != with \u003e"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:134:5: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:134:5: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_63",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 134,
+            "column": 5,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e=",
+            "description": "Replace != with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:134:5: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:134:5: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_64",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 139,
+            "column": 38,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "==",
+            "description": "Replace != with =="
+          },
+          "status": "KILLED",
+          "output": "--- FAIL: TestGenerateFile (0.00s)\n    --- FAIL: TestGenerateFile/generates_file_with_template_data (0.00s)\n        main_test.go:60: generateFile() error = failed to execute template: %!w(\u003cnil\u003e), wantErr false\n    --- FAIL: TestGenerateFile/handles_template_with_description (0.00s)\n        main_test.go:60: generateFile() error = failed to execute template: %!w(\u003cnil\u003e), wantErr false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/cmd/scaffold\t0.379s\nFAIL\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_65",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 139,
+            "column": 38,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c",
+            "description": "Replace != with \u003c"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:139:38: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:139:38: invalid operation: err \u003c nil (operator \u003c not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_66",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 139,
+            "column": 38,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003c=",
+            "description": "Replace != with \u003c="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:139:38: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:139:38: invalid operation: err \u003c= nil (operator \u003c= not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_67",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 139,
+            "column": 38,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e",
+            "description": "Replace != with \u003e"
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:139:38: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:139:38: invalid operation: err \u003e nil (operator \u003e not defined on interface)\n"
+        },
+        {
+          "mutant": {
+            "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go_68",
+            "filePath": "/Users/takuma.shibuya/workspace/sivchari/gomu/cmd/scaffold/main.go",
+            "line": 139,
+            "column": 38,
+            "type": "conditional_binary",
+            "original": "!=",
+            "mutated": "\u003e=",
+            "description": "Replace != with \u003e="
+          },
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./main.go:139:38: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./main.go:139:38: invalid operation: err \u003e= nil (operator \u003e= not defined on interface)\n"
+        }
+      ],
+      "timestamp": "2025-07-24T20:09:56.845685+09:00",
+      "mutationScore": 4.3478260869565215
+    },
     "/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go": {
       "fileHash": "91986a939caa39324b02343e833a51477ef4e574669456cbc0a6d164e16344c7",
       "testHash": "756013720f29e022d8eddcac6c3c3d6fbd766057e6b19aa92b39e1bbe3bc3d6f",
@@ -838,7 +2553,7 @@
             "description": "Replace + with -"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = -1, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 1, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = -5, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = -5, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.257s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = -1, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 1, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = -5, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = -5, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.191s\nFAIL\n"
         },
         {
           "mutant": {
@@ -852,7 +2567,7 @@
             "description": "Replace + with *"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = 6, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 6, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = -6, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = 0, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.247s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = 6, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 6, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = -6, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = 0, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.156s\nFAIL\n"
         },
         {
           "mutant": {
@@ -866,7 +2581,7 @@
             "description": "Replace + with /"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = 0, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 0, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = 0, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = 0, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.289s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = 0, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 0, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = 0, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = 0, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.219s\nFAIL\n"
         },
         {
           "mutant": {
@@ -880,7 +2595,7 @@
             "description": "Replace - with +"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 8, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 8, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 10, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.246s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 8, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 8, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 10, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.227s\nFAIL\n"
         },
         {
           "mutant": {
@@ -894,7 +2609,7 @@
             "description": "Replace - with *"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 15, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 15, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 25, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.286s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 15, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 15, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 25, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.164s\nFAIL\n"
         },
         {
           "mutant": {
@@ -908,7 +2623,7 @@
             "description": "Replace - with /"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 1, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 0, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 1, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.269s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 1, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 0, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 1, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.162s\nFAIL\n"
         },
         {
           "mutant": {
@@ -922,7 +2637,7 @@
             "description": "Replace * with +"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = 7, want 12\n    --- FAIL: TestCalculator_Multiply/zero_multiplication (0.00s)\n        calculator_test.go:69: Multiply(0, 5) = 5, want 0\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\n        calculator_test.go:69: Multiply(5, 0) = 5, want 0\n    --- FAIL: TestCalculator_Multiply/negative_numbers (0.00s)\n        calculator_test.go:69: Multiply(-3, -4) = -7, want 12\n    --- FAIL: TestCalculator_Multiply/mixed_signs (0.00s)\n        calculator_test.go:69: Multiply(-3, 4) = 1, want -12\n    --- FAIL: TestCalculator_Multiply/multiply_by_one (0.00s)\n        calculator_test.go:69: Multiply(7, 1) = 8, want 7\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.237s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = 7, want 12\n    --- FAIL: TestCalculator_Multiply/zero_multiplication (0.00s)\n        calculator_test.go:69: Multiply(0, 5) = 5, want 0\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\n        calculator_test.go:69: Multiply(5, 0) = 5, want 0\n    --- FAIL: TestCalculator_Multiply/negative_numbers (0.00s)\n        calculator_test.go:69: Multiply(-3, -4) = -7, want 12\n    --- FAIL: TestCalculator_Multiply/mixed_signs (0.00s)\n        calculator_test.go:69: Multiply(-3, 4) = 1, want -12\n    --- FAIL: TestCalculator_Multiply/multiply_by_one (0.00s)\n        calculator_test.go:69: Multiply(7, 1) = 8, want 7\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.181s\nFAIL\n"
         },
         {
           "mutant": {
@@ -936,7 +2651,7 @@
             "description": "Replace * with -"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = -1, want 12\n    --- FAIL: TestCalculator_Multiply/zero_multiplication (0.00s)\n        calculator_test.go:69: Multiply(0, 5) = -5, want 0\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\n        calculator_test.go:69: Multiply(5, 0) = 5, want 0\n    --- FAIL: TestCalculator_Multiply/negative_numbers (0.00s)\n        calculator_test.go:69: Multiply(-3, -4) = 1, want 12\n    --- FAIL: TestCalculator_Multiply/mixed_signs (0.00s)\n        calculator_test.go:69: Multiply(-3, 4) = -7, want -12\n    --- FAIL: TestCalculator_Multiply/multiply_by_one (0.00s)\n        calculator_test.go:69: Multiply(7, 1) = 6, want 7\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.244s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = -1, want 12\n    --- FAIL: TestCalculator_Multiply/zero_multiplication (0.00s)\n        calculator_test.go:69: Multiply(0, 5) = -5, want 0\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\n        calculator_test.go:69: Multiply(5, 0) = 5, want 0\n    --- FAIL: TestCalculator_Multiply/negative_numbers (0.00s)\n        calculator_test.go:69: Multiply(-3, -4) = 1, want 12\n    --- FAIL: TestCalculator_Multiply/mixed_signs (0.00s)\n        calculator_test.go:69: Multiply(-3, 4) = -7, want -12\n    --- FAIL: TestCalculator_Multiply/multiply_by_one (0.00s)\n        calculator_test.go:69: Multiply(7, 1) = 6, want 7\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.158s\nFAIL\n"
         },
         {
           "mutant": {
@@ -950,7 +2665,7 @@
             "description": "Replace * with /"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = 0, want 12\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 46 [running]:\ntesting.tRunner.func1.2({0x100ab5be0, 0x100bc88e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x100ab5be0?, 0x100bc88e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Multiply(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:21\ngithub.com/sivchari/gomu/examples.TestCalculator_Multiply.func1(0x14000129c00?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:68 +0xdc\ntesting.tRunner(0x14000129c00, 0x14000120bc0)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 43\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.292s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = 0, want 12\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 46 [running]:\ntesting.tRunner.func1.2({0x10306dbe0, 0x1031808e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x10306dbe0?, 0x1031808e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Multiply(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:21\ngithub.com/sivchari/gomu/examples.TestCalculator_Multiply.func1(0x14000129c00?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:68 +0xdc\ntesting.tRunner(0x14000129c00, 0x14000120bc0)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 43\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.207s\nFAIL\n"
         },
         {
           "mutant": {
@@ -964,7 +2679,7 @@
             "description": "Replace * with %"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = 3, want 12\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 32 [running]:\ntesting.tRunner.func1.2({0x102fc1be0, 0x1030d48e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x102fc1be0?, 0x1030d48e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Multiply(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:21\ngithub.com/sivchari/gomu/examples.TestCalculator_Multiply.func1(0x140000f6380?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:68 +0xe0\ntesting.tRunner(0x140000f6380, 0x140000c4bc0)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 29\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.274s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = 3, want 12\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 18 [running]:\ntesting.tRunner.func1.2({0x100c01be0, 0x100d148e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x100c01be0?, 0x100d148e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Multiply(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:21\ngithub.com/sivchari/gomu/examples.TestCalculator_Multiply.func1(0x1400013afc0?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:68 +0xe0\ntesting.tRunner(0x1400013afc0, 0x14000010c00)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 15\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.159s\nFAIL\n"
         },
         {
           "mutant": {
@@ -978,7 +2693,7 @@
             "description": "Replace == with !="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/division_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 16 [running]:\ntesting.tRunner.func1.2({0x104ebdbe0, 0x104fd08e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x104ebdbe0?, 0x104fd08e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide.func1(0x1400018c8c0?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:94 +0xd0\ntesting.tRunner(0x1400018c8c0, 0x140000102c0)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 14\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.247s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/division_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 52 [running]:\ntesting.tRunner.func1.2({0x1005a1be0, 0x1006b48e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x1005a1be0?, 0x1006b48e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide.func1(0x14000164700?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:94 +0xd0\ntesting.tRunner(0x14000164700, 0x14000122d00)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 50\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.292s\nFAIL\n"
         },
         {
           "mutant": {
@@ -992,7 +2707,7 @@
             "description": "Replace == with \u003c"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/division_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 38 [running]:\ntesting.tRunner.func1.2({0x104409be0, 0x10451c8e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x104409be0?, 0x10451c8e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide.func1(0x140000eee00?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:94 +0xe8\ntesting.tRunner(0x140000eee00, 0x140000bcd00)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 36\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.251s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/division_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 52 [running]:\ntesting.tRunner.func1.2({0x100439be0, 0x10054c8e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x100439be0?, 0x10054c8e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide.func1(0x1400016c700?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:94 +0xe8\ntesting.tRunner(0x1400016c700, 0x14000128d00)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 50\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.234s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1006,7 +2721,7 @@
             "description": "Replace == with \u003c="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = 0, want 4\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.270s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = 0, want 4\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.191s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1020,7 +2735,7 @@
             "description": "Replace == with \u003e"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/division_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 52 [running]:\ntesting.tRunner.func1.2({0x1009e9be0, 0x100afc8e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x1009e9be0?, 0x100afc8e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide.func1(0x1400016ea80?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:94 +0xec\ntesting.tRunner(0x1400016ea80, 0x14000130d00)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 50\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.253s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/division_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 24 [running]:\ntesting.tRunner.func1.2({0x1030a5be0, 0x1031b88e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x1030a5be0?, 0x1031b88e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide.func1(0x14000143a40?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:94 +0xec\ntesting.tRunner(0x14000143a40, 0x14000010d40)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 22\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.218s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1034,7 +2749,7 @@
             "description": "Replace == with \u003e="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 0, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.315s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 0, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.191s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1048,7 +2763,7 @@
             "description": "Replace / with +"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 10, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = -6, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 6, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = -10, want 4\n    --- FAIL: TestCalculator_Divide/zero_dividend (0.00s)\n        calculator_test.go:95: Divide(0, 5) = 5, want 0\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 10, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.364s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 10, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = -6, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 6, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = -10, want 4\n    --- FAIL: TestCalculator_Divide/zero_dividend (0.00s)\n        calculator_test.go:95: Divide(0, 5) = 5, want 0\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 10, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.180s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1062,7 +2777,7 @@
             "description": "Replace / with -"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 6, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = -10, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 10, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = -6, want 4\n    --- FAIL: TestCalculator_Divide/zero_dividend (0.00s)\n        calculator_test.go:95: Divide(0, 5) = -5, want 0\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 4, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.266s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 6, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = -10, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 10, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = -6, want 4\n    --- FAIL: TestCalculator_Divide/zero_dividend (0.00s)\n        calculator_test.go:95: Divide(0, 5) = -5, want 0\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 4, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.155s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1076,7 +2791,7 @@
             "description": "Replace / with *"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 16, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = -16, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = -16, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = 16, want 4\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 21, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.202s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 16, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = -16, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = -16, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = 16, want 4\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 21, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.154s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1090,7 +2805,7 @@
             "description": "Replace / with %"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 1, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.238s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 1, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.162s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1104,7 +2819,7 @@
             "description": "Replace \u003e with \u003e="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/zero (0.00s)\n        calculator_test.go:121: IsPositive(0) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:198: IsPositive(0) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.249s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/zero (0.00s)\n        calculator_test.go:121: IsPositive(0) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:198: IsPositive(0) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.220s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1118,7 +2833,7 @@
             "description": "Replace \u003e with \u003c"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/positive_number (0.00s)\n        calculator_test.go:121: IsPositive(5) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_number (0.00s)\n        calculator_test.go:121: IsPositive(-5) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_positive (0.00s)\n        calculator_test.go:121: IsPositive(1000) = false, want true\n    --- FAIL: TestCalculator_IsPositive/large_negative (0.00s)\n        calculator_test.go:121: IsPositive(-1000) = true, want false\n    --- FAIL: TestCalculator_IsPositive/one (0.00s)\n        calculator_test.go:121: IsPositive(1) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_one (0.00s)\n        calculator_test.go:121: IsPositive(-1) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:194: IsPositive(1) should return true\n        calculator_test.go:202: IsPositive(-1) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.217s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/positive_number (0.00s)\n        calculator_test.go:121: IsPositive(5) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_number (0.00s)\n        calculator_test.go:121: IsPositive(-5) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_positive (0.00s)\n        calculator_test.go:121: IsPositive(1000) = false, want true\n    --- FAIL: TestCalculator_IsPositive/large_negative (0.00s)\n        calculator_test.go:121: IsPositive(-1000) = true, want false\n    --- FAIL: TestCalculator_IsPositive/one (0.00s)\n        calculator_test.go:121: IsPositive(1) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_one (0.00s)\n        calculator_test.go:121: IsPositive(-1) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:194: IsPositive(1) should return true\n        calculator_test.go:202: IsPositive(-1) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.197s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1132,7 +2847,7 @@
             "description": "Replace \u003e with \u003c="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/positive_number (0.00s)\n        calculator_test.go:121: IsPositive(5) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_number (0.00s)\n        calculator_test.go:121: IsPositive(-5) = true, want false\n    --- FAIL: TestCalculator_IsPositive/zero (0.00s)\n        calculator_test.go:121: IsPositive(0) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_positive (0.00s)\n        calculator_test.go:121: IsPositive(1000) = false, want true\n    --- FAIL: TestCalculator_IsPositive/large_negative (0.00s)\n        calculator_test.go:121: IsPositive(-1000) = true, want false\n    --- FAIL: TestCalculator_IsPositive/one (0.00s)\n        calculator_test.go:121: IsPositive(1) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_one (0.00s)\n        calculator_test.go:121: IsPositive(-1) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:194: IsPositive(1) should return true\n        calculator_test.go:198: IsPositive(0) should return false\n        calculator_test.go:202: IsPositive(-1) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.293s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/positive_number (0.00s)\n        calculator_test.go:121: IsPositive(5) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_number (0.00s)\n        calculator_test.go:121: IsPositive(-5) = true, want false\n    --- FAIL: TestCalculator_IsPositive/zero (0.00s)\n        calculator_test.go:121: IsPositive(0) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_positive (0.00s)\n        calculator_test.go:121: IsPositive(1000) = false, want true\n    --- FAIL: TestCalculator_IsPositive/large_negative (0.00s)\n        calculator_test.go:121: IsPositive(-1000) = true, want false\n    --- FAIL: TestCalculator_IsPositive/one (0.00s)\n        calculator_test.go:121: IsPositive(1) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_one (0.00s)\n        calculator_test.go:121: IsPositive(-1) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:194: IsPositive(1) should return true\n        calculator_test.go:198: IsPositive(0) should return false\n        calculator_test.go:202: IsPositive(-1) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.159s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1146,7 +2861,7 @@
             "description": "Replace \u003e with =="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/positive_number (0.00s)\n        calculator_test.go:121: IsPositive(5) = false, want true\n    --- FAIL: TestCalculator_IsPositive/zero (0.00s)\n        calculator_test.go:121: IsPositive(0) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_positive (0.00s)\n        calculator_test.go:121: IsPositive(1000) = false, want true\n    --- FAIL: TestCalculator_IsPositive/one (0.00s)\n        calculator_test.go:121: IsPositive(1) = false, want true\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:194: IsPositive(1) should return true\n        calculator_test.go:198: IsPositive(0) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.230s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/positive_number (0.00s)\n        calculator_test.go:121: IsPositive(5) = false, want true\n    --- FAIL: TestCalculator_IsPositive/zero (0.00s)\n        calculator_test.go:121: IsPositive(0) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_positive (0.00s)\n        calculator_test.go:121: IsPositive(1000) = false, want true\n    --- FAIL: TestCalculator_IsPositive/one (0.00s)\n        calculator_test.go:121: IsPositive(1) = false, want true\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:194: IsPositive(1) should return true\n        calculator_test.go:198: IsPositive(0) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.196s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1160,7 +2875,7 @@
             "description": "Replace \u003e with !="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/negative_number (0.00s)\n        calculator_test.go:121: IsPositive(-5) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_negative (0.00s)\n        calculator_test.go:121: IsPositive(-1000) = true, want false\n    --- FAIL: TestCalculator_IsPositive/negative_one (0.00s)\n        calculator_test.go:121: IsPositive(-1) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:202: IsPositive(-1) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.255s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/negative_number (0.00s)\n        calculator_test.go:121: IsPositive(-5) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_negative (0.00s)\n        calculator_test.go:121: IsPositive(-1000) = true, want false\n    --- FAIL: TestCalculator_IsPositive/negative_one (0.00s)\n        calculator_test.go:121: IsPositive(-1) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:202: IsPositive(-1) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.289s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1174,7 +2889,7 @@
             "description": "Replace == with !="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/even_number (0.00s)\n        calculator_test.go:149: IsEven(4) = false, want true\n    --- FAIL: TestCalculator_IsEven/odd_number (0.00s)\n        calculator_test.go:149: IsEven(3) = true, want false\n    --- FAIL: TestCalculator_IsEven/zero (0.00s)\n        calculator_test.go:149: IsEven(0) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_even (0.00s)\n        calculator_test.go:149: IsEven(-4) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_odd (0.00s)\n        calculator_test.go:149: IsEven(-3) = true, want false\n    --- FAIL: TestCalculator_IsEven/two (0.00s)\n        calculator_test.go:149: IsEven(2) = false, want true\n    --- FAIL: TestCalculator_IsEven/one (0.00s)\n        calculator_test.go:149: IsEven(1) = true, want false\n    --- FAIL: TestCalculator_IsEven/large_even (0.00s)\n        calculator_test.go:149: IsEven(100) = false, want true\n    --- FAIL: TestCalculator_IsEven/large_odd (0.00s)\n        calculator_test.go:149: IsEven(101) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:174: IsEven(2) should return true\n        calculator_test.go:178: IsEven(3) should return false\n        calculator_test.go:182: IsEven(5) should return false\n        calculator_test.go:186: IsEven(6) should return true\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.281s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/even_number (0.00s)\n        calculator_test.go:149: IsEven(4) = false, want true\n    --- FAIL: TestCalculator_IsEven/odd_number (0.00s)\n        calculator_test.go:149: IsEven(3) = true, want false\n    --- FAIL: TestCalculator_IsEven/zero (0.00s)\n        calculator_test.go:149: IsEven(0) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_even (0.00s)\n        calculator_test.go:149: IsEven(-4) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_odd (0.00s)\n        calculator_test.go:149: IsEven(-3) = true, want false\n    --- FAIL: TestCalculator_IsEven/two (0.00s)\n        calculator_test.go:149: IsEven(2) = false, want true\n    --- FAIL: TestCalculator_IsEven/one (0.00s)\n        calculator_test.go:149: IsEven(1) = true, want false\n    --- FAIL: TestCalculator_IsEven/large_even (0.00s)\n        calculator_test.go:149: IsEven(100) = false, want true\n    --- FAIL: TestCalculator_IsEven/large_odd (0.00s)\n        calculator_test.go:149: IsEven(101) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:174: IsEven(2) should return true\n        calculator_test.go:178: IsEven(3) should return false\n        calculator_test.go:182: IsEven(5) should return false\n        calculator_test.go:186: IsEven(6) should return true\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.155s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1188,7 +2903,7 @@
             "description": "Replace == with \u003c"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/even_number (0.00s)\n        calculator_test.go:149: IsEven(4) = false, want true\n    --- FAIL: TestCalculator_IsEven/zero (0.00s)\n        calculator_test.go:149: IsEven(0) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_even (0.00s)\n        calculator_test.go:149: IsEven(-4) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_odd (0.00s)\n        calculator_test.go:149: IsEven(-3) = true, want false\n    --- FAIL: TestCalculator_IsEven/two (0.00s)\n        calculator_test.go:149: IsEven(2) = false, want true\n    --- FAIL: TestCalculator_IsEven/large_even (0.00s)\n        calculator_test.go:149: IsEven(100) = false, want true\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:174: IsEven(2) should return true\n        calculator_test.go:186: IsEven(6) should return true\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.320s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/even_number (0.00s)\n        calculator_test.go:149: IsEven(4) = false, want true\n    --- FAIL: TestCalculator_IsEven/zero (0.00s)\n        calculator_test.go:149: IsEven(0) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_even (0.00s)\n        calculator_test.go:149: IsEven(-4) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_odd (0.00s)\n        calculator_test.go:149: IsEven(-3) = true, want false\n    --- FAIL: TestCalculator_IsEven/two (0.00s)\n        calculator_test.go:149: IsEven(2) = false, want true\n    --- FAIL: TestCalculator_IsEven/large_even (0.00s)\n        calculator_test.go:149: IsEven(100) = false, want true\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:174: IsEven(2) should return true\n        calculator_test.go:186: IsEven(6) should return true\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.194s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1202,7 +2917,7 @@
             "description": "Replace == with \u003c="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/negative_odd (0.00s)\n        calculator_test.go:149: IsEven(-3) = true, want false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.261s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/negative_odd (0.00s)\n        calculator_test.go:149: IsEven(-3) = true, want false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.194s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1216,7 +2931,7 @@
             "description": "Replace == with \u003e"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/even_number (0.00s)\n        calculator_test.go:149: IsEven(4) = false, want true\n    --- FAIL: TestCalculator_IsEven/odd_number (0.00s)\n        calculator_test.go:149: IsEven(3) = true, want false\n    --- FAIL: TestCalculator_IsEven/zero (0.00s)\n        calculator_test.go:149: IsEven(0) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_even (0.00s)\n        calculator_test.go:149: IsEven(-4) = false, want true\n    --- FAIL: TestCalculator_IsEven/two (0.00s)\n        calculator_test.go:149: IsEven(2) = false, want true\n    --- FAIL: TestCalculator_IsEven/one (0.00s)\n        calculator_test.go:149: IsEven(1) = true, want false\n    --- FAIL: TestCalculator_IsEven/large_even (0.00s)\n        calculator_test.go:149: IsEven(100) = false, want true\n    --- FAIL: TestCalculator_IsEven/large_odd (0.00s)\n        calculator_test.go:149: IsEven(101) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:174: IsEven(2) should return true\n        calculator_test.go:178: IsEven(3) should return false\n        calculator_test.go:182: IsEven(5) should return false\n        calculator_test.go:186: IsEven(6) should return true\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.284s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/even_number (0.00s)\n        calculator_test.go:149: IsEven(4) = false, want true\n    --- FAIL: TestCalculator_IsEven/odd_number (0.00s)\n        calculator_test.go:149: IsEven(3) = true, want false\n    --- FAIL: TestCalculator_IsEven/zero (0.00s)\n        calculator_test.go:149: IsEven(0) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_even (0.00s)\n        calculator_test.go:149: IsEven(-4) = false, want true\n    --- FAIL: TestCalculator_IsEven/two (0.00s)\n        calculator_test.go:149: IsEven(2) = false, want true\n    --- FAIL: TestCalculator_IsEven/one (0.00s)\n        calculator_test.go:149: IsEven(1) = true, want false\n    --- FAIL: TestCalculator_IsEven/large_even (0.00s)\n        calculator_test.go:149: IsEven(100) = false, want true\n    --- FAIL: TestCalculator_IsEven/large_odd (0.00s)\n        calculator_test.go:149: IsEven(101) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:174: IsEven(2) should return true\n        calculator_test.go:178: IsEven(3) should return false\n        calculator_test.go:182: IsEven(5) should return false\n        calculator_test.go:186: IsEven(6) should return true\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.201s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1230,7 +2945,7 @@
             "description": "Replace == with \u003e="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/odd_number (0.00s)\n        calculator_test.go:149: IsEven(3) = true, want false\n    --- FAIL: TestCalculator_IsEven/one (0.00s)\n        calculator_test.go:149: IsEven(1) = true, want false\n    --- FAIL: TestCalculator_IsEven/large_odd (0.00s)\n        calculator_test.go:149: IsEven(101) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:178: IsEven(3) should return false\n        calculator_test.go:182: IsEven(5) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.286s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/odd_number (0.00s)\n        calculator_test.go:149: IsEven(3) = true, want false\n    --- FAIL: TestCalculator_IsEven/one (0.00s)\n        calculator_test.go:149: IsEven(1) = true, want false\n    --- FAIL: TestCalculator_IsEven/large_odd (0.00s)\n        calculator_test.go:149: IsEven(101) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:178: IsEven(3) should return false\n        calculator_test.go:182: IsEven(5) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.190s\nFAIL\n"
         },
         {
           "mutant": {
@@ -1293,7 +3008,7 @@
           "error": "Compilation failed: compilation error: # command-line-arguments\n./calculator.go:40:17: invalid operation: division by zero\n"
         }
       ],
-      "timestamp": "2025-07-24T19:44:56.845965+09:00",
+      "timestamp": "2025-07-24T20:11:18.165986+09:00",
       "mutationScore": 87.87878787878788
     },
     "/Users/takuma.shibuya/workspace/sivchari/gomu/internal/analysis/analyzer.go": {
@@ -25502,6 +27217,6 @@
       "mutationScore": 0
     }
   },
-  "savedAt": "2025-07-24T19:46:37.810327+09:00",
+  "savedAt": "2025-07-24T20:11:18.177619+09:00",
   "version": "v0.0.0"
 }
