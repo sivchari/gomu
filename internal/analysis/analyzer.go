@@ -2,6 +2,7 @@
 package analysis
 
 import (
+	"context"
 	"fmt"
 	"go/ast"
 	"go/importer"
@@ -108,7 +109,8 @@ func (a *Analyzer) FindChangedFiles(allFiles []string) ([]string, error) {
 		return nil, fmt.Errorf("invalid base branch name: %s", baseBranch)
 	}
 
-	cmd := exec.Command("git", "diff", "--name-only", baseBranch+"...HEAD")
+	ctx := context.Background()
+	cmd := exec.CommandContext(ctx, "git", "diff", "--name-only", baseBranch+"...HEAD")
 
 	output, err := cmd.Output()
 	if err != nil {
