@@ -335,7 +335,7 @@ func TestReporter_generateJSONReport_WithNilQualityGate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Clean up previous test file if exists
 			os.Remove(filepath.Join(tmpDir, "mutation-report.json"))
-			
+
 			err := reporter.generateJSONReport(tt.summary, nil)
 			if err != nil {
 				t.Fatalf("Failed to generate JSON report: %v", err)
@@ -343,6 +343,7 @@ func TestReporter_generateJSONReport_WithNilQualityGate(t *testing.T) {
 
 			// Verify file was created
 			reportPath := filepath.Join(tmpDir, "mutation-report.json")
+
 			content, err := os.ReadFile(reportPath)
 			if err != nil {
 				t.Fatalf("Failed to read JSON report: %v", err)
@@ -460,6 +461,7 @@ func TestReporter_generateJSONReport_WriteError(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error when writing to non-existent directory")
 	}
+
 	if !strings.Contains(err.Error(), "failed to write JSON report") {
 		t.Errorf("Expected error to contain 'failed to write JSON report', got: %v", err)
 	}
@@ -479,6 +481,7 @@ func TestReporter_generateHTMLReport_WriteError(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error when writing to non-existent directory")
 	}
+
 	if !strings.Contains(err.Error(), "failed to write HTML report") {
 		t.Errorf("Expected error to contain 'failed to write HTML report', got: %v", err)
 	}

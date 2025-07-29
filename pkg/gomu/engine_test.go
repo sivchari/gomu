@@ -691,32 +691,32 @@ func TestConvertToCISummary(t *testing.T) {
 
 func TestSetDefaultOptions(t *testing.T) {
 	tests := []struct {
-		name         string
-		input        *RunOptions
-		expectWorkers int
-		expectTimeout int
-		expectOutput  string
+		name            string
+		input           *RunOptions
+		expectWorkers   int
+		expectTimeout   int
+		expectOutput    string
 		expectThreshold float64
 	}{
 		{
-			name:         "nil options returns defaults",
-			input:        nil,
-			expectWorkers: 4,
-			expectTimeout: 30,
-			expectOutput:  "json",
+			name:            "nil options returns defaults",
+			input:           nil,
+			expectWorkers:   4,
+			expectTimeout:   30,
+			expectOutput:    "json",
 			expectThreshold: 80.0,
 		},
 		{
 			name: "non-nil options returns as is",
 			input: &RunOptions{
-				Workers:     2,
-				Timeout:     10,
-				Output:      "html",
-				Threshold:   90.0,
+				Workers:   2,
+				Timeout:   10,
+				Output:    "html",
+				Threshold: 90.0,
 			},
-			expectWorkers: 2,
-			expectTimeout: 10,
-			expectOutput:  "html",
+			expectWorkers:   2,
+			expectTimeout:   10,
+			expectOutput:    "html",
 			expectThreshold: 90.0,
 		},
 	}
@@ -729,12 +729,15 @@ func TestSetDefaultOptions(t *testing.T) {
 			if result.Workers != tt.expectWorkers {
 				t.Errorf("expected workers %d, got %d", tt.expectWorkers, result.Workers)
 			}
+
 			if result.Timeout != tt.expectTimeout {
 				t.Errorf("expected timeout %d, got %d", tt.expectTimeout, result.Timeout)
 			}
+
 			if result.Output != tt.expectOutput {
 				t.Errorf("expected output %s, got %s", tt.expectOutput, result.Output)
 			}
+
 			if result.Threshold != tt.expectThreshold {
 				t.Errorf("expected threshold %.1f, got %.1f", tt.expectThreshold, result.Threshold)
 			}
@@ -754,6 +757,7 @@ func TestGetAbsolutePath(t *testing.T) {
 			input: ".",
 			setupFunc: func() (string, func()) {
 				wd, _ := os.Getwd()
+
 				return wd, func() {}
 			},
 			expectError: false,
@@ -780,6 +784,7 @@ func TestGetAbsolutePath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			engine := &Engine{}
 			expectedPath, cleanup := tt.setupFunc()
+
 			defer cleanup()
 
 			result, err := engine.getAbsolutePath(tt.input)
@@ -792,9 +797,11 @@ func TestGetAbsolutePath(t *testing.T) {
 				if err != nil {
 					t.Errorf("unexpected error: %v", err)
 				}
+
 				if tt.input == "." && result != expectedPath {
 					t.Errorf("expected absolute path %s, got %s", expectedPath, result)
 				}
+
 				if tt.input == "/usr/local/bin" && result != tt.input {
 					t.Errorf("expected path %s, got %s", tt.input, result)
 				}
@@ -805,19 +812,19 @@ func TestGetAbsolutePath(t *testing.T) {
 
 func TestLogStartupInfo(t *testing.T) {
 	tests := []struct {
-		name     string
-		path     string
-		opts     *RunOptions
+		name      string
+		path      string
+		opts      *RunOptions
 		expectLog bool
 	}{
 		{
 			name: "verbose mode logs info",
 			path: "/test/path",
 			opts: &RunOptions{
-				Verbose: true,
-				Workers: 2,
-				Timeout: 10,
-				Output:  "json",
+				Verbose:     true,
+				Workers:     2,
+				Timeout:     10,
+				Output:      "json",
 				Incremental: true,
 			},
 			expectLog: true,
@@ -833,7 +840,7 @@ func TestLogStartupInfo(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.name, func(_ *testing.T) {
 			engine := &Engine{}
 			// Just verify the function doesn't panic
 			engine.logStartupInfo(tt.path, tt.opts)
@@ -1213,6 +1220,7 @@ func TestProcessCIWorkflowDetailed(t *testing.T) {
 					ciReporter:  ci.NewReporter(".", "json"),
 					qualityGate: ci.NewQualityGateEvaluator(true, 80.0),
 				}
+
 				return engine
 			},
 			expectError: false,
@@ -1236,6 +1244,7 @@ func TestProcessCIWorkflowDetailed(t *testing.T) {
 					ciReporter:  ci.NewReporter(".", "invalid-format"),
 					qualityGate: ci.NewQualityGateEvaluator(true, 80.0),
 				}
+
 				return engine
 			},
 			expectError: false, // invalid format defaults to JSON, no error
