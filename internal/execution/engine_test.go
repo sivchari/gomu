@@ -387,6 +387,7 @@ func TestRunSingleMutation(t *testing.T) {
 		expectStatus  mutation.Status
 		expectError   bool
 		errorContains string
+		setupFile     func(t *testing.T) string
 	}{
 		{
 			name: "valid mutation on existing file",
@@ -419,6 +420,87 @@ func TestRunSingleMutation(t *testing.T) {
 			expectError:   false,
 			errorContains: "backup",
 		},
+		{
+			name: "mutation causes compilation error",
+			setupFile: func(t *testing.T) string {
+				// Create a file where we can break compilation
+				compileErrFile := filepath.Join(tempDir, "compileerr.go")
+				content := `package main
+
+func Test() {
+	x := 5 + 3
+	println(x)
+}`
+				os.WriteFile(compileErrFile, []byte(content), 0644)
+				return compileErrFile
+			},
+			mutant: mutation.Mutant{
+				ID:       "test-3",
+				Type:     "syntax_break",
+				FilePath: "", // Will be set by setupFile
+				Line:     4,
+				Column:   7,
+				Original: "5",
+				Mutated:  "(", // This will cause compilation error
+			},
+			timeout:      5,
+			expectStatus: mutation.StatusNotViable,
+			expectError:  false,
+			errorContains: "Compilation failed",
+		},
+		{
+			name: "test timeout scenario",
+			mutant: mutation.Mutant{
+				ID:       "test-4",
+				Type:     "arithmetic_binary",
+				FilePath: filepath.Join(tempDir, "valid.go"),
+				Line:     4,
+				Column:   9,
+				Original: "+",
+				Mutated:  "-",
+			},
+			timeout:      0, // Very short timeout to trigger timeout
+			expectStatus: mutation.StatusTimedOut,
+			expectError:  false,
+			errorContains: "timed out",
+		},
+		{
+			name: "test passes - mutant survives",
+			setupFile: func(t *testing.T) string {
+				// Create a separate directory with a file that has no test coverage
+				subDir := filepath.Join(tempDir, "subdir")
+				os.MkdirAll(subDir, 0755)
+				
+				// Create go.mod in subdir
+				goMod := "module subtest\n\ngo 1.21\n"
+				os.WriteFile(filepath.Join(subDir, "go.mod"), []byte(goMod), 0644)
+				
+				// Create a file with no tests
+				noTestFile := filepath.Join(subDir, "multiply.go")
+				content := `package main
+
+func main() {
+	x := 3
+	y := 4
+	z := x + y
+	println(z)
+}`
+				os.WriteFile(noTestFile, []byte(content), 0644)
+				return noTestFile
+			},
+			mutant: mutation.Mutant{
+				ID:       "test-5",
+				Type:     "arithmetic_binary",
+				FilePath: "", // Will be set by setupFile
+				Line:     6,
+				Column:   8,
+				Original: "+",
+				Mutated:  "-",
+			},
+			timeout:      5,
+			expectStatus: mutation.StatusSurvived, // No tests to catch it
+			expectError:  false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -429,6 +511,12 @@ func TestRunSingleMutation(t *testing.T) {
 			}
 			defer engine.Close()
 
+			// Setup file if needed
+			if tt.setupFile != nil {
+				filePath := tt.setupFile(t)
+				tt.mutant.FilePath = filePath
+			}
+
 			result := engine.runSingleMutation(tt.mutant, tt.timeout)
 
 			if result.Mutant.ID != tt.mutant.ID {
@@ -436,7 +524,8 @@ func TestRunSingleMutation(t *testing.T) {
 			}
 
 			if result.Status != tt.expectStatus {
-				t.Errorf("expected status %v, got %v", tt.expectStatus, result.Status)
+				t.Errorf("expected status %v, got %v\nError: %s\nOutput: %s", 
+					tt.expectStatus, result.Status, result.Error, result.Output)
 			}
 
 			if tt.expectError && result.Error == "" {
