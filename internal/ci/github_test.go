@@ -1,7 +1,11 @@
 package ci
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -297,6 +301,251 @@ func TestGitHubIntegration_formatPRComment_EdgeCases(t *testing.T) {
 
 			if !strings.Contains(comment, tt.expectContain) {
 				t.Errorf("Expected comment to contain '%s'", tt.expectContain)
+			}
+		})
+	}
+}
+
+func TestGitHubIntegration_ListPRComments(t *testing.T) {
+	tests := []struct {
+		name           string
+		responseStatus int
+		responseBody   string
+		expectError    bool
+		expectComments int
+	}{
+		{
+			name:           "successful list",
+			responseStatus: http.StatusOK,
+			responseBody: `[
+				{"id": 1, "body": "First comment"},
+				{"id": 2, "body": "Second comment"}
+			]`,
+			expectError:    false,
+			expectComments: 2,
+		},
+		{
+			name:           "authentication failure",
+			responseStatus: http.StatusUnauthorized,
+			responseBody:   `{"message": "Bad credentials"}`,
+			expectError:    true,
+			expectComments: 0,
+		},
+		{
+			name:           "empty list",
+			responseStatus: http.StatusOK,
+			responseBody:   `[]`,
+			expectError:    false,
+			expectComments: 0,
+		},
+		{
+			name:           "invalid JSON response",
+			responseStatus: http.StatusOK,
+			responseBody:   `{invalid json`,
+			expectError:    true,
+			expectComments: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create test server
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Verify request
+				if r.Method != http.MethodGet {
+					t.Errorf("Expected GET request, got %s", r.Method)
+				}
+				if r.Header.Get("Authorization") != "token test-token" {
+					t.Errorf("Expected authorization header 'token test-token', got %s", r.Header.Get("Authorization"))
+				}
+				expectedPath := "/repos/owner/repo/issues/123/comments"
+				if r.URL.Path != expectedPath {
+					t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
+				}
+
+				// Send response
+				w.WriteHeader(tt.responseStatus)
+				fmt.Fprint(w, tt.responseBody)
+			}))
+			defer server.Close()
+
+			// Create GitHub integration with test server
+			github := NewGitHubIntegration("test-token", "owner/repo", 123)
+			github.apiBase = server.URL
+
+			// Execute test
+			comments, err := github.ListPRComments(context.Background())
+
+			// Verify results
+			if tt.expectError && err == nil {
+				t.Error("Expected error but got none")
+			}
+			if !tt.expectError && err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			}
+			if len(comments) != tt.expectComments {
+				t.Errorf("Expected %d comments, got %d", tt.expectComments, len(comments))
+			}
+			
+			// Verify comment contents for successful case
+			if tt.name == "successful list" && len(comments) == 2 {
+				if comments[0].ID != 1 || comments[0].Body != "First comment" {
+					t.Errorf("First comment mismatch: got %+v", comments[0])
+				}
+				if comments[1].ID != 2 || comments[1].Body != "Second comment" {
+					t.Errorf("Second comment mismatch: got %+v", comments[1])
+				}
+			}
+		})
+	}
+}
+
+func TestGitHubIntegration_DeletePRComment(t *testing.T) {
+	tests := []struct {
+		name           string
+		commentID      int
+		responseStatus int
+		responseBody   string
+		expectError    bool
+	}{
+		{
+			name:           "successful deletion",
+			commentID:      456,
+			responseStatus: http.StatusNoContent,
+			responseBody:   "",
+			expectError:    false,
+		},
+		{
+			name:           "comment not found",
+			commentID:      999,
+			responseStatus: http.StatusNotFound,
+			responseBody:   `{"message": "Not Found"}`,
+			expectError:    true,
+		},
+		{
+			name:           "unauthorized",
+			commentID:      123,
+			responseStatus: http.StatusUnauthorized,
+			responseBody:   `{"message": "Bad credentials"}`,
+			expectError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create test server
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Verify request
+				if r.Method != http.MethodDelete {
+					t.Errorf("Expected DELETE request, got %s", r.Method)
+				}
+				if r.Header.Get("Authorization") != "token test-token" {
+					t.Errorf("Expected authorization header 'token test-token', got %s", r.Header.Get("Authorization"))
+				}
+				expectedPath := fmt.Sprintf("/repos/owner/repo/issues/comments/%d", tt.commentID)
+				if r.URL.Path != expectedPath {
+					t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
+				}
+
+				// Send response
+				w.WriteHeader(tt.responseStatus)
+				if tt.responseBody != "" {
+					fmt.Fprint(w, tt.responseBody)
+				}
+			}))
+			defer server.Close()
+
+			// Create GitHub integration with test server
+			github := NewGitHubIntegration("test-token", "owner/repo", 123)
+			github.apiBase = server.URL
+
+			// Execute test
+			err := github.DeletePRComment(context.Background(), tt.commentID)
+
+			// Verify results
+			if tt.expectError && err == nil {
+				t.Error("Expected error but got none")
+			}
+			if !tt.expectError && err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestGitHubIntegration_deleteExistingMutationComments(t *testing.T) {
+	tests := []struct {
+		name        string
+		comments    []Comment
+		expectError bool
+		deleteCount int
+	}{
+		{
+			name: "deletes mutation testing comments",
+			comments: []Comment{
+				{ID: 1, Body: "Regular comment"},
+				{ID: 2, Body: "🧬 Mutation Testing Results\nTest data"},
+				{ID: 3, Body: "Another comment"},
+				{ID: 4, Body: "Some text\nGenerated by gomu mutation testing"},
+			},
+			expectError: false,
+			deleteCount: 2, // Should delete comments 2 and 4
+		},
+		{
+			name: "no mutation comments to delete",
+			comments: []Comment{
+				{ID: 1, Body: "Regular comment"},
+				{ID: 2, Body: "Another regular comment"},
+			},
+			expectError: false,
+			deleteCount: 0,
+		},
+		{
+			name:        "empty comment list",
+			comments:    []Comment{},
+			expectError: false,
+			deleteCount: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			deleteCallCount := 0
+			
+			// Create test server
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/comments") {
+					// List comments endpoint
+					data, _ := json.Marshal(tt.comments)
+					w.WriteHeader(http.StatusOK)
+					w.Write(data)
+				} else if r.Method == http.MethodDelete && strings.Contains(r.URL.Path, "/comments/") {
+					// Delete comment endpoint
+					deleteCallCount++
+					w.WriteHeader(http.StatusNoContent)
+				} else {
+					t.Errorf("Unexpected request: %s %s", r.Method, r.URL.Path)
+					w.WriteHeader(http.StatusNotFound)
+				}
+			}))
+			defer server.Close()
+
+			// Create GitHub integration with test server
+			github := NewGitHubIntegration("test-token", "owner/repo", 123)
+			github.apiBase = server.URL
+
+			// Execute test
+			err := github.deleteExistingMutationComments(context.Background())
+
+			// Verify results
+			if tt.expectError && err == nil {
+				t.Error("Expected error but got none")
+			}
+			if !tt.expectError && err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			}
+			if deleteCallCount != tt.deleteCount {
+				t.Errorf("Expected %d delete calls, got %d", tt.deleteCount, deleteCallCount)
 			}
 		})
 	}

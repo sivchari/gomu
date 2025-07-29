@@ -154,6 +154,9 @@ func TestRunMutations(t *testing.T) {
 }
 
 func TestRunMutationsWithOptions(t *testing.T) {
+	// Create a temporary directory for test files
+	tempDir := createTempTestProject(t)
+	
 	tests := []struct {
 		name         string
 		mutants      []mutation.Mutant
@@ -161,6 +164,7 @@ func TestRunMutationsWithOptions(t *testing.T) {
 		timeout      int
 		expectLength int
 		wantErr      bool
+		checkResults bool
 	}{
 		{
 			name:         "empty mutants with custom options",
@@ -186,6 +190,72 @@ func TestRunMutationsWithOptions(t *testing.T) {
 			expectLength: 0,
 			wantErr:      false,
 		},
+		{
+			name: "single mutant execution",
+			mutants: []mutation.Mutant{
+				{
+					ID:       "test-single",
+					Type:     "arithmetic_binary",
+					FilePath: filepath.Join(tempDir, "valid.go"),
+					Line:     4,
+					Column:   9,
+					Original: "+",
+					Mutated:  "-",
+				},
+			},
+			workers:      1,
+			timeout:      10,
+			expectLength: 1,
+			wantErr:      false,
+			checkResults: true,
+		},
+		{
+			name: "multiple mutants execution",
+			mutants: []mutation.Mutant{
+				{
+					ID:       "test-1",
+					Type:     "arithmetic_binary",
+					FilePath: filepath.Join(tempDir, "valid.go"),
+					Line:     4,
+					Column:   9,
+					Original: "+",
+					Mutated:  "-",
+				},
+				{
+					ID:       "test-2",
+					Type:     "arithmetic_binary",
+					FilePath: filepath.Join(tempDir, "valid.go"),
+					Line:     4,
+					Column:   9,
+					Original: "+",
+					Mutated:  "*",
+				},
+			},
+			workers:      2,
+			timeout:      10,
+			expectLength: 2,
+			wantErr:      false,
+			checkResults: true,
+		},
+		{
+			name: "mutants with invalid file",
+			mutants: []mutation.Mutant{
+				{
+					ID:       "test-invalid",
+					Type:     "arithmetic_binary",
+					FilePath: "/nonexistent/file.go",
+					Line:     1,
+					Column:   1,
+					Original: "+",
+					Mutated:  "-",
+				},
+			},
+			workers:      1,
+			timeout:      10,
+			expectLength: 1,
+			wantErr:      false,
+			checkResults: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -207,6 +277,30 @@ func TestRunMutationsWithOptions(t *testing.T) {
 
 			if len(results) != tt.expectLength {
 				t.Errorf("expected %d results, got %d", tt.expectLength, len(results))
+			}
+			
+			// Check if results are in correct order and contain expected mutants
+			if tt.checkResults {
+				for i, result := range results {
+					if i < len(tt.mutants) {
+						if result.Mutant.ID != tt.mutants[i].ID {
+							t.Errorf("result %d: expected mutant ID %s, got %s", i, tt.mutants[i].ID, result.Mutant.ID)
+						}
+						
+						// Check that we got some status
+						validStatuses := []mutation.Status{mutation.StatusKilled, mutation.StatusSurvived, mutation.StatusError}
+						found := false
+						for _, status := range validStatuses {
+							if result.Status == status {
+								found = true
+								break
+							}
+						}
+						if !found {
+							t.Errorf("result %d: unexpected status %v", i, result.Status)
+						}
+					}
+				}
 			}
 		})
 	}
