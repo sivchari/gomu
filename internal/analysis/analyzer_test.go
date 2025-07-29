@@ -76,7 +76,7 @@ func TestFindTargetFiles(t *testing.T) {
 	}{
 		{
 			name: "finds go files in simple directory",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				tempDir := t.TempDir()
 
 				// Create some Go files
@@ -97,7 +97,7 @@ func TestFindTargetFiles(t *testing.T) {
 		},
 		{
 			name: "excludes vendor directory",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				tempDir := t.TempDir()
 
 				os.WriteFile(filepath.Join(tempDir, "main.go"), []byte("package main"), 0644)
@@ -115,7 +115,7 @@ func TestFindTargetFiles(t *testing.T) {
 		},
 		{
 			name: "excludes testdata directory",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				tempDir := t.TempDir()
 
 				os.WriteFile(filepath.Join(tempDir, "analyzer.go"), []byte("package main"), 0644)
@@ -133,7 +133,7 @@ func TestFindTargetFiles(t *testing.T) {
 		},
 		{
 			name: "handles nested directories",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				tempDir := t.TempDir()
 
 				// Create nested structure
@@ -152,7 +152,7 @@ func TestFindTargetFiles(t *testing.T) {
 		},
 		{
 			name: "handles empty directory",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				return t.TempDir()
 			},
 			expectError: false,
@@ -169,7 +169,7 @@ func TestFindTargetFiles(t *testing.T) {
 		},
 		{
 			name: "handles directory with only test files",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				tempDir := t.TempDir()
 				os.WriteFile(filepath.Join(tempDir, "foo_test.go"), []byte("package main"), 0644)
 				os.WriteFile(filepath.Join(tempDir, "bar_test.go"), []byte("package main"), 0644)
@@ -275,7 +275,7 @@ func TestFindChangedFiles(t *testing.T) {
 				tempDir := t.TempDir()
 				origWd, _ := os.Getwd()
 				os.Chdir(tempDir)
-				
+
 				return func() {
 					os.Chdir(origWd)
 				}
@@ -295,6 +295,7 @@ func TestFindChangedFiles(t *testing.T) {
 				if _, err := os.Stat(".git"); os.IsNotExist(err) {
 					t.Skip("Not in a git repository")
 				}
+
 				return func() {}
 			},
 			expectError: false,
@@ -309,6 +310,7 @@ func TestFindChangedFiles(t *testing.T) {
 				if _, err := os.Stat(".git"); os.IsNotExist(err) {
 					t.Skip("Not in a git repository")
 				}
+
 				return func() {}
 			},
 			expectError: false,
@@ -350,15 +352,18 @@ func TestFindChangedFiles(t *testing.T) {
 				if len(files) != len(tt.expectFiles) {
 					t.Errorf("expected %d files, got %d", len(tt.expectFiles), len(files))
 				}
-				
+
 				for _, expectedFile := range tt.expectFiles {
 					found := false
+
 					for _, file := range files {
 						if file == expectedFile {
 							found = true
+
 							break
 						}
 					}
+
 					if !found {
 						t.Errorf("expected file %s not found", expectedFile)
 					}
@@ -748,7 +753,7 @@ func TestParsePackageFiles(t *testing.T) {
 	}{
 		{
 			name: "parses all non-test files in package",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				tempDir := t.TempDir()
 
 				// Create several Go files
@@ -764,7 +769,7 @@ func TestParsePackageFiles(t *testing.T) {
 		},
 		{
 			name: "handles directory with only test files",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				tempDir := t.TempDir()
 
 				os.WriteFile(filepath.Join(tempDir, "foo_test.go"), []byte("package main"), 0644)
@@ -777,7 +782,7 @@ func TestParsePackageFiles(t *testing.T) {
 		},
 		{
 			name: "handles empty directory",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				return t.TempDir()
 			},
 			expectError: false,
@@ -785,7 +790,7 @@ func TestParsePackageFiles(t *testing.T) {
 		},
 		{
 			name: "skips files with parse errors",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				tempDir := t.TempDir()
 
 				// Valid file
@@ -801,7 +806,7 @@ func TestParsePackageFiles(t *testing.T) {
 		},
 		{
 			name: "handles files with different packages",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				tempDir := t.TempDir()
 
 				os.WriteFile(filepath.Join(tempDir, "main.go"), []byte("package main"), 0644)
@@ -815,7 +820,7 @@ func TestParsePackageFiles(t *testing.T) {
 		},
 		{
 			name: "handles non-existent directory",
-			setupFiles: func(t *testing.T) string {
+			setupFiles: func(_ *testing.T) string {
 				// Return a non-existent directory
 				return "/non/existent/directory/path"
 			},
