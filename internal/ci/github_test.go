@@ -355,9 +355,11 @@ func TestGitHubIntegration_ListPRComments(t *testing.T) {
 				if r.Method != http.MethodGet {
 					t.Errorf("Expected GET request, got %s", r.Method)
 				}
+
 				if r.Header.Get("Authorization") != "token test-token" {
 					t.Errorf("Expected authorization header 'token test-token', got %s", r.Header.Get("Authorization"))
 				}
+
 				expectedPath := "/repos/owner/repo/issues/123/comments"
 				if r.URL.Path != expectedPath {
 					t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
@@ -380,18 +382,21 @@ func TestGitHubIntegration_ListPRComments(t *testing.T) {
 			if tt.expectError && err == nil {
 				t.Error("Expected error but got none")
 			}
+
 			if !tt.expectError && err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}
+
 			if len(comments) != tt.expectComments {
 				t.Errorf("Expected %d comments, got %d", tt.expectComments, len(comments))
 			}
-			
+
 			// Verify comment contents for successful case
 			if tt.name == "successful list" && len(comments) == 2 {
 				if comments[0].ID != 1 || comments[0].Body != "First comment" {
 					t.Errorf("First comment mismatch: got %+v", comments[0])
 				}
+
 				if comments[1].ID != 2 || comments[1].Body != "Second comment" {
 					t.Errorf("Second comment mismatch: got %+v", comments[1])
 				}
@@ -439,9 +444,11 @@ func TestGitHubIntegration_DeletePRComment(t *testing.T) {
 				if r.Method != http.MethodDelete {
 					t.Errorf("Expected DELETE request, got %s", r.Method)
 				}
+
 				if r.Header.Get("Authorization") != "token test-token" {
 					t.Errorf("Expected authorization header 'token test-token', got %s", r.Header.Get("Authorization"))
 				}
+
 				expectedPath := fmt.Sprintf("/repos/owner/repo/issues/comments/%d", tt.commentID)
 				if r.URL.Path != expectedPath {
 					t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
@@ -449,6 +456,7 @@ func TestGitHubIntegration_DeletePRComment(t *testing.T) {
 
 				// Send response
 				w.WriteHeader(tt.responseStatus)
+
 				if tt.responseBody != "" {
 					fmt.Fprint(w, tt.responseBody)
 				}
@@ -466,6 +474,7 @@ func TestGitHubIntegration_DeletePRComment(t *testing.T) {
 			if tt.expectError && err == nil {
 				t.Error("Expected error but got none")
 			}
+
 			if !tt.expectError && err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}
@@ -511,19 +520,22 @@ func TestGitHubIntegration_deleteExistingMutationComments(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			deleteCallCount := 0
-			
+
 			// Create test server
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/comments") {
+				switch {
+				case r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/comments"):
 					// List comments endpoint
 					data, _ := json.Marshal(tt.comments)
+
 					w.WriteHeader(http.StatusOK)
 					w.Write(data)
-				} else if r.Method == http.MethodDelete && strings.Contains(r.URL.Path, "/comments/") {
+				case r.Method == http.MethodDelete && strings.Contains(r.URL.Path, "/comments/"):
 					// Delete comment endpoint
 					deleteCallCount++
+
 					w.WriteHeader(http.StatusNoContent)
-				} else {
+				default:
 					t.Errorf("Unexpected request: %s %s", r.Method, r.URL.Path)
 					w.WriteHeader(http.StatusNotFound)
 				}
@@ -541,9 +553,11 @@ func TestGitHubIntegration_deleteExistingMutationComments(t *testing.T) {
 			if tt.expectError && err == nil {
 				t.Error("Expected error but got none")
 			}
+
 			if !tt.expectError && err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}
+
 			if deleteCallCount != tt.deleteCount {
 				t.Errorf("Expected %d delete calls, got %d", tt.deleteCount, deleteCallCount)
 			}

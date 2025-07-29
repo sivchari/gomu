@@ -156,7 +156,7 @@ func TestRunMutations(t *testing.T) {
 func TestRunMutationsWithOptions(t *testing.T) {
 	// Create a temporary directory for test files
 	tempDir := createTempTestProject(t)
-	
+
 	tests := []struct {
 		name         string
 		mutants      []mutation.Mutant
@@ -278,27 +278,32 @@ func TestRunMutationsWithOptions(t *testing.T) {
 			if len(results) != tt.expectLength {
 				t.Errorf("expected %d results, got %d", tt.expectLength, len(results))
 			}
-			
+
 			// Check if results are in correct order and contain expected mutants
 			if tt.checkResults {
 				for i, result := range results {
-					if i < len(tt.mutants) {
-						if result.Mutant.ID != tt.mutants[i].ID {
-							t.Errorf("result %d: expected mutant ID %s, got %s", i, tt.mutants[i].ID, result.Mutant.ID)
+					if i >= len(tt.mutants) {
+						continue
+					}
+
+					if result.Mutant.ID != tt.mutants[i].ID {
+						t.Errorf("result %d: expected mutant ID %s, got %s", i, tt.mutants[i].ID, result.Mutant.ID)
+					}
+
+					// Check that we got some status
+					validStatuses := []mutation.Status{mutation.StatusKilled, mutation.StatusSurvived, mutation.StatusError}
+					found := false
+
+					for _, status := range validStatuses {
+						if result.Status == status {
+							found = true
+
+							break
 						}
-						
-						// Check that we got some status
-						validStatuses := []mutation.Status{mutation.StatusKilled, mutation.StatusSurvived, mutation.StatusError}
-						found := false
-						for _, status := range validStatuses {
-							if result.Status == status {
-								found = true
-								break
-							}
-						}
-						if !found {
-							t.Errorf("result %d: unexpected status %v", i, result.Status)
-						}
+					}
+
+					if !found {
+						t.Errorf("result %d: unexpected status %v", i, result.Status)
 					}
 				}
 			}

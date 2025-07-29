@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -35,7 +36,8 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 	}
 
 	// Get the merge base with the base branch
-	mergeBaseCmd := exec.Command("git", "merge-base", "HEAD", baseBranch)
+	ctx := context.Background()
+	mergeBaseCmd := exec.CommandContext(ctx, "git", "merge-base", "HEAD", baseBranch)
 	mergeBaseCmd.Dir = g.workDir
 
 	mergeBaseOutput, err := mergeBaseCmd.Output()
@@ -46,7 +48,7 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 	mergeBase := strings.TrimSpace(string(mergeBaseOutput))
 
 	// Get changed files since merge base
-	diffCmd := exec.Command("git", "diff", "--name-only", mergeBase, "HEAD")
+	diffCmd := exec.CommandContext(ctx, "git", "diff", "--name-only", mergeBase, "HEAD")
 	diffCmd.Dir = g.workDir
 
 	output, err := diffCmd.Output()
@@ -79,7 +81,8 @@ func (g *GitIntegration) GetCurrentBranch() (string, error) {
 		return "", fmt.Errorf("not a git repository")
 	}
 
-	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	ctx := context.Background()
+	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--abbrev-ref", "HEAD")
 	cmd.Dir = g.workDir
 
 	output, err := cmd.Output()
@@ -129,7 +132,8 @@ func (g *GitIntegration) HasUncommittedChanges() (bool, error) {
 		return false, fmt.Errorf("not a git repository")
 	}
 
-	cmd := exec.Command("git", "status", "--porcelain")
+	ctx := context.Background()
+	cmd := exec.CommandContext(ctx, "git", "status", "--porcelain")
 	cmd.Dir = g.workDir
 
 	output, err := cmd.Output()
