@@ -5,6 +5,16 @@ import (
 )
 
 func TestLoadConfigFromEnv(t *testing.T) {
+	// Clear any existing environment variables that might affect the test
+	t.Setenv("CI_MODE", "")
+	t.Setenv("GITHUB_PR_NUMBER", "")
+	t.Setenv("GITHUB_BASE_REF", "")
+	t.Setenv("GITHUB_HEAD_REF", "")
+	t.Setenv("GITHUB_REPOSITORY", "")
+	t.Setenv("GITHUB_ACTOR", "")
+	t.Setenv("GITHUB_EVENT_NAME", "")
+	t.Setenv("GITHUB_WORKSPACE", "")
+
 	// Test default values
 	config := LoadConfigFromEnv()
 
@@ -60,10 +70,21 @@ func TestLoadConfigFromEnv_InvalidPRNumber(t *testing.T) {
 }
 
 func TestNewConfigFromEnv(t *testing.T) {
+	// Clear any existing environment variables first
+	t.Setenv("CI_MODE", "")
+	t.Setenv("GITHUB_PR_NUMBER", "")
+	t.Setenv("GITHUB_BASE_REF", "")
+	t.Setenv("GITHUB_HEAD_REF", "")
+	t.Setenv("GITHUB_REPOSITORY", "")
+	t.Setenv("GITHUB_ACTOR", "")
+	t.Setenv("GITHUB_EVENT_NAME", "")
+	t.Setenv("GITHUB_WORKSPACE", "")
+
 	// Test with custom values
 	t.Setenv("CI_MODE", "true")
 	t.Setenv("GITHUB_PR_NUMBER", "456")
 	t.Setenv("GITHUB_BASE_REF", "master")
+	t.Setenv("GITHUB_HEAD_REF", "feature/test")
 	t.Setenv("GITHUB_REPOSITORY", "owner/repo")
 	t.Setenv("GITHUB_ACTOR", "testuser")
 	t.Setenv("GITHUB_EVENT_NAME", "pull_request")
@@ -81,6 +102,10 @@ func TestNewConfigFromEnv(t *testing.T) {
 
 	if config.BaseRef != "master" {
 		t.Errorf("Expected base ref 'master', got '%s'", config.BaseRef)
+	}
+
+	if config.HeadRef != "feature/test" {
+		t.Errorf("Expected head ref 'feature/test', got '%s'", config.HeadRef)
 	}
 
 	if config.Repository != "owner/repo" {
