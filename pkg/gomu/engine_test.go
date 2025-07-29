@@ -689,6 +689,158 @@ func TestConvertToCISummary(t *testing.T) {
 	}
 }
 
+func TestSetDefaultOptions(t *testing.T) {
+	tests := []struct {
+		name         string
+		input        *RunOptions
+		expectWorkers int
+		expectTimeout int
+		expectOutput  string
+		expectThreshold float64
+	}{
+		{
+			name:         "nil options returns defaults",
+			input:        nil,
+			expectWorkers: 4,
+			expectTimeout: 30,
+			expectOutput:  "json",
+			expectThreshold: 80.0,
+		},
+		{
+			name: "non-nil options returns as is",
+			input: &RunOptions{
+				Workers:     2,
+				Timeout:     10,
+				Output:      "html",
+				Threshold:   90.0,
+			},
+			expectWorkers: 2,
+			expectTimeout: 10,
+			expectOutput:  "html",
+			expectThreshold: 90.0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			engine := &Engine{}
+			result := engine.setDefaultOptions(tt.input)
+
+			if result.Workers != tt.expectWorkers {
+				t.Errorf("expected workers %d, got %d", tt.expectWorkers, result.Workers)
+			}
+			if result.Timeout != tt.expectTimeout {
+				t.Errorf("expected timeout %d, got %d", tt.expectTimeout, result.Timeout)
+			}
+			if result.Output != tt.expectOutput {
+				t.Errorf("expected output %s, got %s", tt.expectOutput, result.Output)
+			}
+			if result.Threshold != tt.expectThreshold {
+				t.Errorf("expected threshold %.1f, got %.1f", tt.expectThreshold, result.Threshold)
+			}
+		})
+	}
+}
+
+func TestGetAbsolutePath(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		setupFunc   func() (string, func())
+		expectError bool
+	}{
+		{
+			name:  "relative path is converted to absolute",
+			input: ".",
+			setupFunc: func() (string, func()) {
+				wd, _ := os.Getwd()
+				return wd, func() {}
+			},
+			expectError: false,
+		},
+		{
+			name:  "absolute path remains unchanged",
+			input: "/usr/local/bin",
+			setupFunc: func() (string, func()) {
+				return "/usr/local/bin", func() {}
+			},
+			expectError: false,
+		},
+		{
+			name:  "non-existent path still returns absolute path",
+			input: "/this/path/does/not/exist/at/all",
+			setupFunc: func() (string, func()) {
+				return "/this/path/does/not/exist/at/all", func() {}
+			},
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			engine := &Engine{}
+			expectedPath, cleanup := tt.setupFunc()
+			defer cleanup()
+
+			result, err := engine.getAbsolutePath(tt.input)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+				if tt.input == "." && result != expectedPath {
+					t.Errorf("expected absolute path %s, got %s", expectedPath, result)
+				}
+				if tt.input == "/usr/local/bin" && result != tt.input {
+					t.Errorf("expected path %s, got %s", tt.input, result)
+				}
+			}
+		})
+	}
+}
+
+func TestLogStartupInfo(t *testing.T) {
+	tests := []struct {
+		name     string
+		path     string
+		opts     *RunOptions
+		expectLog bool
+	}{
+		{
+			name: "verbose mode logs info",
+			path: "/test/path",
+			opts: &RunOptions{
+				Verbose: true,
+				Workers: 2,
+				Timeout: 10,
+				Output:  "json",
+				Incremental: true,
+			},
+			expectLog: true,
+		},
+		{
+			name: "non-verbose mode doesn't log",
+			path: "/test/path",
+			opts: &RunOptions{
+				Verbose: false,
+			},
+			expectLog: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			engine := &Engine{}
+			// Just verify the function doesn't panic
+			engine.logStartupInfo(tt.path, tt.opts)
+		})
+	}
+}
+
 func TestCalculateTestHash(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -912,6 +1064,197 @@ func TestHistoryStoreWrapper(t *testing.T) {
 
 			if tt.expectEntry && entry.FileHash != tt.expectHash {
 				t.Errorf("expected hash %s, got %s", tt.expectHash, entry.FileHash)
+			}
+		})
+	}
+}
+
+func TestHandleCIWorkflow(t *testing.T) {
+	tests := []struct {
+		name        string
+		summary     *report.Summary
+		opts        *RunOptions
+		expectError bool
+		errContains string
+	}{
+		{
+			name:        "nil options returns nil",
+			summary:     &report.Summary{},
+			opts:        nil,
+			expectError: false,
+		},
+		{
+			name:    "CI mode disabled returns nil",
+			summary: &report.Summary{},
+			opts: &RunOptions{
+				CIMode: false,
+			},
+			expectError: false,
+		},
+		{
+			name: "CI mode enabled with passing quality gate",
+			summary: &report.Summary{
+				TotalMutants:  10,
+				KilledMutants: 9,
+				Results: []mutation.Result{
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+				},
+			},
+			opts: &RunOptions{
+				CIMode:     true,
+				Threshold:  80.0,
+				FailOnGate: true,
+			},
+			expectError: false,
+		},
+		{
+			name: "CI mode enabled with failing quality gate and FailOnGate true",
+			summary: &report.Summary{
+				TotalMutants:  10,
+				KilledMutants: 5,
+				Results: []mutation.Result{
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+				},
+			},
+			opts: &RunOptions{
+				CIMode:     true,
+				Threshold:  80.0,
+				FailOnGate: true,
+			},
+			expectError: true,
+			errContains: "quality gate failed",
+		},
+		{
+			name: "CI mode enabled with failing quality gate but FailOnGate false",
+			summary: &report.Summary{
+				TotalMutants:  10,
+				KilledMutants: 5,
+				Results: []mutation.Result{
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+				},
+			},
+			opts: &RunOptions{
+				CIMode:     true,
+				Threshold:  80.0,
+				FailOnGate: false,
+			},
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reporter, _ := report.New()
+			engine := &Engine{
+				reporter: reporter,
+			}
+
+			err := engine.handleCIWorkflow(context.Background(), tt.summary, tt.opts)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				} else if tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
+					t.Errorf("expected error to contain '%s', got: %v", tt.errContains, err)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestProcessCIWorkflowDetailed(t *testing.T) {
+	tests := []struct {
+		name        string
+		summary     *report.Summary
+		opts        *RunOptions
+		setupEngine func() *Engine
+		expectError bool
+	}{
+		{
+			name: "processes CI workflow with verbose logging",
+			summary: &report.Summary{
+				TotalMutants:  10,
+				KilledMutants: 10,
+				Results: []mutation.Result{
+					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
+				},
+			},
+			opts: &RunOptions{
+				Verbose:    true,
+				Threshold:  80.0,
+				FailOnGate: false,
+			},
+			setupEngine: func() *Engine {
+				reporter, _ := report.New()
+				engine := &Engine{
+					reporter:    reporter,
+					ciReporter:  ci.NewReporter(".", "json"),
+					qualityGate: ci.NewQualityGateEvaluator(true, 80.0),
+				}
+				return engine
+			},
+			expectError: false,
+		},
+		{
+			name: "handles invalid CI reporter format by defaulting to JSON",
+			summary: &report.Summary{
+				TotalMutants:  10,
+				KilledMutants: 10,
+				Results:       []mutation.Result{},
+			},
+			opts: &RunOptions{
+				Threshold:  80.0,
+				FailOnGate: false,
+			},
+			setupEngine: func() *Engine {
+				// Create engine with invalid CI reporter output format
+				reporter, _ := report.New()
+				engine := &Engine{
+					reporter:    reporter,
+					ciReporter:  ci.NewReporter(".", "invalid-format"),
+					qualityGate: ci.NewQualityGateEvaluator(true, 80.0),
+				}
+				return engine
+			},
+			expectError: false, // invalid format defaults to JSON, no error
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			engine := tt.setupEngine()
+			err := engine.processCIWorkflow(context.Background(), tt.summary, tt.opts)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error but got none")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
 			}
 		})
 	}

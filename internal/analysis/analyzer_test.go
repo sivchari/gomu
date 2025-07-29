@@ -264,6 +264,56 @@ func TestFindChangedFiles(t *testing.T) {
 			expectError: false,
 			expectFiles: []string{},
 		},
+		{
+			name: "handles git command failure gracefully",
+			allFiles: []string{
+				"/project/main.go",
+				"/project/util.go",
+			},
+			setupGit: func(t *testing.T) func() {
+				// Create a temp dir that's not a git repo
+				tempDir := t.TempDir()
+				origWd, _ := os.Getwd()
+				os.Chdir(tempDir)
+				
+				return func() {
+					os.Chdir(origWd)
+				}
+			},
+			expectError: true,
+		},
+		{
+			name: "filters changed files correctly",
+			allFiles: []string{
+				"/project/src/main.go",
+				"/project/src/util.go",
+				"/project/test/helper.go",
+			},
+			setupGit: func(t *testing.T) func() {
+				// This test case would need actual git setup
+				// For now, skip if not in a git repo
+				if _, err := os.Stat(".git"); os.IsNotExist(err) {
+					t.Skip("Not in a git repository")
+				}
+				return func() {}
+			},
+			expectError: false,
+		},
+		{
+			name: "handles empty git diff output",
+			allFiles: []string{
+				"/project/main.go",
+			},
+			setupGit: func(t *testing.T) func() {
+				// Skip if not in a git repo
+				if _, err := os.Stat(".git"); os.IsNotExist(err) {
+					t.Skip("Not in a git repository")
+				}
+				return func() {}
+			},
+			expectError: false,
+			expectFiles: []string{},
+		},
 	}
 
 	for _, tt := range tests {
@@ -295,20 +345,40 @@ func TestFindChangedFiles(t *testing.T) {
 				t.Errorf("unexpected error: %v", err)
 			}
 
-			// Verify result is a subset of input files
-			for _, file := range files {
-				found := false
-
-				for _, allFile := range tt.allFiles {
-					if file == allFile {
-						found = true
-
-						break
+			// If specific files are expected, verify them
+			if tt.expectFiles != nil {
+				if len(files) != len(tt.expectFiles) {
+					t.Errorf("expected %d files, got %d", len(tt.expectFiles), len(files))
+				}
+				
+				for _, expectedFile := range tt.expectFiles {
+					found := false
+					for _, file := range files {
+						if file == expectedFile {
+							found = true
+							break
+						}
+					}
+					if !found {
+						t.Errorf("expected file %s not found", expectedFile)
 					}
 				}
+			} else {
+				// Otherwise verify result is a subset of input files
+				for _, file := range files {
+					found := false
 
-				if !found {
-					t.Errorf("returned file %s not in input files", file)
+					for _, allFile := range tt.allFiles {
+						if file == allFile {
+							found = true
+
+							break
+						}
+					}
+
+					if !found {
+						t.Errorf("returned file %s not in input files", file)
+					}
 				}
 			}
 		})
@@ -728,6 +798,29 @@ func TestParsePackageFiles(t *testing.T) {
 			},
 			expectError: false,
 			expectCount: 1, // Only valid.go
+		},
+		{
+			name: "handles files with different packages",
+			setupFiles: func(t *testing.T) string {
+				tempDir := t.TempDir()
+
+				os.WriteFile(filepath.Join(tempDir, "main.go"), []byte("package main"), 0644)
+				os.WriteFile(filepath.Join(tempDir, "util.go"), []byte("package util"), 0644)
+				os.WriteFile(filepath.Join(tempDir, "helper.go"), []byte("package helper"), 0644)
+
+				return tempDir
+			},
+			expectError: false,
+			expectCount: 3, // All files are parsed
+		},
+		{
+			name: "handles non-existent directory",
+			setupFiles: func(t *testing.T) string {
+				// Return a non-existent directory
+				return "/non/existent/directory/path"
+			},
+			expectError: false,
+			expectCount: 0, // Glob returns empty slice for non-existent paths
 		},
 	}
 
