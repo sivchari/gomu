@@ -70,6 +70,7 @@ func TestGitHubIntegration_CreatePRComment(t *testing.T) {
 						json.NewDecoder(r.Body).Decode(&body)
 						if body.Body == "" {
 							w.WriteHeader(http.StatusBadRequest)
+
 							return
 						}
 						w.WriteHeader(http.StatusCreated)
@@ -144,6 +145,7 @@ func TestGitHubIntegration_CreatePRComment(t *testing.T) {
 			prNumber: 123,
 			setupServer: func() *httptest.Server {
 				callCount := 0
+
 				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					callCount++
 					switch {
@@ -178,15 +180,16 @@ func TestGitHubIntegration_CreatePRComment(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			github := NewGitHubIntegration(tt.token, "owner/repo", tt.prNumber)
-			
+
 			if tt.setupServer != nil {
 				server := tt.setupServer()
 				defer server.Close()
+
 				github.apiBase = server.URL
 			}
-			
+
 			err := github.CreatePRComment(context.Background(), tt.summary, tt.qualityResult)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("Expected error but got none")
