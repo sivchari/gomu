@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -354,36 +355,17 @@ func TestFindChangedFiles(t *testing.T) {
 				}
 
 				for _, expectedFile := range tt.expectFiles {
-					found := false
-
-					for _, file := range files {
-						if file == expectedFile {
-							found = true
-
-							break
-						}
-					}
-
-					if !found {
+					if !slices.Contains(files, expectedFile) {
 						t.Errorf("expected file %s not found", expectedFile)
 					}
 				}
-			} else {
-				// Otherwise verify result is a subset of input files
-				for _, file := range files {
-					found := false
 
-					for _, allFile := range tt.allFiles {
-						if file == allFile {
-							found = true
-
-							break
-						}
-					}
-
-					if !found {
-						t.Errorf("returned file %s not in input files", file)
-					}
+				return
+			}
+			// Otherwise verify result is a subset of input files
+			for _, file := range files {
+				if !slices.Contains(tt.allFiles, file) {
+					t.Errorf("returned file %s not in input files", file)
 				}
 			}
 		})

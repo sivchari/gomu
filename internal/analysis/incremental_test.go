@@ -379,6 +379,7 @@ func TestAdd(t *testing.T) {
 	if err := os.WriteFile(mainFile, []byte(mainContent), 0600); err != nil {
 		t.Fatalf("Failed to create main file: %v", err)
 	}
+
 	if err := os.WriteFile(testFile, []byte(testContent), 0600); err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
