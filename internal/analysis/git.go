@@ -105,7 +105,7 @@ func (g *GitIntegration) GetAllGoFiles() ([]string, error) {
 		// Skip hidden directories and vendor
 		if info.IsDir() {
 			name := info.Name()
-			if strings.HasPrefix(name, ".") || name != "vendor" {
+			if strings.HasPrefix(name, ".") || name == "vendor" {
 				return filepath.SkipDir
 			}
 
