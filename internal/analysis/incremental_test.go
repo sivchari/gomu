@@ -347,3 +347,73 @@ func TestIncrementalAnalyzer_findRelatedTestFiles(t *testing.T) {
 		t.Error("Expected to find test_utils.go")
 	}
 }
+
+func TestIncrementalAnalyzer_hasTestFilesChanged(t *testing.T) {
+	tmpDir := t.TempDir()
+	mockHistory := NewMockHistoryStore()
+
+	analyzer, err := NewIncrementalAnalyzer(tmpDir, mockHistory)
+	if err != nil {
+		t.Fatalf("Failed to create incremental analyzer: %v", err)
+	}
+
+	// Create main file and test file
+	mainFile := filepath.Join(tmpDir, "utils.go")
+	testFile := filepath.Join(tmpDir, "utils_test.go")
+
+	mainContent := `package main
+
+func Add(a, b int) int {
+	return a + b
+}`
+	testContent := `package main
+
+import "testing"
+
+func TestAdd(t *testing.T) {
+	if Add(1, 2) != 3 {
+		t.Error("Add failed")
+	}
+}`
+
+	if err := os.WriteFile(mainFile, []byte(mainContent), 0600); err != nil {
+		t.Fatalf("Failed to create main file: %v", err)
+	}
+	if err := os.WriteFile(testFile, []byte(testContent), 0600); err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	// First check - no history, should return true
+	if !analyzer.hasTestFilesChanged(mainFile) {
+		t.Error("Expected hasTestFilesChanged to return true when no history exists")
+	}
+
+	// Add history entry with test file hash
+	testHash, _ := analyzer.hasher.HashFile(testFile)
+	mockHistory.SetEntry(mainFile, HistoryEntry{
+		FileHash: "dummy",
+		TestHash: testHash,
+	})
+
+	// Second check - test file hasn't changed, should return false
+	if analyzer.hasTestFilesChanged(mainFile) {
+		t.Error("Expected hasTestFilesChanged to return false when test file hasn't changed")
+	}
+
+	// Modify test file
+	newTestContent := testContent + "\n// Modified"
+	if err := os.WriteFile(testFile, []byte(newTestContent), 0600); err != nil {
+		t.Fatalf("Failed to modify test file: %v", err)
+	}
+
+	// Third check - test file changed, should return true
+	if !analyzer.hasTestFilesChanged(mainFile) {
+		t.Error("Expected hasTestFilesChanged to return true when test file has changed")
+	}
+
+	// Test with non-existent test file
+	nonExistentFile := filepath.Join(tmpDir, "nonexistent.go")
+	if analyzer.hasTestFilesChanged(nonExistentFile) {
+		t.Error("Expected hasTestFilesChanged to return false for file with no test files")
+	}
+}

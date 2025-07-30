@@ -13,31 +13,192 @@ import (
 )
 
 func TestGitHubIntegration_CreatePRComment(t *testing.T) {
-	// Test without token (should return error)
-	github := NewGitHubIntegration("", "owner/repo", 123)
-
-	summary := &report.Summary{
-		TotalMutants:  100,
-		KilledMutants: 85,
-		Files: map[string]*report.FileReport{
-			"example.go": {
-				FilePath:      "example.go",
-				TotalMutants:  50,
-				KilledMutants: 45,
-				MutationScore: 90.0,
+	tests := []struct {
+		name          string
+		token         string
+		prNumber      int
+		setupServer   func() *httptest.Server
+		summary       *report.Summary
+		qualityResult *QualityGateResult
+		expectError   bool
+		errorContains string
+	}{
+		{
+			name:     "missing token",
+			token:    "",
+			prNumber: 123,
+			summary: &report.Summary{
+				TotalMutants:  100,
+				KilledMutants: 85,
 			},
+			qualityResult: &QualityGateResult{
+				Pass:          true,
+				MutationScore: 85.0,
+			},
+			expectError:   true,
+			errorContains: "missing required PR number or GitHub token",
+		},
+		{
+			name:     "missing PR number",
+			token:    "test-token",
+			prNumber: 0,
+			summary: &report.Summary{
+				TotalMutants:  100,
+				KilledMutants: 85,
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          true,
+				MutationScore: 85.0,
+			},
+			expectError:   true,
+			errorContains: "missing required PR number or GitHub token",
+		},
+		{
+			name:     "successful comment creation",
+			token:    "test-token",
+			prNumber: 123,
+			setupServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					switch {
+					case r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/comments"):
+						// List comments - return empty list
+						w.WriteHeader(http.StatusOK)
+						w.Write([]byte("[]"))
+					case r.Method == http.MethodPost && strings.HasSuffix(r.URL.Path, "/comments"):
+						// Create comment
+						var body PRComment
+						json.NewDecoder(r.Body).Decode(&body)
+						if body.Body == "" {
+							w.WriteHeader(http.StatusBadRequest)
+							return
+						}
+						w.WriteHeader(http.StatusCreated)
+						w.Write([]byte(`{"id": 1, "body": "test comment"}`))
+					default:
+						w.WriteHeader(http.StatusNotFound)
+					}
+				}))
+			},
+			summary: &report.Summary{
+				TotalMutants:  100,
+				KilledMutants: 85,
+				Files: map[string]*report.FileReport{
+					"example.go": {
+						FilePath:      "example.go",
+						TotalMutants:  50,
+						KilledMutants: 45,
+						MutationScore: 90.0,
+					},
+				},
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          true,
+				MutationScore: 85.0,
+			},
+			expectError: false,
+		},
+		{
+			name:     "API error when listing comments",
+			token:    "test-token",
+			prNumber: 123,
+			setupServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(http.StatusInternalServerError)
+				}))
+			},
+			summary:       &report.Summary{},
+			qualityResult: &QualityGateResult{},
+			expectError:   true,
+			errorContains: "failed to create comment",
+		},
+		{
+			name:     "API error when creating comment",
+			token:    "test-token",
+			prNumber: 123,
+			setupServer: func() *httptest.Server {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if r.Method == http.MethodGet {
+						// List comments successfully
+						w.WriteHeader(http.StatusOK)
+						w.Write([]byte("[]"))
+					} else {
+						// Fail to create comment
+						w.WriteHeader(http.StatusForbidden)
+					}
+				}))
+			},
+			summary: &report.Summary{
+				TotalMutants:  100,
+				KilledMutants: 50,
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          false,
+				MutationScore: 50.0,
+			},
+			expectError:   true,
+			errorContains: "failed to create comment",
+		},
+		{
+			name:     "with existing mutation comments",
+			token:    "test-token",
+			prNumber: 123,
+			setupServer: func() *httptest.Server {
+				callCount := 0
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					callCount++
+					switch {
+					case r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/comments"):
+						// Return existing mutation comment
+						w.WriteHeader(http.StatusOK)
+						w.Write([]byte(`[{"id": 999, "body": "🧬 Mutation Testing Results"}]`))
+					case r.Method == http.MethodDelete:
+						// Delete existing comment
+						w.WriteHeader(http.StatusNoContent)
+					case r.Method == http.MethodPost && strings.HasSuffix(r.URL.Path, "/comments"):
+						// Create new comment
+						w.WriteHeader(http.StatusCreated)
+						w.Write([]byte(`{"id": 1000, "body": "new comment"}`))
+					default:
+						w.WriteHeader(http.StatusNotFound)
+					}
+				}))
+			},
+			summary: &report.Summary{
+				TotalMutants:  10,
+				KilledMutants: 8,
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          true,
+				MutationScore: 80.0,
+			},
+			expectError: false,
 		},
 	}
 
-	qualityResult := &QualityGateResult{
-		Pass:          true,
-		MutationScore: 85.0,
-		Reason:        "Mutation score meets minimum threshold",
-	}
-
-	err := github.CreatePRComment(t.Context(), summary, qualityResult)
-	if err == nil {
-		t.Error("Expected error when token is empty")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			github := NewGitHubIntegration(tt.token, "owner/repo", tt.prNumber)
+			
+			if tt.setupServer != nil {
+				server := tt.setupServer()
+				defer server.Close()
+				github.apiBase = server.URL
+			}
+			
+			err := github.CreatePRComment(context.Background(), tt.summary, tt.qualityResult)
+			
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				} else if tt.errorContains != "" && !strings.Contains(err.Error(), tt.errorContains) {
+					t.Errorf("Expected error to contain '%s', got: %v", tt.errorContains, err)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+			}
+		})
 	}
 }
 

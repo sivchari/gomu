@@ -2,7 +2,7 @@
   "entries": {
     "/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go": {
       "fileHash": "91986a939caa39324b02343e833a51477ef4e574669456cbc0a6d164e16344c7",
-      "testHash": "6329ca2fe9d497322695fd73e6fb823be2509d447e99bca129bf8529631f8bc5",
+      "testHash": "756013720f29e022d8eddcac6c3c3d6fbd766057e6b19aa92b39e1bbe3bc3d6f",
       "mutants": [
         {
           "id": "/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go_0",
@@ -348,7 +348,7 @@
             "description": "Replace + with -"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = -1, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 1, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = -5, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = -5, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.193s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = -1, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 1, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = -5, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = -5, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.207s\nFAIL\n"
         },
         {
           "mutant": {
@@ -362,7 +362,7 @@
             "description": "Replace + with *"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = 6, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 6, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = -6, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = 0, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.264s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = 6, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 6, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = -6, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = 0, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.269s\nFAIL\n"
         },
         {
           "mutant": {
@@ -376,7 +376,7 @@
             "description": "Replace + with /"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = 0, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 0, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = 0, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = 0, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.256s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Add (0.00s)\n    --- FAIL: TestCalculator_Add/positive_numbers (0.00s)\n        calculator_test.go:22: Add(2, 3) = 0, want 5\n    --- FAIL: TestCalculator_Add/negative_numbers (0.00s)\n        calculator_test.go:22: Add(-2, -3) = 0, want -5\n    --- FAIL: TestCalculator_Add/mixed_signs (0.00s)\n        calculator_test.go:22: Add(-2, 3) = 0, want 1\n    --- FAIL: TestCalculator_Add/zero (0.00s)\n        calculator_test.go:22: Add(0, 5) = 0, want 5\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.193s\nFAIL\n"
         },
         {
           "mutant": {
@@ -390,7 +390,7 @@
             "description": "Replace - with +"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 8, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 8, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 10, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.232s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 8, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 8, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 10, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.193s\nFAIL\n"
         },
         {
           "mutant": {
@@ -404,7 +404,7 @@
             "description": "Replace - with *"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 15, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 15, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 25, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.289s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 15, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 15, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 25, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.193s\nFAIL\n"
         },
         {
           "mutant": {
@@ -418,7 +418,7 @@
             "description": "Replace - with /"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 1, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 0, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 1, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.231s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Subtract (0.00s)\n    --- FAIL: TestCalculator_Subtract/positive_result (0.00s)\n        calculator_test.go:44: Subtract(5, 3) = 1, want 2\n    --- FAIL: TestCalculator_Subtract/negative_result (0.00s)\n        calculator_test.go:44: Subtract(3, 5) = 0, want -2\n    --- FAIL: TestCalculator_Subtract/zero_result (0.00s)\n        calculator_test.go:44: Subtract(5, 5) = 1, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.203s\nFAIL\n"
         },
         {
           "mutant": {
@@ -432,7 +432,7 @@
             "description": "Replace * with +"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    calculator_test.go:54: Multiply(3, 4) = 7, want 12\n    calculator_test.go:58: Multiply(0, 5) = 5, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.205s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = 7, want 12\n    --- FAIL: TestCalculator_Multiply/zero_multiplication (0.00s)\n        calculator_test.go:69: Multiply(0, 5) = 5, want 0\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\n        calculator_test.go:69: Multiply(5, 0) = 5, want 0\n    --- FAIL: TestCalculator_Multiply/negative_numbers (0.00s)\n        calculator_test.go:69: Multiply(-3, -4) = -7, want 12\n    --- FAIL: TestCalculator_Multiply/mixed_signs (0.00s)\n        calculator_test.go:69: Multiply(-3, 4) = 1, want -12\n    --- FAIL: TestCalculator_Multiply/multiply_by_one (0.00s)\n        calculator_test.go:69: Multiply(7, 1) = 8, want 7\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.206s\nFAIL\n"
         },
         {
           "mutant": {
@@ -446,7 +446,7 @@
             "description": "Replace * with -"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    calculator_test.go:54: Multiply(3, 4) = -1, want 12\n    calculator_test.go:58: Multiply(0, 5) = -5, want 0\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.289s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = -1, want 12\n    --- FAIL: TestCalculator_Multiply/zero_multiplication (0.00s)\n        calculator_test.go:69: Multiply(0, 5) = -5, want 0\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\n        calculator_test.go:69: Multiply(5, 0) = 5, want 0\n    --- FAIL: TestCalculator_Multiply/negative_numbers (0.00s)\n        calculator_test.go:69: Multiply(-3, -4) = 1, want 12\n    --- FAIL: TestCalculator_Multiply/mixed_signs (0.00s)\n        calculator_test.go:69: Multiply(-3, 4) = -7, want -12\n    --- FAIL: TestCalculator_Multiply/multiply_by_one (0.00s)\n        calculator_test.go:69: Multiply(7, 1) = 6, want 7\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.226s\nFAIL\n"
         },
         {
           "mutant": {
@@ -460,7 +460,7 @@
             "description": "Replace * with /"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    calculator_test.go:54: Multiply(3, 4) = 0, want 12\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.227s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = 0, want 12\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 18 [running]:\ntesting.tRunner.func1.2({0x100bfd960, 0x100d148e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1872 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1875 +0x314\npanic({0x100bfd960?, 0x100d148e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:877 +0x128\ngithub.com/sivchari/gomu/examples.(*Calculator).Multiply(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:21\ngithub.com/sivchari/gomu/examples.TestCalculator_Multiply.func1(0x140000ccfc0?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:68 +0xdc\ntesting.tRunner(0x140000ccfc0, 0x14000010c00)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1934 +0xc8\ncreated by testing.(*T).Run in goroutine 15\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1997 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.203s\nFAIL\n"
         },
         {
           "mutant": {
@@ -474,7 +474,7 @@
             "description": "Replace * with %"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    calculator_test.go:54: Multiply(3, 4) = 3, want 12\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.194s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Multiply (0.00s)\n    --- FAIL: TestCalculator_Multiply/positive_numbers (0.00s)\n        calculator_test.go:69: Multiply(3, 4) = 3, want 12\n    --- FAIL: TestCalculator_Multiply/multiply_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 15 [running]:\ntesting.tRunner.func1.2({0x1023e5960, 0x1024fc8e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1872 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1875 +0x314\npanic({0x1023e5960?, 0x1024fc8e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:877 +0x128\ngithub.com/sivchari/gomu/examples.(*Calculator).Multiply(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:21\ngithub.com/sivchari/gomu/examples.TestCalculator_Multiply.func1(0x140000cca80?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:68 +0xe0\ntesting.tRunner(0x140000cca80, 0x14000010c00)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1934 +0xc8\ncreated by testing.(*T).Run in goroutine 12\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1997 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.211s\nFAIL\n"
         },
         {
           "mutant": {
@@ -488,7 +488,7 @@
             "description": "Replace == with !="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    calculator_test.go:66: Divide(8, 2) = 0, want 4\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 30 [running]:\ntesting.tRunner.func1.2({0x102c1db00, 0x102d308e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x102c1db00?, 0x102d308e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide(0x14000168000)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:69 +0x60\ntesting.tRunner(0x14000168000, 0x102c45348)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 1\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.198s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/division_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 52 [running]:\ntesting.tRunner.func1.2({0x100521960, 0x1006388e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1872 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1875 +0x314\npanic({0x100521960?, 0x1006388e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:877 +0x128\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide.func1(0x140001f0a80?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:94 +0xd0\ntesting.tRunner(0x140001f0a80, 0x140001b0d00)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1934 +0xc8\ncreated by testing.(*T).Run in goroutine 50\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1997 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.211s\nFAIL\n"
         },
         {
           "mutant": {
@@ -502,7 +502,7 @@
             "description": "Replace == with \u003c"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 44 [running]:\ntesting.tRunner.func1.2({0x10109db00, 0x1011b08e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x10109db00?, 0x1011b08e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide(0x140001a9880?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:69 +0x20\ntesting.tRunner(0x140001a9880, 0x1010c5348)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 1\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.179s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/division_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 24 [running]:\ntesting.tRunner.func1.2({0x10469d960, 0x1047b48e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1872 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1875 +0x314\npanic({0x10469d960?, 0x1047b48e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:877 +0x128\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide.func1(0x140000cda40?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:94 +0xe8\ntesting.tRunner(0x140000cda40, 0x14000010d40)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1934 +0xc8\ncreated by testing.(*T).Run in goroutine 22\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1997 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.257s\nFAIL\n"
         },
         {
           "mutant": {
@@ -515,8 +515,8 @@
             "mutated": "\u003c=",
             "description": "Replace == with \u003c="
           },
-          "status": "SURVIVED",
-          "output": "ok  \tgithub.com/sivchari/gomu/examples\t(cached)\n"
+          "status": "KILLED",
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = 0, want 4\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.267s\nFAIL\n"
         },
         {
           "mutant": {
@@ -530,7 +530,7 @@
             "description": "Replace == with \u003e"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    calculator_test.go:66: Divide(8, 2) = 0, want 4\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 44 [running]:\ntesting.tRunner.func1.2({0x102e0db00, 0x102f208e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1868 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1871 +0x31c\npanic({0x102e0db00?, 0x102f208e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:783 +0x120\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide(0x140001a9880)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:69 +0x60\ntesting.tRunner(0x140001a9880, 0x102e35348)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1930 +0xc8\ncreated by testing.(*T).Run in goroutine 1\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1993 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.228s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/division_by_zero (0.00s)\npanic: runtime error: integer divide by zero [recovered, repanicked]\n\ngoroutine 38 [running]:\ntesting.tRunner.func1.2({0x101131960, 0x1012488e0})\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1872 +0x190\ntesting.tRunner.func1()\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1875 +0x314\npanic({0x101131960?, 0x1012488e0?})\n\t/Users/takuma.shibuya/workspace/go/go/src/runtime/panic.go:877 +0x128\ngithub.com/sivchari/gomu/examples.(*Calculator).Divide(...)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator.go:30\ngithub.com/sivchari/gomu/examples.TestCalculator_Divide.func1(0x14000168e00?)\n\t/Users/takuma.shibuya/workspace/sivchari/gomu/examples/calculator_test.go:94 +0xec\ntesting.tRunner(0x14000168e00, 0x14000134d00)\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1934 +0xc8\ncreated by testing.(*T).Run in goroutine 36\n\t/Users/takuma.shibuya/workspace/go/go/src/testing/testing.go:1997 +0x364\nFAIL\tgithub.com/sivchari/gomu/examples\t0.205s\nFAIL\n"
         },
         {
           "mutant": {
@@ -544,7 +544,7 @@
             "description": "Replace == with \u003e="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    calculator_test.go:66: Divide(8, 2) = 0, want 4\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.201s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 0, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.202s\nFAIL\n"
         },
         {
           "mutant": {
@@ -558,7 +558,7 @@
             "description": "Replace / with +"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    calculator_test.go:66: Divide(8, 2) = 10, want 4\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.222s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 10, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = -6, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 6, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = -10, want 4\n    --- FAIL: TestCalculator_Divide/zero_dividend (0.00s)\n        calculator_test.go:95: Divide(0, 5) = 5, want 0\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 10, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.243s\nFAIL\n"
         },
         {
           "mutant": {
@@ -572,7 +572,7 @@
             "description": "Replace / with -"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    calculator_test.go:66: Divide(8, 2) = 6, want 4\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.202s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 6, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = -10, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 10, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = -6, want 4\n    --- FAIL: TestCalculator_Divide/zero_dividend (0.00s)\n        calculator_test.go:95: Divide(0, 5) = -5, want 0\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 4, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.236s\nFAIL\n"
         },
         {
           "mutant": {
@@ -586,7 +586,7 @@
             "description": "Replace / with *"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    calculator_test.go:66: Divide(8, 2) = 16, want 4\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.237s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 16, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = -16, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = -16, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = 16, want 4\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 21, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.229s\nFAIL\n"
         },
         {
           "mutant": {
@@ -600,7 +600,7 @@
             "description": "Replace / with %"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    calculator_test.go:66: Divide(8, 2) = 0, want 4\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.234s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_Divide (0.00s)\n    --- FAIL: TestCalculator_Divide/normal_division (0.00s)\n        calculator_test.go:95: Divide(8, 2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/negative_dividend (0.00s)\n        calculator_test.go:95: Divide(-8, 2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/negative_divisor (0.00s)\n        calculator_test.go:95: Divide(8, -2) = 0, want -4\n    --- FAIL: TestCalculator_Divide/both_negative (0.00s)\n        calculator_test.go:95: Divide(-8, -2) = 0, want 4\n    --- FAIL: TestCalculator_Divide/division_with_remainder (0.00s)\n        calculator_test.go:95: Divide(7, 3) = 1, want 2\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.220s\nFAIL\n"
         },
         {
           "mutant": {
@@ -614,7 +614,7 @@
             "description": "Replace \u003e with \u003e="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    calculator_test.go:86: IsPositive(0) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.191s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/zero (0.00s)\n        calculator_test.go:121: IsPositive(0) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:198: IsPositive(0) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.212s\nFAIL\n"
         },
         {
           "mutant": {
@@ -628,7 +628,7 @@
             "description": "Replace \u003e with \u003c"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    calculator_test.go:78: IsPositive(5) should return true\n    calculator_test.go:82: IsPositive(-5) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.190s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/positive_number (0.00s)\n        calculator_test.go:121: IsPositive(5) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_number (0.00s)\n        calculator_test.go:121: IsPositive(-5) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_positive (0.00s)\n        calculator_test.go:121: IsPositive(1000) = false, want true\n    --- FAIL: TestCalculator_IsPositive/large_negative (0.00s)\n        calculator_test.go:121: IsPositive(-1000) = true, want false\n    --- FAIL: TestCalculator_IsPositive/one (0.00s)\n        calculator_test.go:121: IsPositive(1) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_one (0.00s)\n        calculator_test.go:121: IsPositive(-1) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:194: IsPositive(1) should return true\n        calculator_test.go:202: IsPositive(-1) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.193s\nFAIL\n"
         },
         {
           "mutant": {
@@ -642,7 +642,7 @@
             "description": "Replace \u003e with \u003c="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    calculator_test.go:78: IsPositive(5) should return true\n    calculator_test.go:82: IsPositive(-5) should return false\n    calculator_test.go:86: IsPositive(0) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.191s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/positive_number (0.00s)\n        calculator_test.go:121: IsPositive(5) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_number (0.00s)\n        calculator_test.go:121: IsPositive(-5) = true, want false\n    --- FAIL: TestCalculator_IsPositive/zero (0.00s)\n        calculator_test.go:121: IsPositive(0) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_positive (0.00s)\n        calculator_test.go:121: IsPositive(1000) = false, want true\n    --- FAIL: TestCalculator_IsPositive/large_negative (0.00s)\n        calculator_test.go:121: IsPositive(-1000) = true, want false\n    --- FAIL: TestCalculator_IsPositive/one (0.00s)\n        calculator_test.go:121: IsPositive(1) = false, want true\n    --- FAIL: TestCalculator_IsPositive/negative_one (0.00s)\n        calculator_test.go:121: IsPositive(-1) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:194: IsPositive(1) should return true\n        calculator_test.go:198: IsPositive(0) should return false\n        calculator_test.go:202: IsPositive(-1) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.241s\nFAIL\n"
         },
         {
           "mutant": {
@@ -656,7 +656,7 @@
             "description": "Replace \u003e with =="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    calculator_test.go:78: IsPositive(5) should return true\n    calculator_test.go:86: IsPositive(0) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.212s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/positive_number (0.00s)\n        calculator_test.go:121: IsPositive(5) = false, want true\n    --- FAIL: TestCalculator_IsPositive/zero (0.00s)\n        calculator_test.go:121: IsPositive(0) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_positive (0.00s)\n        calculator_test.go:121: IsPositive(1000) = false, want true\n    --- FAIL: TestCalculator_IsPositive/one (0.00s)\n        calculator_test.go:121: IsPositive(1) = false, want true\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:194: IsPositive(1) should return true\n        calculator_test.go:198: IsPositive(0) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.210s\nFAIL\n"
         },
         {
           "mutant": {
@@ -670,7 +670,7 @@
             "description": "Replace \u003e with !="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    calculator_test.go:82: IsPositive(-5) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.154s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsPositive (0.00s)\n    --- FAIL: TestCalculator_IsPositive/negative_number (0.00s)\n        calculator_test.go:121: IsPositive(-5) = true, want false\n    --- FAIL: TestCalculator_IsPositive/large_negative (0.00s)\n        calculator_test.go:121: IsPositive(-1000) = true, want false\n    --- FAIL: TestCalculator_IsPositive/negative_one (0.00s)\n        calculator_test.go:121: IsPositive(-1) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/comparison_boundary_cases (0.00s)\n        calculator_test.go:202: IsPositive(-1) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.299s\nFAIL\n"
         },
         {
           "mutant": {
@@ -684,7 +684,7 @@
             "description": "Replace == with !="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    calculator_test.go:94: IsEven(4) should return true\n    calculator_test.go:98: IsEven(3) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.226s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/even_number (0.00s)\n        calculator_test.go:149: IsEven(4) = false, want true\n    --- FAIL: TestCalculator_IsEven/odd_number (0.00s)\n        calculator_test.go:149: IsEven(3) = true, want false\n    --- FAIL: TestCalculator_IsEven/zero (0.00s)\n        calculator_test.go:149: IsEven(0) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_even (0.00s)\n        calculator_test.go:149: IsEven(-4) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_odd (0.00s)\n        calculator_test.go:149: IsEven(-3) = true, want false\n    --- FAIL: TestCalculator_IsEven/two (0.00s)\n        calculator_test.go:149: IsEven(2) = false, want true\n    --- FAIL: TestCalculator_IsEven/one (0.00s)\n        calculator_test.go:149: IsEven(1) = true, want false\n    --- FAIL: TestCalculator_IsEven/large_even (0.00s)\n        calculator_test.go:149: IsEven(100) = false, want true\n    --- FAIL: TestCalculator_IsEven/large_odd (0.00s)\n        calculator_test.go:149: IsEven(101) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:174: IsEven(2) should return true\n        calculator_test.go:178: IsEven(3) should return false\n        calculator_test.go:182: IsEven(5) should return false\n        calculator_test.go:186: IsEven(6) should return true\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.241s\nFAIL\n"
         },
         {
           "mutant": {
@@ -698,7 +698,7 @@
             "description": "Replace == with \u003c"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    calculator_test.go:94: IsEven(4) should return true\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.189s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/even_number (0.00s)\n        calculator_test.go:149: IsEven(4) = false, want true\n    --- FAIL: TestCalculator_IsEven/zero (0.00s)\n        calculator_test.go:149: IsEven(0) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_even (0.00s)\n        calculator_test.go:149: IsEven(-4) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_odd (0.00s)\n        calculator_test.go:149: IsEven(-3) = true, want false\n    --- FAIL: TestCalculator_IsEven/two (0.00s)\n        calculator_test.go:149: IsEven(2) = false, want true\n    --- FAIL: TestCalculator_IsEven/large_even (0.00s)\n        calculator_test.go:149: IsEven(100) = false, want true\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:174: IsEven(2) should return true\n        calculator_test.go:186: IsEven(6) should return true\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.238s\nFAIL\n"
         },
         {
           "mutant": {
@@ -711,8 +711,8 @@
             "mutated": "\u003c=",
             "description": "Replace == with \u003c="
           },
-          "status": "SURVIVED",
-          "output": "ok  \tgithub.com/sivchari/gomu/examples\t(cached)\n"
+          "status": "KILLED",
+          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/negative_odd (0.00s)\n        calculator_test.go:149: IsEven(-3) = true, want false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.190s\nFAIL\n"
         },
         {
           "mutant": {
@@ -726,7 +726,7 @@
             "description": "Replace == with \u003e"
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    calculator_test.go:94: IsEven(4) should return true\n    calculator_test.go:98: IsEven(3) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.196s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/even_number (0.00s)\n        calculator_test.go:149: IsEven(4) = false, want true\n    --- FAIL: TestCalculator_IsEven/odd_number (0.00s)\n        calculator_test.go:149: IsEven(3) = true, want false\n    --- FAIL: TestCalculator_IsEven/zero (0.00s)\n        calculator_test.go:149: IsEven(0) = false, want true\n    --- FAIL: TestCalculator_IsEven/negative_even (0.00s)\n        calculator_test.go:149: IsEven(-4) = false, want true\n    --- FAIL: TestCalculator_IsEven/two (0.00s)\n        calculator_test.go:149: IsEven(2) = false, want true\n    --- FAIL: TestCalculator_IsEven/one (0.00s)\n        calculator_test.go:149: IsEven(1) = true, want false\n    --- FAIL: TestCalculator_IsEven/large_even (0.00s)\n        calculator_test.go:149: IsEven(100) = false, want true\n    --- FAIL: TestCalculator_IsEven/large_odd (0.00s)\n        calculator_test.go:149: IsEven(101) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:174: IsEven(2) should return true\n        calculator_test.go:178: IsEven(3) should return false\n        calculator_test.go:182: IsEven(5) should return false\n        calculator_test.go:186: IsEven(6) should return true\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.202s\nFAIL\n"
         },
         {
           "mutant": {
@@ -740,7 +740,7 @@
             "description": "Replace == with \u003e="
           },
           "status": "KILLED",
-          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    calculator_test.go:98: IsEven(3) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.224s\nFAIL\n"
+          "output": "--- FAIL: TestCalculator_IsEven (0.00s)\n    --- FAIL: TestCalculator_IsEven/odd_number (0.00s)\n        calculator_test.go:149: IsEven(3) = true, want false\n    --- FAIL: TestCalculator_IsEven/one (0.00s)\n        calculator_test.go:149: IsEven(1) = true, want false\n    --- FAIL: TestCalculator_IsEven/large_odd (0.00s)\n        calculator_test.go:149: IsEven(101) = true, want false\n--- FAIL: TestCalculator_EdgeCases (0.00s)\n    --- FAIL: TestCalculator_EdgeCases/modulo_boundary_cases (0.00s)\n        calculator_test.go:178: IsEven(3) should return false\n        calculator_test.go:182: IsEven(5) should return false\nFAIL\nFAIL\tgithub.com/sivchari/gomu/examples\t0.194s\nFAIL\n"
         },
         {
           "mutant": {
@@ -753,8 +753,9 @@
             "mutated": "+",
             "description": "Replace % with +"
           },
-          "status": "KILLED",
-          "output": "# github.com/sivchari/gomu/examples [github.com/sivchari/gomu/examples.test]\n./calculator.go:40:9: cannot use n % 2 + 0 (value of type int) as bool value in return statement\nFAIL\tgithub.com/sivchari/gomu/examples [build failed]\nFAIL\n"
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./calculator.go:40:9: cannot use n % 2 + 0 (value of type int) as bool value in return statement\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./calculator.go:40:9: cannot use n % 2 + 0 (value of type int) as bool value in return statement\n"
         },
         {
           "mutant": {
@@ -767,8 +768,9 @@
             "mutated": "-",
             "description": "Replace % with -"
           },
-          "status": "KILLED",
-          "output": "# github.com/sivchari/gomu/examples [github.com/sivchari/gomu/examples.test]\n./calculator.go:40:9: cannot use n % 2 - 0 (value of type int) as bool value in return statement\nFAIL\tgithub.com/sivchari/gomu/examples [build failed]\nFAIL\n"
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./calculator.go:40:9: cannot use n % 2 - 0 (value of type int) as bool value in return statement\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./calculator.go:40:9: cannot use n % 2 - 0 (value of type int) as bool value in return statement\n"
         },
         {
           "mutant": {
@@ -781,8 +783,9 @@
             "mutated": "*",
             "description": "Replace % with *"
           },
-          "status": "KILLED",
-          "output": "# github.com/sivchari/gomu/examples [github.com/sivchari/gomu/examples.test]\n./calculator.go:40:9: cannot use n % 2 * 0 (value of type int) as bool value in return statement\nFAIL\tgithub.com/sivchari/gomu/examples [build failed]\nFAIL\n"
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./calculator.go:40:9: cannot use n % 2 * 0 (value of type int) as bool value in return statement\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./calculator.go:40:9: cannot use n % 2 * 0 (value of type int) as bool value in return statement\n"
         },
         {
           "mutant": {
@@ -795,14 +798,15 @@
             "mutated": "/",
             "description": "Replace % with /"
           },
-          "status": "KILLED",
-          "output": "# github.com/sivchari/gomu/examples [github.com/sivchari/gomu/examples.test]\n./calculator.go:40:17: invalid operation: division by zero\nFAIL\tgithub.com/sivchari/gomu/examples [build failed]\nFAIL\n"
+          "status": "NOT_VIABLE",
+          "output": "compilation error: # command-line-arguments\n./calculator.go:40:17: invalid operation: division by zero\n",
+          "error": "Compilation failed: compilation error: # command-line-arguments\n./calculator.go:40:17: invalid operation: division by zero\n"
         }
       ],
-      "timestamp": "2025-07-15T21:30:53.457979+09:00",
-      "mutationScore": 93.93939393939394
+      "timestamp": "2025-07-30T11:17:04.867758+09:00",
+      "mutationScore": 87.87878787878788
     }
   },
-  "savedAt": "2025-07-15T21:30:53.458594+09:00",
+  "savedAt": "2025-07-30T11:17:04.870359+09:00",
   "version": "v0.0.0"
 }

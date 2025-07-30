@@ -161,6 +161,26 @@ func TestIsCIMode(t *testing.T) {
 			mode: "",
 			want: false,
 		},
+		{
+			name: "1 as string",
+			mode: "1",
+			want: true,
+		},
+		{
+			name: "on",
+			mode: "on",
+			want: true,
+		},
+		{
+			name: "yes",
+			mode: "yes",
+			want: true,
+		},
+		{
+			name: "random value",
+			mode: "random",
+			want: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -258,6 +278,56 @@ func TestGetBaseBranch(t *testing.T) {
 			config := &Config{BaseRef: tt.baseRef}
 			if got := config.GetBaseBranch(); got != tt.want {
 				t.Errorf("GetBaseBranch() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetEnv(t *testing.T) {
+	tests := []struct {
+		name         string
+		key          string
+		envValue     string
+		defaultValue string
+		want         string
+	}{
+		{
+			name:         "env var exists",
+			key:          "TEST_ENV_VAR",
+			envValue:     "test-value",
+			defaultValue: "default",
+			want:         "test-value",
+		},
+		{
+			name:         "env var empty returns default",
+			key:          "TEST_ENV_VAR",
+			envValue:     "",
+			defaultValue: "default",
+			want:         "default",
+		},
+		{
+			name:         "env var single char",
+			key:          "TEST_ENV_VAR",
+			envValue:     "a",
+			defaultValue: "default",
+			want:         "a",
+		},
+		{
+			name:         "default value empty",
+			key:          "TEST_ENV_VAR",
+			envValue:     "",
+			defaultValue: "",
+			want:         "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.envValue != "" {
+				t.Setenv(tt.key, tt.envValue)
+			}
+			if got := getEnv(tt.key, tt.defaultValue); got != tt.want {
+				t.Errorf("getEnv() = %v, want %v", got, tt.want)
 			}
 		})
 	}

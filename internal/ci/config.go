@@ -67,7 +67,8 @@ func NewConfigFromEnv() *Config {
 
 // IsCIMode returns true if running in CI mode.
 func (c *Config) IsCIMode() bool {
-	return strings.ToLower(c.Mode) == "true"
+	mode := strings.ToLower(c.Mode)
+	return mode == "true" || mode == "1" || mode == "on" || mode == "yes"
 }
 
 // IsPullRequest returns true if this is a pull request event.
