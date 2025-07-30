@@ -99,20 +99,20 @@ gomu is designed with modularity, performance, and Go-specific optimizations in 
 - Manages execution flow
 - Handles high-level error handling and logging
 
-### 3. Configuration (`internal/config`)
+### 3. Configuration (`internal/ci`)
 
-**Responsibility**: Configuration management and validation
+**Responsibility**: CI environment detection and configuration
 
 **Key Features**:
-- JSON-based configuration (transparent and debuggable)
-- Fallback to sensible defaults
-- Environment-specific overrides
-- Configuration validation
+- Environment variable-based configuration
+- CI/CD integration settings
+- Quality gate configuration
+- GitHub Actions integration
 
 **Benefits over existing tools**:
-- JSON vs YAML (better tooling support)
-- Clear default values
-- Easy programmatic access
+- No configuration files required
+- Command-line flag based configuration
+- Environment auto-detection
 
 ### 4. Analysis (`internal/analysis`)
 

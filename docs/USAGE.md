@@ -33,150 +33,73 @@ gomu run ./pkg/mypackage
 gomu run -v
 ```
 
-### Use custom configuration file
+### Use custom settings
 ```bash
-gomu run --config custom-config.yaml
+gomu run --workers=8 --timeout=60 --threshold=85
 ```
 
 ## Configuration
 
-### Configuration File Locations
+### Command Line Configuration
 
-gomu looks for configuration files in the following order:
-1. File specified with `--config` flag
-2. `.gomu.yaml` in current directory
-3. `gomu.yaml` in current directory  
-4. `.gomu/config.yaml` in current directory
-5. Default configuration if no file found
+gomu uses command-line flags for all configuration. No configuration files are required.
 
-### Basic Configuration
+### Command Line Flags
 
-Create a `.gomu.yaml` file in your project root:
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--workers` | int | `4` | Number of parallel workers |
+| `--timeout` | int | `30` | Test timeout in seconds |
+| `--threshold` | float64 | `80.0` | Minimum mutation score threshold |
+| `--output` | string | `json` | Output format (json, html, console) |
+| `--incremental` | bool | `true` | Enable incremental analysis |
+| `--base-branch` | string | `main` | Base branch for incremental analysis |
+| `--ci-mode` | bool | `false` | Enable CI mode with quality gates |
+| `--fail-on-gate` | bool | `true` | Fail build when quality gate is not met |
+| `-v, --verbose` | bool | `false` | Enable verbose output |
 
-```yaml
-# General settings
-verbose: false
-workers: 4
+### Basic Usage Examples
 
-# Test configuration
-test:
-  command: "go test"
-  timeout: 30
-  patterns:
-    - "*_test.go"
-  exclude:
-    - "vendor/"
-    - ".git/"
+```bash
+# Default settings
+gomu run
 
-# Mutation configuration
-mutation:
-  types:
-    - "arithmetic"
-    - "conditional" 
-    - "logical"
-  limit: 1000
+# High performance
+gomu run --workers=8 --timeout=60
 
-# Incremental analysis
-incremental:
-  enabled: true
-  historyFile: ".gomu_history.json"
-  useGitDiff: true
-  baseBranch: "main"
+# Development mode
+gomu run --workers=2 --verbose
 
-# Output configuration
-output:
-  format: "text"
-  file: ""
+# CI mode
+gomu run --ci-mode --threshold=85
 ```
 
 ### Configuration Reference
 
 #### General Settings
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `verbose` | boolean | `false` | Enable detailed logging output |
-| `workers` | integer | `4` | Number of parallel workers for test execution |
-
-#### Test Settings
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `test_command` | string | `"go test"` | Command to run tests |
-| `test_timeout` | integer | `30` | Test timeout in seconds |
-| `test_patterns` | array | `["*_test.go"]` | Glob patterns for test files |
-| `exclude_files` | array | `["vendor/", ".git/"]` | Files/directories to exclude |
-
-#### Mutation Settings
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `mutators` | array | `["arithmetic", "conditional", "logical"]` | Types of mutations to apply |
-| `mutation_limit` | integer | `1000` | Maximum number of mutations per run |
-
-#### Incremental Analysis
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `history_file` | string | `".gomu_history.json"` | File to store mutation history |
-| `use_git_diff` | boolean | `true` | Use git diff for incremental analysis |
-| `base_branch` | string | `"main"` | Base branch for git diff comparison |
-
-#### Output Settings
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `output_format` | string | `"text"` | Output format: `text`, `json`, or `html` |
-| `output_file` | string | `""` | File to write output (empty = stdout) |
+See command line flags table above for all available options.
 
 ## Advanced Configuration Examples
 
 ### High Performance Setup
-```json
-{
-  "workers": 8,
-  "mutation_limit": 5000,
-  "test_timeout": 60,
-  "use_git_diff": true,
-  "verbose": false
-}
+```bash
+gomu run --workers=8 --timeout=60 --incremental=true
 ```
 
 ### Development Setup
-```json
-{
-  "workers": 2,
-  "mutation_limit": 100,
-  "test_timeout": 10,
-  "use_git_diff": true,
-  "verbose": true,
-  "output_format": "text"
-}
+```bash
+gomu run --workers=2 --timeout=10 --incremental=true --verbose
 ```
 
 ### CI/CD Setup
-```json
-{
-  "workers": 4,
-  "mutation_limit": 2000,
-  "test_timeout": 120,
-  "use_git_diff": false,
-  "verbose": false,
-  "output_format": "json",
-  "output_file": "mutation-report.json"
-}
+```bash
+gomu run --ci-mode --workers=4 --timeout=120 --output=json
 ```
 
 ### Microservice Setup
-```json
-{
-  "workers": 2,
-  "mutation_limit": 500,
-  "test_timeout": 15,
-  "exclude_files": ["vendor/", ".git/", "proto/", "docs/"],
-  "mutators": ["arithmetic", "conditional"],
-  "use_git_diff": true
-}
+```bash
+gomu run --workers=2 --timeout=15 --incremental=true
 ```
 
 ## Understanding Output
@@ -240,18 +163,15 @@ Survived Mutants:
 ### Setup for Maximum Benefit
 
 1. **Enable Git Integration**:
-```json
-{
-  "use_git_diff": true,
-  "base_branch": "main"
-}
+```bash
+gomu run --incremental=true --base-branch=main
 ```
 
 2. **Use in Development Workflow**:
 ```bash
 # Make changes to code
 git add .
-gomu run  # Only tests changed files
+gomu run  # Only tests changed files (incremental is enabled by default)
 ```
 
 3. **History File Management**:
@@ -265,7 +185,7 @@ gomu run  # Only tests changed files
 Create `.git/hooks/pre-commit`:
 ```bash
 #!/bin/bash
-gomu run --config .gomu-precommit.json
+gomu run --workers=2 --timeout=15 --threshold=80
 if [ $? -ne 0 ]; then
     echo "Mutation testing failed"
     exit 1
@@ -279,7 +199,7 @@ fi
 - name: Run mutation testing
   run: |
     go build -o gomu ./cmd/gomu
-    ./gomu run --config .gomu.yaml
+    ./gomu run --ci-mode --threshold=80
 ```
 
 #### GitLab CI
@@ -287,7 +207,7 @@ fi
 mutation_testing:
   script:
     - go build -o gomu ./cmd/gomu
-    - ./gomu run --config .gomu.yaml
+    - ./gomu run --ci-mode --threshold=80
 ```
 
 ### Makefile Integration
@@ -301,7 +221,7 @@ mutation-test:
 .PHONY: mutation-test-ci
 mutation-test-ci:
 	@echo "Running mutation testing for CI..."
-	@./gomu run --config .gomu.yaml
+	@./gomu run --ci-mode --threshold=80
 ```
 
 ## Troubleshooting
@@ -331,32 +251,18 @@ mutation-test-ci:
 ### Performance Tuning
 
 #### For Large Codebases
-```json
-{
-  "workers": 6,
-  "mutation_limit": 2000,
-  "use_git_diff": true,
-  "exclude_files": ["vendor/", "generated/", "mocks/"]
-}
+```bash
+gomu run --workers=6 --incremental=true
 ```
 
 #### For Small Projects
-```json
-{
-  "workers": 2,
-  "mutation_limit": 500,
-  "test_timeout": 15
-}
+```bash
+gomu run --workers=2 --timeout=15
 ```
 
 #### For CI Environments
-```json
-{
-  "workers": 4,
-  "test_timeout": 60,
-  "use_git_diff": false,
-  "verbose": false
-}
+```bash
+gomu run --ci-mode --workers=4 --timeout=60 --incremental=false
 ```
 
 ## Best Practices
