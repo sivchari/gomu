@@ -103,7 +103,7 @@ func TestGitHubIntegration_CreatePRComment(t *testing.T) {
 			token:    "test-token",
 			prNumber: 123,
 			setupServer: func() *httptest.Server {
-				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 					w.WriteHeader(http.StatusInternalServerError)
 				}))
 			},

@@ -793,18 +793,20 @@ func TestGetAbsolutePath(t *testing.T) {
 				if err == nil {
 					t.Error("expected error but got none")
 				}
-			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
 
-				if tt.input == "." && result != expectedPath {
-					t.Errorf("expected absolute path %s, got %s", expectedPath, result)
-				}
+				return
+			}
 
-				if tt.input == "/usr/local/bin" && result != tt.input {
-					t.Errorf("expected path %s, got %s", tt.input, result)
-				}
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+
+			if tt.input == "." && result != expectedPath {
+				t.Errorf("expected absolute path %s, got %s", expectedPath, result)
+			}
+
+			if tt.input == "/usr/local/bin" && result != tt.input {
+				t.Errorf("expected path %s, got %s", tt.input, result)
 			}
 		})
 	}
