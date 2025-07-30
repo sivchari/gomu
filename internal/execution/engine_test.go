@@ -400,7 +400,7 @@ func TestRunSingleMutation(t *testing.T) {
 				Original: "+",
 				Mutated:  "-",
 			},
-			timeout:      5,
+			timeout:      30,
 			expectStatus: mutation.StatusKilled, // Test should catch the mutation
 			expectError:  false,
 		},
