@@ -326,6 +326,7 @@ func TestGetEnv(t *testing.T) {
 			if tt.envValue != "" {
 				t.Setenv(tt.key, tt.envValue)
 			}
+
 			if got := getEnv(tt.key, tt.defaultValue); got != tt.want {
 				t.Errorf("getEnv() = %v, want %v", got, tt.want)
 			}

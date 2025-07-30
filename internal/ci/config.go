@@ -68,6 +68,7 @@ func NewConfigFromEnv() *Config {
 // IsCIMode returns true if running in CI mode.
 func (c *Config) IsCIMode() bool {
 	mode := strings.ToLower(c.Mode)
+
 	return mode == "true" || mode == "1" || mode == "on" || mode == "yes"
 }
 
