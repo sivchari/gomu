@@ -262,9 +262,10 @@ jobs:
     - name: Run mutation testing
       uses: sivchari/gomu@main
       with:
-        go-version: '1.21'
-        config-file: '.gomu.yaml'
-        mutation-score-threshold: '80'
+        go-version: '1.24'
+        threshold: '80'
+        workers: '4'
+        timeout: '30'
         upload-artifacts: 'true'
         comment-pr: 'true'
 ```
@@ -285,9 +286,15 @@ permissions:
 | Input | Description | Default |
 |-------|-------------|---------|
 | `go-version` | Go version to use | `1.21` |
-| `config-file` | Path to gomu configuration file | `.gomu.yaml` |
+| `version` | gomu version to use (latest, nightly, local, or specific version) | `latest` |
 | `working-directory` | Working directory for the action | `.` |
-| `mutation-score-threshold` | Minimum mutation score threshold (0-100) | `80` |
+| `threshold` | Minimum mutation score threshold (0-100) | `80` |
+| `workers` | Number of parallel workers | `4` |
+| `timeout` | Test timeout in seconds | `30` |
+| `incremental` | Enable incremental analysis | `true` |
+| `base-branch` | Base branch for incremental analysis | `main` |
+| `output` | Output format (json, html, console) | `json` |
+| `fail-on-gate` | Whether to fail the build if quality gate is not met | `true` |
 | `upload-artifacts` | Whether to upload mutation reports as artifacts | `true` |
 | `comment-pr` | Whether to comment on pull requests with results | `true` |
 
