@@ -36,28 +36,4 @@ jobs:
         workers: '2'
         timeout: '10'
         threshold: 15
-        working-directory: './examples'
     
-    - name: Run mutation testing on internal packages
-      uses: ./  # Use the local action.yaml for self-validation
-      with:
-        go-version: '1.24'
-        upload-artifacts: 'false'
-        comment-pr: 'false'
-        version: 'local'
-        workers: '2'
-        timeout: '10'
-        threshold: 15
-        working-directory: './internal'
-    
-    - name: Run mutation testing on pkg
-      uses: ./  # Use the local action.yaml for self-validation
-      with:
-        go-version: '1.24'
-        upload-artifacts: 'false'
-        comment-pr: 'false'
-        version: 'local'
-        workers: '2'
-        timeout: '10'
-        threshold: 15
-        working-directory: './pkg'
