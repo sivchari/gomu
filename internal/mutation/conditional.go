@@ -88,3 +88,44 @@ func (m *ConditionalMutator) getConditionalMutations(op token.Token) []token.Tok
 		return nil
 	}
 }
+
+// Apply applies the mutation to the given AST node.
+func (m *ConditionalMutator) Apply(node ast.Node, mutant Mutant) bool {
+	switch mutant.Type {
+	case "conditional_binary":
+		return m.applyBinary(node, mutant)
+	}
+	return false
+}
+
+// applyBinary applies binary operator mutation.
+func (m *ConditionalMutator) applyBinary(node ast.Node, mutant Mutant) bool {
+	if expr, ok := node.(*ast.BinaryExpr); ok {
+		newOp := m.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			expr.Op = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// stringToToken converts string representation to token.Token for conditional operations.
+func (m *ConditionalMutator) stringToToken(s string) token.Token {
+	switch s {
+	case "==":
+		return token.EQL
+	case "!=":
+		return token.NEQ
+	case "<":
+		return token.LSS
+	case "<=":
+		return token.LEQ
+	case ">":
+		return token.GTR
+	case ">=":
+		return token.GEQ
+	default:
+		return token.ILLEGAL
+	}
+}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"go/build"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -71,11 +72,23 @@ func main() {
 	fmt.Printf("Generated %s mutator:\n", name)
 	fmt.Printf("  - %s\n", mutatorFile)
 	fmt.Printf("  - %s\n", testFile)
-	fmt.Printf("\nNext steps:\n")
-	fmt.Printf("  1. Update the TODO items in %s\n", filepath.Base(mutatorFile))
-	fmt.Printf("  2. Update the test cases in %s\n", filepath.Base(testFile))
-	fmt.Printf("  3. Run: make generate-registry\n")
-	fmt.Printf("  4. Run: make test\n")
+	
+	// Automatically regenerate registry
+	fmt.Printf("\nRegenerating registry...\n")
+	if err := generateRegistry(mutationDir); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Failed to regenerate registry automatically: %v\n", err)
+		fmt.Printf("\nNext steps:\n")
+		fmt.Printf("  1. Update the TODO items in %s\n", filepath.Base(mutatorFile))
+		fmt.Printf("  2. Update the test cases in %s\n", filepath.Base(testFile))
+		fmt.Printf("  3. Run: make generate-registry\n")
+		fmt.Printf("  4. Run: make test\n")
+	} else {
+		fmt.Printf("Registry updated successfully!\n")
+		fmt.Printf("\nNext steps:\n")
+		fmt.Printf("  1. Update the TODO items in %s\n", filepath.Base(mutatorFile))
+		fmt.Printf("  2. Update the test cases in %s\n", filepath.Base(testFile))
+		fmt.Printf("  3. Run: make test\n")
+	}
 }
 
 func findMutationDir() (string, error) {
@@ -140,5 +153,19 @@ func generateFile(filename, tmplText string, data mutatorData) error {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
 
+	return nil
+}
+
+func generateRegistry(mutationDir string) error {
+	// Try to run `go generate` in the mutation directory
+	cmd := exec.Command("go", "generate")
+	cmd.Dir = mutationDir
+	
+	// Capture both stdout and stderr
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to run 'go generate': %w\nOutput: %s", err, string(output))
+	}
+	
 	return nil
 }

@@ -153,3 +153,82 @@ func (m *ArithmeticMutator) getAssignMutations(op token.Token) []token.Token {
 		return nil
 	}
 }
+
+// Apply applies the mutation to the given AST node.
+func (m *ArithmeticMutator) Apply(node ast.Node, mutant Mutant) bool {
+	switch mutant.Type {
+	case "arithmetic_binary":
+		return m.applyBinary(node, mutant)
+	case "arithmetic_assign":
+		return m.applyAssign(node, mutant)
+	case "arithmetic_incdec":
+		return m.applyIncDec(node, mutant)
+	}
+	return false
+}
+
+// applyBinary applies binary operator mutation.
+func (m *ArithmeticMutator) applyBinary(node ast.Node, mutant Mutant) bool {
+	if expr, ok := node.(*ast.BinaryExpr); ok {
+		newOp := m.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			expr.Op = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// applyAssign applies assignment operator mutation.
+func (m *ArithmeticMutator) applyAssign(node ast.Node, mutant Mutant) bool {
+	if stmt, ok := node.(*ast.AssignStmt); ok {
+		newOp := m.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			stmt.Tok = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// applyIncDec applies increment/decrement operator mutation.
+func (m *ArithmeticMutator) applyIncDec(node ast.Node, mutant Mutant) bool {
+	if stmt, ok := node.(*ast.IncDecStmt); ok {
+		newOp := m.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			stmt.Tok = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// stringToToken converts string representation to token.Token for arithmetic operations.
+func (m *ArithmeticMutator) stringToToken(s string) token.Token {
+	switch s {
+	case "+":
+		return token.ADD
+	case "-":
+		return token.SUB
+	case "*":
+		return token.MUL
+	case "/":
+		return token.QUO
+	case "%":
+		return token.REM
+	case "++":
+		return token.INC
+	case "--":
+		return token.DEC
+	case "+=":
+		return token.ADD_ASSIGN
+	case "-=":
+		return token.SUB_ASSIGN
+	case "*=":
+		return token.MUL_ASSIGN
+	case "/=":
+		return token.QUO_ASSIGN
+	default:
+		return token.ILLEGAL
+	}
+}
