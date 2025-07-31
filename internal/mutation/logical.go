@@ -6,7 +6,11 @@ import (
 	"go/token"
 )
 
-const logicalMutatorName = "logical"
+const (
+	logicalMutatorName    = "logical"
+	logicalBinaryType     = "logical_binary"
+	logicalNotRemovalType = "logical_not_removal"
+)
 
 // LogicalMutator mutates logical operators.
 type LogicalMutator struct {
@@ -109,9 +113,9 @@ func (m *LogicalMutator) getLogicalMutations(op token.Token) []token.Token {
 // Apply applies the mutation to the given AST node.
 func (m *LogicalMutator) Apply(node ast.Node, mutant Mutant) bool {
 	switch mutant.Type {
-	case "logical_binary":
+	case logicalBinaryType:
 		return m.applyBinary(node, mutant)
-	case "logical_not_removal":
+	case logicalNotRemovalType:
 		return m.applyNotRemoval(node, mutant)
 	}
 

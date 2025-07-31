@@ -246,19 +246,23 @@ func TestBitwiseMutator_Apply(t *testing.T) {
 				case "bitwise_binary":
 					if be, ok := n.(*ast.BinaryExpr); ok {
 						node = be
+
 						return false
 					}
 				case "bitwise_assign":
 					if as, ok := n.(*ast.AssignStmt); ok {
 						node = as
+
 						return false
 					}
 				default:
 					if be, ok := n.(*ast.BinaryExpr); ok {
 						node = be
+
 						return false
 					}
 				}
+
 				return true
 			})
 
