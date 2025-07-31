@@ -364,3 +364,102 @@ func TestArithmeticMutator_GetAssignMutations(t *testing.T) {
 		}
 	}
 }
+
+func TestArithmeticMutator_Apply(t *testing.T) {
+	mutator := &ArithmeticMutator{}
+	fset := token.NewFileSet()
+
+	tests := []struct {
+		name        string
+		code        string
+		mutantType  string
+		mutantValue string
+		expected    bool
+	}{
+		{
+			name:        "apply binary mutation",
+			code:        "a + b",
+			mutantType:  "arithmetic_binary",
+			mutantValue: "-",
+			expected:    true,
+		},
+		{
+			name:        "apply assign mutation",
+			code:        "a += b",
+			mutantType:  "arithmetic_assign",
+			mutantValue: "-=",
+			expected:    true,
+		},
+		{
+			name:        "apply incdec mutation",
+			code:        "a++",
+			mutantType:  "arithmetic_incdec",
+			mutantValue: "--",
+			expected:    true,
+		},
+		{
+			name:        "unknown mutation type",
+			code:        "a + b",
+			mutantType:  "unknown",
+			mutantValue: "-",
+			expected:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var src string
+			if tt.mutantType == "arithmetic_assign" || tt.mutantType == "arithmetic_incdec" {
+				src = "package main\nfunc test() {\n\t" + tt.code + "\n}"
+			} else {
+				src = "package main\nfunc test() { _ = " + tt.code + " }"
+			}
+
+			file, err := parser.ParseFile(fset, "test.go", src, 0)
+			if err != nil {
+				t.Fatalf("Failed to parse file: %v", err)
+			}
+
+			var node ast.Node
+			ast.Inspect(file, func(n ast.Node) bool {
+				switch tt.mutantType {
+				case "arithmetic_binary":
+					if be, ok := n.(*ast.BinaryExpr); ok {
+						node = be
+						return false
+					}
+				case "arithmetic_assign":
+					if as, ok := n.(*ast.AssignStmt); ok {
+						node = as
+						return false
+					}
+				case "arithmetic_incdec":
+					if ids, ok := n.(*ast.IncDecStmt); ok {
+						node = ids
+						return false
+					}
+				default:
+					if be, ok := n.(*ast.BinaryExpr); ok {
+						node = be
+						return false
+					}
+				}
+				return true
+			})
+
+			if node == nil {
+				t.Fatalf("Target node not found for: %s", tt.code)
+			}
+
+			mutant := Mutant{
+				Type:    tt.mutantType,
+				Mutated: tt.mutantValue,
+			}
+
+			result := mutator.Apply(node, mutant)
+			if result != tt.expected {
+				t.Errorf("Apply() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}

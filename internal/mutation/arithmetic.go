@@ -164,6 +164,7 @@ func (m *ArithmeticMutator) Apply(node ast.Node, mutant Mutant) bool {
 	case "arithmetic_incdec":
 		return m.applyIncDec(node, mutant)
 	}
+
 	return false
 }
 
@@ -173,9 +174,11 @@ func (m *ArithmeticMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -185,9 +188,11 @@ func (m *ArithmeticMutator) applyAssign(node ast.Node, mutant Mutant) bool {
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -197,9 +202,11 @@ func (m *ArithmeticMutator) applyIncDec(node ast.Node, mutant Mutant) bool {
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 

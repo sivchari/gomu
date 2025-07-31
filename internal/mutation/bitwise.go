@@ -146,6 +146,7 @@ func (m *BitwiseMutator) Apply(node ast.Node, mutant Mutant) bool {
 	case "bitwise_assign":
 		return m.applyAssign(node, mutant)
 	}
+
 	return false
 }
 
@@ -155,9 +156,11 @@ func (m *BitwiseMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -167,9 +170,11 @@ func (m *BitwiseMutator) applyAssign(node ast.Node, mutant Mutant) bool {
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 
