@@ -295,12 +295,7 @@ func TestLogicalMutator_Apply(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var src string
-			if tt.mutantType == "logical_not_removal" {
-				src = "package main\nfunc test() { _ = " + tt.code + " }"
-			} else {
-				src = "package main\nfunc test() { _ = " + tt.code + " }"
-			}
+			src := "package main\nfunc test() { _ = " + tt.code + " }"
 
 			file, err := parser.ParseFile(fset, "test.go", src, 0)
 			if err != nil {
@@ -313,19 +308,23 @@ func TestLogicalMutator_Apply(t *testing.T) {
 				case "logical_binary":
 					if be, ok := n.(*ast.BinaryExpr); ok {
 						node = be
+
 						return false
 					}
 				case "logical_not_removal":
 					if ue, ok := n.(*ast.UnaryExpr); ok && ue.Op == token.NOT {
 						node = ue
+
 						return false
 					}
 				default:
 					if be, ok := n.(*ast.BinaryExpr); ok {
 						node = be
+
 						return false
 					}
 				}
+
 				return true
 			})
 

@@ -7,7 +7,12 @@ import (
 	"go/token"
 )
 
-const arithmeticMutatorName = "arithmetic"
+const (
+	arithmeticMutatorName = "arithmetic"
+	arithmeticBinaryType  = "arithmetic_binary"
+	arithmeticAssignType  = "arithmetic_assign"
+	arithmeticIncDecType  = "arithmetic_incdec"
+)
 
 // ArithmeticMutator mutates arithmetic operators.
 type ArithmeticMutator struct {
@@ -157,11 +162,11 @@ func (m *ArithmeticMutator) getAssignMutations(op token.Token) []token.Token {
 // Apply applies the mutation to the given AST node.
 func (m *ArithmeticMutator) Apply(node ast.Node, mutant Mutant) bool {
 	switch mutant.Type {
-	case "arithmetic_binary":
+	case arithmeticBinaryType:
 		return m.applyBinary(node, mutant)
-	case "arithmetic_assign":
+	case arithmeticAssignType:
 		return m.applyAssign(node, mutant)
-	case "arithmetic_incdec":
+	case arithmeticIncDecType:
 		return m.applyIncDec(node, mutant)
 	}
 

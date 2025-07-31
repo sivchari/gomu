@@ -6,7 +6,11 @@ import (
 	"go/token"
 )
 
-const bitwiseMutatorName = "bitwise"
+const (
+	bitwiseMutatorName = "bitwise"
+	bitwiseBinaryType  = "bitwise_binary"
+	bitwiseAssignType  = "bitwise_assign"
+)
 
 // BitwiseMutator mutates bitwise operators.
 type BitwiseMutator struct {
@@ -141,9 +145,9 @@ func (m *BitwiseMutator) getBitwiseAssignMutations(op token.Token) []token.Token
 // Apply applies the mutation to the given AST node.
 func (m *BitwiseMutator) Apply(node ast.Node, mutant Mutant) bool {
 	switch mutant.Type {
-	case "bitwise_binary":
+	case bitwiseBinaryType:
 		return m.applyBinary(node, mutant)
-	case "bitwise_assign":
+	case bitwiseAssignType:
 		return m.applyAssign(node, mutant)
 	}
 

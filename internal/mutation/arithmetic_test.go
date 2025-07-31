@@ -222,7 +222,7 @@ func test() {
 	for _, mutant := range mutants {
 		mutatedOps[mutant.Mutated] = true
 
-		if mutant.Type != "arithmetic_assign" {
+		if mutant.Type != arithmeticAssignType {
 			t.Errorf("Expected type 'arithmetic_assign', got %s", mutant.Type)
 		}
 	}
@@ -296,7 +296,7 @@ func test() {
 					t.Errorf("Expected mutation to %s, got %s", tt.expected, mutant.Mutated)
 				}
 
-				if mutant.Type != "arithmetic_incdec" {
+				if mutant.Type != arithmeticIncDecType {
 					t.Errorf("Expected type 'arithmetic_incdec', got %s", mutant.Type)
 				}
 			}
@@ -426,24 +426,29 @@ func TestArithmeticMutator_Apply(t *testing.T) {
 				case "arithmetic_binary":
 					if be, ok := n.(*ast.BinaryExpr); ok {
 						node = be
+
 						return false
 					}
 				case "arithmetic_assign":
 					if as, ok := n.(*ast.AssignStmt); ok {
 						node = as
+
 						return false
 					}
 				case "arithmetic_incdec":
 					if ids, ok := n.(*ast.IncDecStmt); ok {
 						node = ids
+
 						return false
 					}
 				default:
 					if be, ok := n.(*ast.BinaryExpr); ok {
 						node = be
+
 						return false
 					}
 				}
+
 				return true
 			})
 
