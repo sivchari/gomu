@@ -2,7 +2,6 @@ package execution
 
 import (
 	"fmt"
-	"go/token"
 	"os"
 	"path/filepath"
 	"strings"
@@ -367,50 +366,6 @@ func TestGetBackupPath(t *testing.T) {
 	}
 }
 
-func TestStringToToken(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected token.Token
-	}{
-		{"+", token.ADD},
-		{"-", token.SUB},
-		{"*", token.MUL},
-		{"/", token.QUO},
-		{"%", token.REM},
-		{"==", token.EQL},
-		{"!=", token.NEQ},
-		{"<", token.LSS},
-		{"<=", token.LEQ},
-		{">", token.GTR},
-		{">=", token.GEQ},
-		{"&&", token.LAND},
-		{"||", token.LOR},
-		{"++", token.INC},
-		{"--", token.DEC},
-		{"+=", token.ADD_ASSIGN},
-		{"-=", token.SUB_ASSIGN},
-		{"*=", token.MUL_ASSIGN},
-		{"/=", token.QUO_ASSIGN},
-		{"invalid", token.ILLEGAL},
-		{"unknown", token.ILLEGAL},
-		{"", token.ILLEGAL},
-	}
-
-	for _, tt := range tests {
-		t.Run(fmt.Sprintf("convert_%s", tt.input), func(t *testing.T) {
-			mutator, err := NewSourceMutator()
-			if err != nil {
-				t.Fatalf("failed to create mutator: %v", err)
-			}
-			defer mutator.Cleanup()
-
-			result := mutator.stringToToken(tt.input)
-			if result != tt.expected {
-				t.Errorf("expected %v for input %q, got %v", tt.expected, tt.input, result)
-			}
-		})
-	}
-}
 
 func TestApplyMutation(t *testing.T) {
 	tests := []struct {
@@ -651,32 +606,6 @@ func TestApplyMutationToNode(t *testing.T) {
 	}
 }
 
-func TestMutateLogicalNot(t *testing.T) {
-	tests := []struct {
-		name         string
-		expectResult bool
-	}{
-		{
-			name:         "logical NOT removal returns false (not implemented)",
-			expectResult: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mutator, err := NewSourceMutator()
-			if err != nil {
-				t.Fatalf("failed to create mutator: %v", err)
-			}
-			defer mutator.Cleanup()
-
-			result := mutator.mutateLogicalNot(nil, mutation.Mutant{})
-			if result != tt.expectResult {
-				t.Errorf("expected %v, got %v", tt.expectResult, result)
-			}
-		})
-	}
-}
 
 func TestComplexMutationScenario(t *testing.T) {
 	tests := []struct {

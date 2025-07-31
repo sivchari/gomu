@@ -105,3 +105,46 @@ func (m *LogicalMutator) getLogicalMutations(op token.Token) []token.Token {
 		return nil
 	}
 }
+
+// Apply applies the mutation to the given AST node.
+func (m *LogicalMutator) Apply(node ast.Node, mutant Mutant) bool {
+	switch mutant.Type {
+	case "logical_binary":
+		return m.applyBinary(node, mutant)
+	case "logical_not_removal":
+		return m.applyNotRemoval(node, mutant)
+	}
+	return false
+}
+
+// applyBinary applies binary operator mutation.
+func (m *LogicalMutator) applyBinary(node ast.Node, mutant Mutant) bool {
+	if expr, ok := node.(*ast.BinaryExpr); ok {
+		newOp := m.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			expr.Op = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// applyNotRemoval applies NOT removal mutation.
+func (m *LogicalMutator) applyNotRemoval(node ast.Node, mutant Mutant) bool {
+	// For NOT removal, we need to replace the unary expression with its operand
+	// This is more complex and requires parent node manipulation
+	// For now, we'll return false to indicate this mutation type isn't fully implemented
+	return false
+}
+
+// stringToToken converts string representation to token.Token for logical operations.
+func (m *LogicalMutator) stringToToken(s string) token.Token {
+	switch s {
+	case "&&":
+		return token.LAND
+	case "||":
+		return token.LOR
+	default:
+		return token.ILLEGAL
+	}
+}

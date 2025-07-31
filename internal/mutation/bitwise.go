@@ -137,3 +137,68 @@ func (m *BitwiseMutator) getBitwiseAssignMutations(op token.Token) []token.Token
 		return nil
 	}
 }
+
+// Apply applies the mutation to the given AST node.
+func (m *BitwiseMutator) Apply(node ast.Node, mutant Mutant) bool {
+	switch mutant.Type {
+	case "bitwise_binary":
+		return m.applyBinary(node, mutant)
+	case "bitwise_assign":
+		return m.applyAssign(node, mutant)
+	}
+	return false
+}
+
+// applyBinary applies binary operator mutation.
+func (m *BitwiseMutator) applyBinary(node ast.Node, mutant Mutant) bool {
+	if expr, ok := node.(*ast.BinaryExpr); ok {
+		newOp := m.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			expr.Op = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// applyAssign applies assignment operator mutation.
+func (m *BitwiseMutator) applyAssign(node ast.Node, mutant Mutant) bool {
+	if stmt, ok := node.(*ast.AssignStmt); ok {
+		newOp := m.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			stmt.Tok = newOp
+			return true
+		}
+	}
+	return false
+}
+
+// stringToToken converts string representation to token.Token for bitwise operations.
+func (m *BitwiseMutator) stringToToken(s string) token.Token {
+	switch s {
+	case "&":
+		return token.AND
+	case "|":
+		return token.OR
+	case "^":
+		return token.XOR
+	case "&^":
+		return token.AND_NOT
+	case "<<":
+		return token.SHL
+	case ">>":
+		return token.SHR
+	case "&=":
+		return token.AND_ASSIGN
+	case "|=":
+		return token.OR_ASSIGN
+	case "^=":
+		return token.XOR_ASSIGN
+	case "<<=":
+		return token.SHL_ASSIGN
+	case ">>=":
+		return token.SHR_ASSIGN
+	default:
+		return token.ILLEGAL
+	}
+}

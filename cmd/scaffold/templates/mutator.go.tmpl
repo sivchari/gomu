@@ -29,3 +29,36 @@ func (m *{{.StructName}}Mutator) Mutate(node ast.Node, fset *token.FileSet) []Mu
 
 	return mutants
 }
+
+// Apply applies the mutation to the given AST node.
+func (m *{{.StructName}}Mutator) Apply(node ast.Node, mutant Mutant) bool {
+	// TODO: Implement mutation application logic
+	// Example for different mutation types:
+	
+	// switch mutant.Type {
+	// case "{{.LowerName}}_binary":
+	// 	return m.applyBinary(node, mutant)
+	// case "{{.LowerName}}_assign":
+	// 	return m.applyAssign(node, mutant)
+	// }
+	
+	return false
+}
+
+// Helper methods for Apply (add as needed):
+//
+// func (m *{{.StructName}}Mutator) applyBinary(node ast.Node, mutant Mutant) bool {
+// 	if expr, ok := node.(*ast.BinaryExpr); ok {
+// 		newOp := m.stringToToken(mutant.Mutated)
+// 		if newOp != token.ILLEGAL {
+// 			expr.Op = newOp
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+//
+// func (m *{{.StructName}}Mutator) stringToToken(s string) token.Token {
+// 	// TODO: Implement token conversion
+// 	return token.ILLEGAL
+// }
