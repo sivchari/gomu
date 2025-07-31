@@ -89,12 +89,14 @@ func (m *ConditionalMutator) getConditionalMutations(op token.Token) []token.Tok
 	}
 }
 
+const conditionalBinaryType = "conditional_binary"
+
 // Apply applies the mutation to the given AST node.
 func (m *ConditionalMutator) Apply(node ast.Node, mutant Mutant) bool {
-	switch mutant.Type {
-	case "conditional_binary":
+	if mutant.Type == conditionalBinaryType {
 		return m.applyBinary(node, mutant)
 	}
+
 	return false
 }
 
@@ -104,9 +106,11 @@ func (m *ConditionalMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 

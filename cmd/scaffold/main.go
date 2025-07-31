@@ -72,9 +72,10 @@ func main() {
 	fmt.Printf("Generated %s mutator:\n", name)
 	fmt.Printf("  - %s\n", mutatorFile)
 	fmt.Printf("  - %s\n", testFile)
-	
+
 	// Automatically regenerate registry
 	fmt.Printf("\nRegenerating registry...\n")
+
 	if err := generateRegistry(mutationDir); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: Failed to regenerate registry automatically: %v\n", err)
 		fmt.Printf("\nNext steps:\n")
@@ -160,12 +161,12 @@ func generateRegistry(mutationDir string) error {
 	// Try to run `go generate` in the mutation directory
 	cmd := exec.Command("go", "generate")
 	cmd.Dir = mutationDir
-	
+
 	// Capture both stdout and stderr
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to run 'go generate': %w\nOutput: %s", err, string(output))
 	}
-	
+
 	return nil
 }

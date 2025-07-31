@@ -114,6 +114,7 @@ func (m *LogicalMutator) Apply(node ast.Node, mutant Mutant) bool {
 	case "logical_not_removal":
 		return m.applyNotRemoval(node, mutant)
 	}
+
 	return false
 }
 
@@ -123,14 +124,16 @@ func (m *LogicalMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
+
 			return true
 		}
 	}
+
 	return false
 }
 
 // applyNotRemoval applies NOT removal mutation.
-func (m *LogicalMutator) applyNotRemoval(node ast.Node, mutant Mutant) bool {
+func (m *LogicalMutator) applyNotRemoval(_ ast.Node, _ Mutant) bool {
 	// For NOT removal, we need to replace the unary expression with its operand
 	// This is more complex and requires parent node manipulation
 	// For now, we'll return false to indicate this mutation type isn't fully implemented

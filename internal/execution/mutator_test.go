@@ -366,7 +366,6 @@ func TestGetBackupPath(t *testing.T) {
 	}
 }
 
-
 func TestApplyMutation(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -605,7 +604,6 @@ func TestApplyMutationToNode(t *testing.T) {
 		})
 	}
 }
-
 
 func TestComplexMutationScenario(t *testing.T) {
 	tests := []struct {

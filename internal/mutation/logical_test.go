@@ -251,3 +251,97 @@ func TestLogicalMutator_GetLogicalMutations(t *testing.T) {
 		}
 	}
 }
+
+func TestLogicalMutator_Apply(t *testing.T) {
+	mutator := &LogicalMutator{}
+	fset := token.NewFileSet()
+
+	tests := []struct {
+		name        string
+		code        string
+		mutantType  string
+		mutantValue string
+		expected    bool
+	}{
+		{
+			name:        "apply logical binary mutation LAND to LOR",
+			code:        "a && b",
+			mutantType:  "logical_binary",
+			mutantValue: "||",
+			expected:    true,
+		},
+		{
+			name:        "apply logical binary mutation LOR to LAND",
+			code:        "a || b",
+			mutantType:  "logical_binary",
+			mutantValue: "&&",
+			expected:    true,
+		},
+		{
+			name:        "apply logical not removal",
+			code:        "!a",
+			mutantType:  "logical_not_removal",
+			mutantValue: "",
+			expected:    false, // NOT removal not implemented
+		},
+		{
+			name:        "unknown mutation type",
+			code:        "a && b",
+			mutantType:  "unknown",
+			mutantValue: "||",
+			expected:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var src string
+			if tt.mutantType == "logical_not_removal" {
+				src = "package main\nfunc test() { _ = " + tt.code + " }"
+			} else {
+				src = "package main\nfunc test() { _ = " + tt.code + " }"
+			}
+
+			file, err := parser.ParseFile(fset, "test.go", src, 0)
+			if err != nil {
+				t.Fatalf("Failed to parse file: %v", err)
+			}
+
+			var node ast.Node
+			ast.Inspect(file, func(n ast.Node) bool {
+				switch tt.mutantType {
+				case "logical_binary":
+					if be, ok := n.(*ast.BinaryExpr); ok {
+						node = be
+						return false
+					}
+				case "logical_not_removal":
+					if ue, ok := n.(*ast.UnaryExpr); ok && ue.Op == token.NOT {
+						node = ue
+						return false
+					}
+				default:
+					if be, ok := n.(*ast.BinaryExpr); ok {
+						node = be
+						return false
+					}
+				}
+				return true
+			})
+
+			if node == nil {
+				t.Fatalf("Target node not found for: %s", tt.code)
+			}
+
+			mutant := Mutant{
+				Type:    tt.mutantType,
+				Mutated: tt.mutantValue,
+			}
+
+			result := mutator.Apply(node, mutant)
+			if result != tt.expected {
+				t.Errorf("Apply() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}

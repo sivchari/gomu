@@ -182,7 +182,6 @@ func (sm *SourceMutator) applyMutationToNode(node ast.Node, mutant mutation.Muta
 	return false
 }
 
-
 // writeModifiedAST writes the modified AST back to the file.
 func (sm *SourceMutator) writeModifiedAST(file *ast.File, fset *token.FileSet, filePath string) error {
 	// Create a temporary file first

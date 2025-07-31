@@ -170,3 +170,111 @@ func TestBitwiseMutator_Mutate(t *testing.T) {
 		})
 	}
 }
+
+func TestBitwiseMutator_Apply(t *testing.T) {
+	mutator := &BitwiseMutator{}
+	fset := token.NewFileSet()
+
+	tests := []struct {
+		name        string
+		code        string
+		mutantType  string
+		mutantValue string
+		expected    bool
+	}{
+		{
+			name:        "apply binary mutation AND to OR",
+			code:        "x & y",
+			mutantType:  "bitwise_binary",
+			mutantValue: "|",
+			expected:    true,
+		},
+		{
+			name:        "apply binary mutation OR to AND",
+			code:        "x | y",
+			mutantType:  "bitwise_binary",
+			mutantValue: "&",
+			expected:    true,
+		},
+		{
+			name:        "apply binary mutation XOR to AND",
+			code:        "x ^ y",
+			mutantType:  "bitwise_binary",
+			mutantValue: "&",
+			expected:    true,
+		},
+		{
+			name:        "apply assign mutation AND_ASSIGN to OR_ASSIGN",
+			code:        "x &= y",
+			mutantType:  "bitwise_assign",
+			mutantValue: "|=",
+			expected:    true,
+		},
+		{
+			name:        "apply shift mutation LEFT to RIGHT",
+			code:        "x << 2",
+			mutantType:  "bitwise_binary",
+			mutantValue: ">>",
+			expected:    true,
+		},
+		{
+			name:        "unknown mutation type",
+			code:        "x & y",
+			mutantType:  "unknown",
+			mutantValue: "|",
+			expected:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var src string
+			if tt.mutantType == "bitwise_assign" {
+				src = "package main\nfunc test() {\n\t" + tt.code + "\n}"
+			} else {
+				src = "package main\nfunc test() { _ = " + tt.code + " }"
+			}
+
+			file, err := parser.ParseFile(fset, "test.go", src, 0)
+			if err != nil {
+				t.Fatalf("Failed to parse file: %v", err)
+			}
+
+			var node ast.Node
+			ast.Inspect(file, func(n ast.Node) bool {
+				switch tt.mutantType {
+				case "bitwise_binary":
+					if be, ok := n.(*ast.BinaryExpr); ok {
+						node = be
+						return false
+					}
+				case "bitwise_assign":
+					if as, ok := n.(*ast.AssignStmt); ok {
+						node = as
+						return false
+					}
+				default:
+					if be, ok := n.(*ast.BinaryExpr); ok {
+						node = be
+						return false
+					}
+				}
+				return true
+			})
+
+			if node == nil {
+				t.Fatalf("Target node not found for: %s", tt.code)
+			}
+
+			mutant := Mutant{
+				Type:    tt.mutantType,
+				Mutated: tt.mutantValue,
+			}
+
+			result := mutator.Apply(node, mutant)
+			if result != tt.expected {
+				t.Errorf("Apply() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
