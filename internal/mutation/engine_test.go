@@ -17,8 +17,8 @@ func TestNew(t *testing.T) {
 		t.Fatal("Expected engine to be non-nil")
 	}
 
-	if len(engine.mutators) != 3 {
-		t.Errorf("Expected 3 mutators, got %d", len(engine.mutators))
+	if len(engine.mutators) != 4 {
+		t.Errorf("Expected 4 mutators, got %d", len(engine.mutators))
 	}
 
 	// Check mutator types
@@ -42,8 +42,8 @@ func TestNew_CustomMutators(t *testing.T) {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
 
-	if len(engine.mutators) != 3 {
-		t.Errorf("Expected 3 mutators (all types enabled by default), got %d", len(engine.mutators))
+	if len(engine.mutators) != 4 {
+		t.Errorf("Expected 4 mutators (all types enabled by default), got %d", len(engine.mutators))
 	}
 }
 
@@ -55,8 +55,8 @@ func TestNew_InvalidMutator(t *testing.T) {
 	}
 
 	// Should ignore invalid mutator
-	if len(engine.mutators) != 3 {
-		t.Errorf("Expected 3 mutators (all types enabled by default), got %d", len(engine.mutators))
+	if len(engine.mutators) != 4 {
+		t.Errorf("Expected 4 mutators (all types enabled by default), got %d", len(engine.mutators))
 	}
 }
 
@@ -290,8 +290,8 @@ func TestNewEngine(t *testing.T) {
 	}
 
 	// Should behave the same as New()
-	if len(engine.mutators) != 3 {
-		t.Errorf("Expected 3 mutators, got %d", len(engine.mutators))
+	if len(engine.mutators) != 4 {
+		t.Errorf("Expected 4 mutators, got %d", len(engine.mutators))
 	}
 }
 
