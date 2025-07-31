@@ -439,7 +439,7 @@ func TestProcessCIWorkflow(t *testing.T) {
 				Statistics: report.Statistics{
 					Score: 85.0,
 				},
-				Duration:      time.Second,
+				Duration: time.Second,
 				Results: []mutation.Result{
 					{
 						Mutant: mutation.Mutant{
@@ -471,7 +471,7 @@ func TestProcessCIWorkflow(t *testing.T) {
 				Statistics: report.Statistics{
 					Score: 50.0,
 				},
-				Duration:      time.Second,
+				Duration: time.Second,
 				Results: []mutation.Result{
 					{
 						Mutant: mutation.Mutant{
@@ -505,7 +505,7 @@ func TestProcessCIWorkflow(t *testing.T) {
 				Statistics: report.Statistics{
 					Score: 85.0,
 				},
-				Duration:      time.Second,
+				Duration: time.Second,
 			},
 			opts: &RunOptions{
 				FailOnGate: false,
@@ -528,7 +528,7 @@ func TestProcessCIWorkflow(t *testing.T) {
 				Statistics: report.Statistics{
 					Score: 85.0,
 				},
-				Duration:      time.Second,
+				Duration: time.Second,
 				Results: []mutation.Result{
 					{
 						Mutant: mutation.Mutant{
@@ -1259,7 +1259,7 @@ func TestProcessCIWorkflowDetailed(t *testing.T) {
 				Statistics: report.Statistics{
 					Score: 100.0,
 				},
-				Results:       []mutation.Result{},
+				Results: []mutation.Result{},
 			},
 			opts: &RunOptions{
 				Threshold:  80.0,
