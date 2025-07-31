@@ -179,6 +179,10 @@ func (sm *SourceMutator) applyMutationToNode(node ast.Node, mutant mutation.Muta
 		return sm.mutateLogicalBinary(node, mutant)
 	case "logical_not_removal":
 		return sm.mutateLogicalNot(node, mutant)
+	case "bitwise_binary":
+		return sm.mutateBitwiseBinary(node, mutant)
+	case "bitwise_assign":
+		return sm.mutateBitwiseAssign(node, mutant)
 	}
 
 	return false
@@ -262,8 +266,61 @@ func (sm *SourceMutator) mutateLogicalNot(_ ast.Node, _ mutation.Mutant) bool {
 	return false
 }
 
+// mutateBitwiseBinary mutates bitwise binary operators.
+func (sm *SourceMutator) mutateBitwiseBinary(node ast.Node, mutant mutation.Mutant) bool {
+	if expr, ok := node.(*ast.BinaryExpr); ok {
+		newOp := sm.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			expr.Op = newOp
+
+			return true
+		}
+	}
+
+	return false
+}
+
+// mutateBitwiseAssign mutates bitwise assignment operators.
+func (sm *SourceMutator) mutateBitwiseAssign(node ast.Node, mutant mutation.Mutant) bool {
+	if stmt, ok := node.(*ast.AssignStmt); ok {
+		newOp := sm.stringToToken(mutant.Mutated)
+		if newOp != token.ILLEGAL {
+			stmt.Tok = newOp
+
+			return true
+		}
+	}
+
+	return false
+}
+
 // stringToToken converts string representation to token.Token.
 func (sm *SourceMutator) stringToToken(s string) token.Token {
+	if tok := sm.getArithmeticToken(s); tok != token.ILLEGAL {
+		return tok
+	}
+
+	if tok := sm.getComparisonToken(s); tok != token.ILLEGAL {
+		return tok
+	}
+
+	if tok := sm.getLogicalToken(s); tok != token.ILLEGAL {
+		return tok
+	}
+
+	if tok := sm.getBitwiseToken(s); tok != token.ILLEGAL {
+		return tok
+	}
+
+	if tok := sm.getAssignmentToken(s); tok != token.ILLEGAL {
+		return tok
+	}
+
+	return token.ILLEGAL
+}
+
+// getArithmeticToken returns arithmetic tokens.
+func (sm *SourceMutator) getArithmeticToken(s string) token.Token {
 	switch s {
 	case "+":
 		return token.ADD
@@ -275,6 +332,18 @@ func (sm *SourceMutator) stringToToken(s string) token.Token {
 		return token.QUO
 	case "%":
 		return token.REM
+	case "++":
+		return token.INC
+	case "--":
+		return token.DEC
+	default:
+		return token.ILLEGAL
+	}
+}
+
+// getComparisonToken returns comparison tokens.
+func (sm *SourceMutator) getComparisonToken(s string) token.Token {
+	switch s {
 	case "==":
 		return token.EQL
 	case "!=":
@@ -287,14 +356,46 @@ func (sm *SourceMutator) stringToToken(s string) token.Token {
 		return token.GTR
 	case ">=":
 		return token.GEQ
+	default:
+		return token.ILLEGAL
+	}
+}
+
+// getLogicalToken returns logical tokens.
+func (sm *SourceMutator) getLogicalToken(s string) token.Token {
+	switch s {
 	case "&&":
 		return token.LAND
 	case "||":
 		return token.LOR
-	case "++":
-		return token.INC
-	case "--":
-		return token.DEC
+	default:
+		return token.ILLEGAL
+	}
+}
+
+// getBitwiseToken returns bitwise tokens.
+func (sm *SourceMutator) getBitwiseToken(s string) token.Token {
+	switch s {
+	case "&":
+		return token.AND
+	case "|":
+		return token.OR
+	case "^":
+		return token.XOR
+	case "&^":
+		return token.AND_NOT
+	case "<<":
+		return token.SHL
+	case ">>":
+		return token.SHR
+	default:
+		return token.ILLEGAL
+	}
+}
+
+// getAssignmentToken returns assignment tokens.
+func (sm *SourceMutator) getAssignmentToken(s string) token.Token {
+	switch s {
 	case "+=":
 		return token.ADD_ASSIGN
 	case "-=":
@@ -303,6 +404,16 @@ func (sm *SourceMutator) stringToToken(s string) token.Token {
 		return token.MUL_ASSIGN
 	case "/=":
 		return token.QUO_ASSIGN
+	case "&=":
+		return token.AND_ASSIGN
+	case "|=":
+		return token.OR_ASSIGN
+	case "^=":
+		return token.XOR_ASSIGN
+	case "<<=":
+		return token.SHL_ASSIGN
+	case ">>=":
+		return token.SHR_ASSIGN
 	default:
 		return token.ILLEGAL
 	}
