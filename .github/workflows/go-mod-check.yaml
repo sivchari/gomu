@@ -1,0 +1,31 @@
+name: Go Mod Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  go-mod-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Check go.mod and go.sum
+        run: |
+          go mod tidy -diff
+
+      - name: Check tools/go.mod and tools/go.sum
+        run: |
+          cd tools
+          go mod tidy -diff

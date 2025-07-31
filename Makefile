@@ -25,3 +25,11 @@ scaffold-mutator: ## Generate a new mutator (usage: make scaffold-mutator MUTATO
 .PHONY: generate-registry
 generate-registry: ## Generate mutation registry from existing mutators
 	cd internal/mutation && go generate
+
+.PHONY: fmt
+fmt: ## Format code with golangci-lint
+	${GOLANGCI_LINT} fmt ./...
+
+.PHONY: fmt-diff
+fmt-diff: ## Show code formatting differences
+	${GOLANGCI_LINT} fmt --diff ./...
