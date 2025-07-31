@@ -448,6 +448,7 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 		TotalMutants:  totalMutants,
 		KilledMutants: killedMutants,
 		Duration:      summary.Duration,
+		Statistics:    summary.Statistics,
 	}
 }
 
