@@ -24,6 +24,9 @@ func TestQualityGateEvaluator_Evaluate(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  100,
 				KilledMutants: 60,
+				Statistics: report.Statistics{
+					Score: 60.0,
+				},
 			},
 			expectedPass:   true,
 			expectedScore:  60.0,
@@ -36,6 +39,9 @@ func TestQualityGateEvaluator_Evaluate(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  100,
 				KilledMutants: 85,
+				Statistics: report.Statistics{
+					Score: 85.0,
+				},
 			},
 			expectedPass:   true,
 			expectedScore:  85.0,
@@ -48,6 +54,9 @@ func TestQualityGateEvaluator_Evaluate(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  100,
 				KilledMutants: 70,
+				Statistics: report.Statistics{
+					Score: 70.0,
+				},
 			},
 			expectedPass:   false,
 			expectedScore:  70.0,
@@ -60,6 +69,9 @@ func TestQualityGateEvaluator_Evaluate(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  0,
 				KilledMutants: 0,
+				Statistics: report.Statistics{
+					Score: 0.0,
+				},
 			},
 			expectedPass:   false,
 			expectedScore:  0.0,
@@ -104,6 +116,9 @@ func TestQualityGateEvaluator_Evaluate_EdgeCases(t *testing.T) {
 	summary := &report.Summary{
 		TotalMutants:  100,
 		KilledMutants: 80,
+		Statistics: report.Statistics{
+			Score: 80.0,
+		},
 	}
 
 	result = evaluator.Evaluate(summary)
