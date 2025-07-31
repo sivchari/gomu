@@ -441,3 +441,29 @@ func TestConditionalMutator_Apply(t *testing.T) {
 		})
 	}
 }
+
+func TestConditionalMutator_stringToToken(t *testing.T) {
+	mutator := &ConditionalMutator{}
+
+	tests := []struct {
+		input    string
+		expected token.Token
+	}{
+		{"==", token.EQL},
+		{"!=", token.NEQ},
+		{"<", token.LSS},
+		{"<=", token.LEQ},
+		{">", token.GTR},
+		{">=", token.GEQ},
+		{"invalid", token.ILLEGAL},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := mutator.stringToToken(tt.input)
+			if result != tt.expected {
+				t.Errorf("stringToToken(%q) = %v, expected %v", tt.input, result, tt.expected)
+			}
+		})
+	}
+}

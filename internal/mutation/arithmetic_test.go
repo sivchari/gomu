@@ -468,3 +468,34 @@ func TestArithmeticMutator_Apply(t *testing.T) {
 		})
 	}
 }
+
+func TestArithmeticMutator_stringToToken(t *testing.T) {
+	mutator := &ArithmeticMutator{}
+
+	tests := []struct {
+		input    string
+		expected token.Token
+	}{
+		{"+", token.ADD},
+		{"-", token.SUB},
+		{"*", token.MUL},
+		{"/", token.QUO},
+		{"%", token.REM},
+		{"+=", token.ADD_ASSIGN},
+		{"-=", token.SUB_ASSIGN},
+		{"*=", token.MUL_ASSIGN},
+		{"/=", token.QUO_ASSIGN},
+		{"++", token.INC},
+		{"--", token.DEC},
+		{"invalid", token.ILLEGAL},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := mutator.stringToToken(tt.input)
+			if result != tt.expected {
+				t.Errorf("stringToToken(%q) = %v, expected %v", tt.input, result, tt.expected)
+			}
+		})
+	}
+}

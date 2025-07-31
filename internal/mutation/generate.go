@@ -56,10 +56,10 @@ func findMutators(dir string) ([]mutatorInfo, error) {
 	}
 
 	for _, file := range files {
-		if strings.HasSuffix(file, "_test.go") || 
-		   strings.HasSuffix(file, "registry.go") ||
-		   strings.HasSuffix(file, "generate.go") ||
-		   strings.HasSuffix(file, "engine.go") {
+		if strings.HasSuffix(file, "_test.go") ||
+			strings.HasSuffix(file, "registry.go") ||
+			strings.HasSuffix(file, "generate.go") ||
+			strings.HasSuffix(file, "engine.go") {
 			continue
 		}
 
@@ -106,7 +106,7 @@ func parseMutatorFile(filename string) (*mutatorInfo, error) {
 
 func generateRegistry(mutators []mutatorInfo) error {
 	tmpl := template.Must(template.New("registry").Parse(registryTemplate))
-	
+
 	file, err := os.Create("registry.go")
 	if err != nil {
 		return err
