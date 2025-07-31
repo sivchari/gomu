@@ -342,3 +342,128 @@ func TestConditionalMutator_AllMutationsGenerated(t *testing.T) {
 		})
 	}
 }
+
+func TestConditionalMutator_Apply(t *testing.T) {
+	mutator := &ConditionalMutator{}
+	fset := token.NewFileSet()
+
+	tests := []struct {
+		name        string
+		code        string
+		mutantType  string
+		mutantValue string
+		expected    bool
+	}{
+		{
+			name:        "apply conditional mutation EQL to NEQ",
+			code:        "a == b",
+			mutantType:  "conditional_binary",
+			mutantValue: "!=",
+			expected:    true,
+		},
+		{
+			name:        "apply conditional mutation NEQ to EQL",
+			code:        "a != b",
+			mutantType:  "conditional_binary",
+			mutantValue: "==",
+			expected:    true,
+		},
+		{
+			name:        "apply conditional mutation LSS to GTR",
+			code:        "a < b",
+			mutantType:  "conditional_binary",
+			mutantValue: ">",
+			expected:    true,
+		},
+		{
+			name:        "apply conditional mutation LEQ to GEQ",
+			code:        "a <= b",
+			mutantType:  "conditional_binary",
+			mutantValue: ">=",
+			expected:    true,
+		},
+		{
+			name:        "apply conditional mutation GTR to LSS",
+			code:        "a > b",
+			mutantType:  "conditional_binary",
+			mutantValue: "<",
+			expected:    true,
+		},
+		{
+			name:        "apply conditional mutation GEQ to LEQ",
+			code:        "a >= b",
+			mutantType:  "conditional_binary",
+			mutantValue: "<=",
+			expected:    true,
+		},
+		{
+			name:        "unknown mutation type",
+			code:        "a == b",
+			mutantType:  "unknown",
+			mutantValue: "!=",
+			expected:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			src := "package main\nfunc test() { _ = " + tt.code + " }"
+
+			file, err := parser.ParseFile(fset, "test.go", src, 0)
+			if err != nil {
+				t.Fatalf("Failed to parse file: %v", err)
+			}
+
+			var node ast.Node
+			ast.Inspect(file, func(n ast.Node) bool {
+				if be, ok := n.(*ast.BinaryExpr); ok {
+					node = be
+
+					return false
+				}
+
+				return true
+			})
+
+			if node == nil {
+				t.Fatalf("Target node not found for: %s", tt.code)
+			}
+
+			mutant := Mutant{
+				Type:    tt.mutantType,
+				Mutated: tt.mutantValue,
+			}
+
+			result := mutator.Apply(node, mutant)
+			if result != tt.expected {
+				t.Errorf("Apply() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestConditionalMutator_stringToToken(t *testing.T) {
+	mutator := &ConditionalMutator{}
+
+	tests := []struct {
+		input    string
+		expected token.Token
+	}{
+		{"==", token.EQL},
+		{"!=", token.NEQ},
+		{"<", token.LSS},
+		{"<=", token.LEQ},
+		{">", token.GTR},
+		{">=", token.GEQ},
+		{"invalid", token.ILLEGAL},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := mutator.stringToToken(tt.input)
+			if result != tt.expected {
+				t.Errorf("stringToToken(%q) = %v, expected %v", tt.input, result, tt.expected)
+			}
+		})
+	}
+}

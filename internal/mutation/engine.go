@@ -72,6 +72,7 @@ type Mutator interface {
 	Name() string
 	CanMutate(node ast.Node) bool
 	Mutate(node ast.Node, fset *token.FileSet) []Mutant
+	Apply(node ast.Node, mutant Mutant) bool
 }
 
 // New creates a new mutation engine.
@@ -130,6 +131,11 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 // GetFileSet returns the file set used by the engine.
 func (e *Engine) GetFileSet() *token.FileSet {
 	return e.analyzer.GetFileSet()
+}
+
+// GetMutators returns all mutators in the engine.
+func (e *Engine) GetMutators() []Mutator {
+	return e.mutators
 }
 
 // NewEngine creates a new mutation engine.

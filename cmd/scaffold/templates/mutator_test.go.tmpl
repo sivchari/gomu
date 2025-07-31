@@ -108,3 +108,56 @@ func Test{{.StructName}}Mutator_Mutate(t *testing.T) {
 		})
 	}
 }
+
+func Test{{.StructName}}Mutator_Apply(t *testing.T) {
+	mutator := &{{.StructName}}Mutator{}
+
+	tests := []struct {
+		name     string
+		code     string
+		mutant   Mutant
+		expected bool
+	}{
+		{
+			name: "example application",
+			code: "x + y", // TODO: Update with actual test cases
+			mutant: Mutant{
+				Type:     "{{.LowerName}}_binary", // TODO: Update with actual mutation type
+				Original: "+",                     // TODO: Update with original value
+				Mutated:  "-",                     // TODO: Update with mutated value
+			},
+			expected: false, // TODO: Update when implementation is complete
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			src := "package main\nfunc test() { _ = " + tt.code + " }"
+			fset := token.NewFileSet()
+
+			file, err := parser.ParseFile(fset, "test.go", src, 0)
+			if err != nil {
+				t.Fatalf("Failed to parse file: %v", err)
+			}
+
+			// Find expression to mutate
+			var expr ast.Expr
+			ast.Inspect(file, func(node ast.Node) bool {
+				if e, ok := node.(ast.Expr); ok && mutator.CanMutate(e) {
+					expr = e
+					return false
+				}
+				return true
+			})
+
+			if expr == nil {
+				t.Fatalf("Expected expression not found in: %s", tt.code)
+			}
+
+			result := mutator.Apply(expr, tt.mutant)
+			if result != tt.expected {
+				t.Errorf("Apply() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}

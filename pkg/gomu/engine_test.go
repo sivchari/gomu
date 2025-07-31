@@ -436,7 +436,10 @@ func TestProcessCIWorkflow(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  100,
 				KilledMutants: 85,
-				Duration:      time.Second,
+				Statistics: report.Statistics{
+					Score: 85.0,
+				},
+				Duration: time.Second,
 				Results: []mutation.Result{
 					{
 						Mutant: mutation.Mutant{
@@ -465,7 +468,10 @@ func TestProcessCIWorkflow(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  100,
 				KilledMutants: 50,
-				Duration:      time.Second,
+				Statistics: report.Statistics{
+					Score: 50.0,
+				},
+				Duration: time.Second,
 				Results: []mutation.Result{
 					{
 						Mutant: mutation.Mutant{
@@ -496,7 +502,10 @@ func TestProcessCIWorkflow(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  100,
 				KilledMutants: 85,
-				Duration:      time.Second,
+				Statistics: report.Statistics{
+					Score: 85.0,
+				},
+				Duration: time.Second,
 			},
 			opts: &RunOptions{
 				FailOnGate: false,
@@ -516,7 +525,10 @@ func TestProcessCIWorkflow(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  100,
 				KilledMutants: 85,
-				Duration:      time.Second,
+				Statistics: report.Statistics{
+					Score: 85.0,
+				},
+				Duration: time.Second,
 				Results: []mutation.Result{
 					{
 						Mutant: mutation.Mutant{
@@ -1105,6 +1117,9 @@ func TestHandleCIWorkflow(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  10,
 				KilledMutants: 9,
+				Statistics: report.Statistics{
+					Score: 90.0,
+				},
 				Results: []mutation.Result{
 					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
 				},
@@ -1121,6 +1136,9 @@ func TestHandleCIWorkflow(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  10,
 				KilledMutants: 5,
+				Statistics: report.Statistics{
+					Score: 50.0,
+				},
 				Results: []mutation.Result{
 					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
 					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
@@ -1147,6 +1165,9 @@ func TestHandleCIWorkflow(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  10,
 				KilledMutants: 5,
+				Statistics: report.Statistics{
+					Score: 50.0,
+				},
 				Results: []mutation.Result{
 					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
 					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
@@ -1206,6 +1227,9 @@ func TestProcessCIWorkflowDetailed(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  10,
 				KilledMutants: 10,
+				Statistics: report.Statistics{
+					Score: 100.0,
+				},
 				Results: []mutation.Result{
 					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
 				},
@@ -1232,7 +1256,10 @@ func TestProcessCIWorkflowDetailed(t *testing.T) {
 			summary: &report.Summary{
 				TotalMutants:  10,
 				KilledMutants: 10,
-				Results:       []mutation.Result{},
+				Statistics: report.Statistics{
+					Score: 100.0,
+				},
+				Results: []mutation.Result{},
 			},
 			opts: &RunOptions{
 				Threshold:  80.0,
