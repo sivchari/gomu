@@ -31,6 +31,9 @@ type mutatorData struct {
 	Description string
 }
 
+// exitFunc allows tests to mock os.Exit
+var exitFunc = os.Exit
+
 func main() {
 	var mutatorName = flag.String("mutator", "", "Name of the mutator to generate")
 	flag.Parse()
@@ -38,7 +41,8 @@ func main() {
 	if *mutatorName == "" {
 		fmt.Fprintf(os.Stderr, "Usage: %s -mutator=<mutator_name>\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "Example: %s -mutator=bitwise\n", os.Args[0])
-		os.Exit(1)
+		exitFunc(1)
+		return
 	}
 
 	name := strings.ToLower(*mutatorName)
@@ -54,21 +58,24 @@ func main() {
 	mutationDir, err := findMutationDir()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error finding mutation directory: %v\n", err)
-		os.Exit(1)
+		exitFunc(1)
+		return
 	}
 
 	// Generate mutator file
 	mutatorFile := filepath.Join(mutationDir, name+".go")
 	if err := generateFile(mutatorFile, mutatorTemplate, data); err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating mutator file: %v\n", err)
-		os.Exit(1)
+		exitFunc(1)
+		return
 	}
 
 	// Generate test file
 	testFile := filepath.Join(mutationDir, name+"_test.go")
 	if err := generateFile(testFile, testTemplate, data); err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating test file: %v\n", err)
-		os.Exit(1)
+		exitFunc(1)
+		return
 	}
 
 	fmt.Printf("Generated %s mutator:\n", name)
@@ -94,7 +101,7 @@ func main() {
 	}
 }
 
-func findMutationDir() (string, error) {
+func findMutationDirImpl() (string, error) {
 	// Try to find the mutation directory relative to current working directory
 	wd, err := os.Getwd()
 	if err != nil {
