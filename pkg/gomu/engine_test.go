@@ -1235,12 +1235,14 @@ func TestHistoryStoreWrapperHasChanged(t *testing.T) {
 
 	// Test changed file
 	store.UpdateFileWithHashes("changed.go", nil, nil, "oldhash", "")
+
 	if !wrapper.HasChanged("changed.go", "newhash") {
 		t.Error("expected file to be detected as changed")
 	}
 
 	// Test unchanged file
 	store.UpdateFileWithHashes("same.go", nil, nil, "samehash", "")
+
 	if wrapper.HasChanged("same.go", "samehash") {
 		t.Error("expected file to be detected as unchanged")
 	}
