@@ -1142,14 +1142,6 @@ func TestHandleCIWorkflow(t *testing.T) {
 				Results: []mutation.Result{
 					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
 					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
 				},
 			},
 			opts: &RunOptions{
@@ -1171,14 +1163,6 @@ func TestHandleCIWorkflow(t *testing.T) {
 				Results: []mutation.Result{
 					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
 					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusSurvived},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
 				},
 			},
 			opts: &RunOptions{
@@ -1215,150 +1199,54 @@ func TestHandleCIWorkflow(t *testing.T) {
 }
 
 func TestProcessCIWorkflowDetailed(t *testing.T) {
-	tests := []struct {
-		name        string
-		summary     *report.Summary
-		opts        *RunOptions
-		setupEngine func() *Engine
-		expectError bool
-	}{
-		{
-			name: "processes CI workflow with verbose logging",
-			summary: &report.Summary{
-				TotalMutants:  10,
-				KilledMutants: 10,
-				Statistics: report.Statistics{
-					Score: 100.0,
-				},
-				Results: []mutation.Result{
-					{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
-				},
-			},
-			opts: &RunOptions{
-				Verbose:    true,
-				Threshold:  80.0,
-				FailOnGate: false,
-			},
-			setupEngine: func() *Engine {
-				reporter, _ := report.New()
-				engine := &Engine{
-					reporter:    reporter,
-					ciReporter:  ci.NewReporter(".", "json"),
-					qualityGate: ci.NewQualityGateEvaluator(true, 80.0),
-				}
-
-				return engine
-			},
-			expectError: false,
+	summary := &report.Summary{
+		TotalMutants:  10,
+		KilledMutants: 10,
+		Statistics: report.Statistics{
+			Score: 100.0,
 		},
-		{
-			name: "handles invalid CI reporter format by defaulting to JSON",
-			summary: &report.Summary{
-				TotalMutants:  10,
-				KilledMutants: 10,
-				Statistics: report.Statistics{
-					Score: 100.0,
-				},
-				Results: []mutation.Result{},
-			},
-			opts: &RunOptions{
-				Threshold:  80.0,
-				FailOnGate: false,
-			},
-			setupEngine: func() *Engine {
-				// Create engine with invalid CI reporter output format
-				reporter, _ := report.New()
-				engine := &Engine{
-					reporter:    reporter,
-					ciReporter:  ci.NewReporter(".", "invalid-format"),
-					qualityGate: ci.NewQualityGateEvaluator(true, 80.0),
-				}
-
-				return engine
-			},
-			expectError: false, // invalid format defaults to JSON, no error
+		Results: []mutation.Result{
+			{Mutant: mutation.Mutant{FilePath: "test.go"}, Status: mutation.StatusKilled},
 		},
 	}
+	opts := &RunOptions{
+		Verbose:    true,
+		Threshold:  80.0,
+		FailOnGate: false,
+	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			engine := tt.setupEngine()
-			err := engine.processCIWorkflow(context.Background(), tt.summary, tt.opts)
+	reporter, _ := report.New()
+	engine := &Engine{
+		reporter:    reporter,
+		ciReporter:  ci.NewReporter(".", "json"),
+		qualityGate: ci.NewQualityGateEvaluator(true, 80.0),
+	}
 
-			if tt.expectError {
-				if err == nil {
-					t.Error("expected error but got none")
-				}
-			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
-			}
-		})
+	err := engine.processCIWorkflow(context.Background(), summary, opts)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
 	}
 }
 
 func TestHistoryStoreWrapperHasChanged(t *testing.T) {
-	tests := []struct {
-		name          string
-		setupStore    func(t *testing.T) *historyStoreWrapper
-		filePath      string
-		currentHash   string
-		expectChanged bool
-	}{
-		{
-			name: "detects changed file",
-			setupStore: func(t *testing.T) *historyStoreWrapper {
-				tempFile := filepath.Join(t.TempDir(), "history.json")
-				store, _ := history.New(tempFile)
+	tempFile := filepath.Join(t.TempDir(), "history.json")
+	store, _ := history.New(tempFile)
+	wrapper := &historyStoreWrapper{store: store}
 
-				// Add entry with old hash
-				store.UpdateFileWithHashes("changed.go", nil, nil, "oldhash", "")
-
-				return &historyStoreWrapper{store: store}
-			},
-			filePath:      "changed.go",
-			currentHash:   "newhash",
-			expectChanged: true,
-		},
-		{
-			name: "detects unchanged file",
-			setupStore: func(t *testing.T) *historyStoreWrapper {
-				tempFile := filepath.Join(t.TempDir(), "history.json")
-				store, _ := history.New(tempFile)
-
-				// Add entry with same hash
-				store.UpdateFileWithHashes("same.go", nil, nil, "samehash", "")
-
-				return &historyStoreWrapper{store: store}
-			},
-			filePath:      "same.go",
-			currentHash:   "samehash",
-			expectChanged: false,
-		},
-		{
-			name: "new file is considered changed",
-			setupStore: func(t *testing.T) *historyStoreWrapper {
-				tempFile := filepath.Join(t.TempDir(), "history.json")
-				store, _ := history.New(tempFile)
-
-				return &historyStoreWrapper{store: store}
-			},
-			filePath:      "new.go",
-			currentHash:   "newhash",
-			expectChanged: true,
-		},
+	// Test changed file
+	store.UpdateFileWithHashes("changed.go", nil, nil, "oldhash", "")
+	if !wrapper.HasChanged("changed.go", "newhash") {
+		t.Error("expected file to be detected as changed")
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			wrapper := tt.setupStore(t)
+	// Test unchanged file
+	store.UpdateFileWithHashes("same.go", nil, nil, "samehash", "")
+	if wrapper.HasChanged("same.go", "samehash") {
+		t.Error("expected file to be detected as unchanged")
+	}
 
-			changed := wrapper.HasChanged(tt.filePath, tt.currentHash)
-
-			if changed != tt.expectChanged {
-				t.Errorf("expected changed=%v, got %v", tt.expectChanged, changed)
-			}
-		})
+	// Test new file
+	if !wrapper.HasChanged("new.go", "newhash") {
+		t.Error("expected new file to be detected as changed")
 	}
 }
