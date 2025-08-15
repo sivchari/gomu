@@ -1,6 +1,6 @@
 package main
 
-// Export internal functions for testing
+// Export internal functions for testing.
 var (
 	FindMutationDir  = findMutationDir
 	GenerateFile     = generateFile

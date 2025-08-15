@@ -64,7 +64,6 @@ type FileInfo struct {
 
 // FindTargetFiles discovers Go source files to be tested.
 func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
-
 	var files []string
 
 	err := filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {

@@ -112,16 +112,20 @@ docs/
 	})
 }
 
-// getRelativePaths converts absolute paths to relative paths and sorts them
+// getRelativePaths converts absolute paths to relative paths and sorts them.
 func getRelativePaths(rootPath string, files []string) []string {
-	var relPaths []string
+	relPaths := make([]string, 0, len(files))
+
 	for _, file := range files {
 		relPath, err := filepath.Rel(rootPath, file)
 		if err != nil {
 			relPath = file
 		}
+
 		relPaths = append(relPaths, relPath)
 	}
+
 	sort.Strings(relPaths)
+
 	return relPaths
 }
