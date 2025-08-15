@@ -101,7 +101,7 @@ func main() {
 	}
 }
 
-func findMutationDirImpl() (string, error) {
+func findMutationDir() (string, error) {
 	// Try to find the mutation directory relative to current working directory
 	wd, err := os.Getwd()
 	if err != nil {
