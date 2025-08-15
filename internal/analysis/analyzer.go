@@ -45,12 +45,12 @@ func New(opts ...Option) (*Analyzer, error) {
 			Defs:  make(map[*ast.Ident]types.Object),
 		},
 	}
-	
+
 	// Apply options
 	for _, opt := range opts {
 		opt(a)
 	}
-	
+
 	return a, nil
 }
 
