@@ -10,9 +10,8 @@ import (
 func TestNew(t *testing.T) {
 	// Test: Create a new parser
 	parser := New()
-
 	if parser == nil {
-		t.Error("parser is nil")
+		t.Fatal("parser is nil")
 	}
 
 	if len(parser.patterns) != 0 {
@@ -22,7 +21,6 @@ func TestNew(t *testing.T) {
 
 func TestLoadFromReader(t *testing.T) {
 	// Test: Load patterns from reader
-
 	testCases := []struct {
 		name     string
 		content  string
@@ -92,6 +90,7 @@ vendor/
 					t.Errorf("pattern[%d] is wrong: expected='%s', actual='%s'",
 						i, expected.pattern, actual.pattern)
 				}
+
 				if actual.negate != expected.negate {
 					t.Errorf("negate flag[%d] is wrong: expected=%t, actual=%t",
 						i, expected.negate, actual.negate)
@@ -103,7 +102,6 @@ vendor/
 
 func TestShouldIgnore(t *testing.T) {
 	// Test: Check if file path should be ignored
-
 	testCases := []struct {
 		name     string
 		patterns string
@@ -208,6 +206,7 @@ testdata/
 
 	// 3. Load file with parser
 	parser := New()
+
 	err = parser.LoadFromFile(ignoreFile)
 	if err != nil {
 		t.Fatalf("error loading file: %v", err)
@@ -243,7 +242,6 @@ testdata/
 
 func TestLoadFromFileNotExists(t *testing.T) {
 	// Test: Loading non-existent file (should not error)
-
 	parser := New()
 	err := parser.LoadFromFile("/nonexistent/path/.gomuignore")
 
@@ -263,6 +261,7 @@ func TestFindIgnoreFile(t *testing.T) {
 	// 1. Create nested directory structure
 	tempDir := t.TempDir()
 	subDir := filepath.Join(tempDir, "sub", "nested")
+
 	err := os.MkdirAll(subDir, 0755)
 	if err != nil {
 		t.Fatalf("failed to create directory: %v", err)
@@ -270,6 +269,7 @@ func TestFindIgnoreFile(t *testing.T) {
 
 	// 2. Create .gomuignore file in root directory
 	ignoreFile := filepath.Join(tempDir, ".gomuignore")
+
 	err = os.WriteFile(ignoreFile, []byte("*.log"), 0644)
 	if err != nil {
 		t.Fatalf("failed to create .gomuignore file: %v", err)
@@ -290,7 +290,6 @@ func TestFindIgnoreFile(t *testing.T) {
 
 func TestFindIgnoreFileNotFound(t *testing.T) {
 	// Test: .gomuignore file not found
-
 	tempDir := t.TempDir()
 
 	foundFile, err := FindIgnoreFile(tempDir)
@@ -305,7 +304,6 @@ func TestFindIgnoreFileNotFound(t *testing.T) {
 
 func TestMatchPattern(t *testing.T) {
 	// Test: Detailed pattern matching tests
-
 	parser := New()
 
 	testCases := []struct {
@@ -338,7 +336,6 @@ func TestMatchPattern(t *testing.T) {
 
 func TestGetPatterns(t *testing.T) {
 	// Test: Get patterns
-
 	parser := New()
 	reader := strings.NewReader(`*.go
 vendor/
@@ -369,6 +366,7 @@ vendor/
 			t.Errorf("pattern[%d] is wrong: expected='%s', actual='%s'",
 				i, exp.pattern, patterns[i].pattern)
 		}
+
 		if patterns[i].negate != exp.negate {
 			t.Errorf("negate flag[%d] is wrong: expected=%t, actual=%t",
 				i, exp.negate, patterns[i].negate)

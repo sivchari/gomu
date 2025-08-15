@@ -36,6 +36,7 @@ func (p *Parser) LoadFromFile(filePath string) error {
 			// .gomuignore file doesn't exist - this is not an error
 			return nil
 		}
+
 		return fmt.Errorf("failed to open .gomuignore file: %w", err)
 	}
 	defer file.Close()
@@ -68,7 +69,11 @@ func (p *Parser) LoadFromReader(reader io.Reader) error {
 		p.patterns = append(p.patterns, pattern)
 	}
 
-	return scanner.Err()
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("failed to read patterns: %w", err)
+	}
+
+	return nil
 }
 
 // ShouldIgnore checks if a file path should be ignored based on loaded patterns.
@@ -105,6 +110,7 @@ func (p *Parser) matchPattern(pattern, filePath string) bool {
 	if strings.HasSuffix(pattern, "/") {
 		// Directory pattern - check if path starts with pattern
 		dirPattern := strings.TrimSuffix(pattern, "/")
+
 		return strings.HasPrefix(filePath, dirPattern+"/") || filePath == dirPattern
 	}
 
@@ -174,6 +180,7 @@ func FindIgnoreFile(startPath string) (string, error) {
 			// Reached root directory
 			break
 		}
+
 		dir = parent
 	}
 

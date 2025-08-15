@@ -31,7 +31,7 @@ type mutatorData struct {
 	Description string
 }
 
-// exitFunc allows tests to mock os.Exit
+// exitFunc allows tests to mock os.Exit.
 var exitFunc = os.Exit
 
 func main() {
@@ -42,6 +42,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Usage: %s -mutator=<mutator_name>\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "Example: %s -mutator=bitwise\n", os.Args[0])
 		exitFunc(1)
+
 		return
 	}
 
@@ -59,6 +60,7 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error finding mutation directory: %v\n", err)
 		exitFunc(1)
+
 		return
 	}
 
@@ -67,6 +69,7 @@ func main() {
 	if err := generateFile(mutatorFile, mutatorTemplate, data); err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating mutator file: %v\n", err)
 		exitFunc(1)
+
 		return
 	}
 
@@ -75,6 +78,7 @@ func main() {
 	if err := generateFile(testFile, testTemplate, data); err != nil {
 		fmt.Fprintf(os.Stderr, "Error generating test file: %v\n", err)
 		exitFunc(1)
+
 		return
 	}
 

@@ -53,14 +53,17 @@ func NewEngine(opts *RunOptions) (*Engine, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to find .gomuignore file: %w", err)
 	}
+
 	if ignoreFile != "" {
 		ignoreParser := ignore.New()
 		if err := ignoreParser.LoadFromFile(ignoreFile); err != nil {
 			return nil, fmt.Errorf("failed to load .gomuignore file: %w", err)
 		}
+
 		if opts != nil && opts.Verbose {
 			log.Printf("Loaded .gomuignore file from: %s", ignoreFile)
 		}
+
 		analyzerOpts = append(analyzerOpts, analysis.WithIgnoreParser(ignoreParser))
 	}
 
