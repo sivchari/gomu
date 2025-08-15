@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	_ "embed"
 	"flag"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"runtime"
 	"strings"
 	"text/template"
+	"time"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -159,7 +161,10 @@ func generateFile(filename, tmplText string, data mutatorData) error {
 
 func generateRegistry(mutationDir string) error {
 	// Try to run `go generate` in the mutation directory
-	cmd := exec.Command("go", "generate")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "go", "generate")
 	cmd.Dir = mutationDir
 
 	// Capture both stdout and stderr
