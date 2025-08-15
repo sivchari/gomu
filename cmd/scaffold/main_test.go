@@ -28,164 +28,197 @@ func TestMutatorData(t *testing.T) {
 	}
 }
 
-func TestFindMutationDir(t *testing.T) {
-	tests := []struct {
-		name      string
-		setup     func(t *testing.T) string
-		cleanup   func()
-		wantError bool
-	}{
-		{
-			name: "finds_mutation_dir_in_current_directory",
-			setup: func(t *testing.T) string {
-				tempDir := t.TempDir()
-				mutationDir := filepath.Join(tempDir, "internal", "mutation")
-				if err := os.MkdirAll(mutationDir, 0755); err != nil {
-					t.Fatal(err)
-				}
-				// Create engine.go to match the actual findMutationDir logic
-				engineFile := filepath.Join(mutationDir, "engine.go")
-				if err := os.WriteFile(engineFile, []byte("package mutation"), 0644); err != nil {
-					t.Fatal(err)
-				}
-				return tempDir
-			},
-			cleanup:   func() {},
-			wantError: false,
-		},
-		{
-			name: "finds_mutation_dir_in_parent_directory",
-			setup: func(t *testing.T) string {
-				tempDir := t.TempDir()
-				mutationDir := filepath.Join(tempDir, "internal", "mutation")
-				if err := os.MkdirAll(mutationDir, 0755); err != nil {
-					t.Fatal(err)
-				}
-				// Create engine.go to match the actual findMutationDir logic
-				engineFile := filepath.Join(mutationDir, "engine.go")
-				if err := os.WriteFile(engineFile, []byte("package mutation"), 0644); err != nil {
-					t.Fatal(err)
-				}
-				subDir := filepath.Join(tempDir, "subdir")
-				if err := os.MkdirAll(subDir, 0755); err != nil {
-					t.Fatal(err)
-				}
-				return subDir
-			},
-			cleanup:   func() {},
-			wantError: false,
-		},
-		{
-			name: "finds_mutation_dir_when_already_in_mutation_directory",
-			setup: func(t *testing.T) string {
-				tempDir := t.TempDir()
-				mutationDir := filepath.Join(tempDir, "mutation")
-				if err := os.MkdirAll(mutationDir, 0755); err != nil {
-					t.Fatal(err)
-				}
-				return mutationDir
-			},
-			cleanup:   func() {},
-			wantError: false,
-		},
+func TestFindMutationDirInCurrentDirectory(t *testing.T) {
+	tempDir := t.TempDir()
+	mutationDir := filepath.Join(tempDir, "internal", "mutation")
+	if err := os.MkdirAll(mutationDir, 0755); err != nil {
+		t.Fatal(err)
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			oldWd, err := os.Getwd()
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer os.Chdir(oldWd)
-
-			testDir := tt.setup(t)
-			if err := os.Chdir(testDir); err != nil {
-				t.Fatal(err)
-			}
-			defer tt.cleanup()
-
-			dir, err := findMutationDirImpl()
-			if tt.wantError {
-				if err == nil {
-					t.Error("expected error but got none")
-				}
-			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
-				if dir == "" {
-					t.Error("expected non-empty directory path")
-				}
-				if !strings.Contains(dir, filepath.Join("internal", "mutation")) && !strings.HasSuffix(dir, "mutation") {
-					t.Errorf("expected path to contain internal/mutation or end with mutation, got %s", dir)
-				}
-			}
-		})
+	
+	// Create engine.go to match the actual findMutationDir logic
+	engineFile := filepath.Join(mutationDir, "engine.go")
+	if err := os.WriteFile(engineFile, []byte("package mutation"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	
+	// Change to temp directory
+	oldWd, _ := os.Getwd()
+	defer os.Chdir(oldWd)
+	os.Chdir(tempDir)
+	
+	// Test
+	dir, err := findMutationDirImpl()
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if dir == "" {
+		t.Error("expected non-empty directory path")
+	}
+	if !strings.HasSuffix(dir, filepath.Join("internal", "mutation")) {
+		t.Errorf("expected dir to end with internal/mutation, got %s", dir)
 	}
 }
 
-func TestGenerateFile(t *testing.T) {
-	tests := []struct {
-		name      string
-		template  string
-		data      mutatorData
-		wantError bool
-		checkFile func(t *testing.T, content string)
-	}{
-		{
-			name:     "generates_file_with_valid_template",
-			template: "package mutation\n\n// {{.StructName}} mutator for {{.Description}}",
-			data: mutatorData{
-				LowerName:   "test",
-				StructName:  "Test",
-				Description: "test operators",
-			},
-			wantError: false,
-			checkFile: func(t *testing.T, content string) {
-				if !strings.Contains(content, "Test mutator") {
-					t.Error("expected content to contain 'Test mutator'")
-				}
-				if !strings.Contains(content, "test operators") {
-					t.Error("expected content to contain 'test operators'")
-				}
-			},
-		},
-		{
-			name:     "handles_invalid_template",
-			template: "{{.InvalidField}}",
-			data: mutatorData{
-				LowerName:   "test",
-				StructName:  "Test",
-				Description: "test operators",
-			},
-			wantError: true,
-		},
+func TestFindMutationDirInParentDirectory(t *testing.T) {
+	tempDir := t.TempDir()
+	mutationDir := filepath.Join(tempDir, "internal", "mutation")
+	if err := os.MkdirAll(mutationDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	
+	// Create engine.go to match the actual findMutationDir logic
+	engineFile := filepath.Join(mutationDir, "engine.go")
+	if err := os.WriteFile(engineFile, []byte("package mutation"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	
+	// Create subdirectory
+	subDir := filepath.Join(tempDir, "subdir")
+	if err := os.MkdirAll(subDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	
+	// Change to subdirectory
+	oldWd, _ := os.Getwd()
+	defer os.Chdir(oldWd)
+	os.Chdir(subDir)
+	
+	// Test
+	dir, err := findMutationDirImpl()
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if dir == "" {
+		t.Error("expected non-empty directory path")
+	}
+	if !strings.HasSuffix(dir, filepath.Join("internal", "mutation")) {
+		t.Errorf("expected dir to end with internal/mutation, got %s", dir)
+	}
+}
+
+func TestFindMutationDirWhenInMutationDirectory(t *testing.T) {
+	tempDir := t.TempDir()
+	mutationDir := filepath.Join(tempDir, "mutation")
+	if err := os.MkdirAll(mutationDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	
+	// Change to mutation directory
+	oldWd, _ := os.Getwd()
+	defer os.Chdir(oldWd)
+	os.Chdir(mutationDir)
+	
+	// Test
+	dir, err := findMutationDirImpl()
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if dir == "" {
+		t.Error("expected non-empty directory path")
+	}
+	if !strings.HasSuffix(dir, "mutation") {
+		t.Errorf("expected dir to end with mutation, got %s", dir)
+	}
+}
+
+func TestGenerateFileWithValidTemplate(t *testing.T) {
+	tempFile := filepath.Join(t.TempDir(), "test.go")
+	template := "package mutation\n\n// {{.StructName}} mutator for {{.Description}}"
+	data := mutatorData{
+		LowerName:   "test",
+		StructName:  "Test",
+		Description: "test operators",
+	}
+	
+	err := generateFile(tempFile, template, data)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tempFile := filepath.Join(t.TempDir(), "test.go")
-			err := generateFile(tempFile, tt.template, tt.data)
+	content, err := os.ReadFile(tempFile)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-			if tt.wantError {
-				if err == nil {
-					t.Error("expected error but got none")
-				}
-			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
+	contentStr := string(content)
+	if !strings.Contains(contentStr, "Test mutator") {
+		t.Error("expected content to contain 'Test mutator'")
+	}
+	if !strings.Contains(contentStr, "test operators") {
+		t.Error("expected content to contain 'test operators'")
+	}
+	if !strings.Contains(contentStr, "package mutation") {
+		t.Error("expected package declaration")
+	}
+}
 
-				content, err := os.ReadFile(tempFile)
-				if err != nil {
-					t.Fatal(err)
-				}
+func TestGenerateFileWithInvalidTemplate(t *testing.T) {
+	tempFile := filepath.Join(t.TempDir(), "test.go")
+	template := "{{.InvalidField}}"
+	data := mutatorData{
+		LowerName:   "test",
+		StructName:  "Test",
+		Description: "test operators",
+	}
+	
+	err := generateFile(tempFile, template, data)
+	if err == nil {
+		t.Error("expected error but got none")
+	}
+}
 
-				if tt.checkFile != nil {
-					tt.checkFile(t, string(content))
-				}
-			}
-		})
+func TestGenerateFileWithComplexTemplate(t *testing.T) {
+	tempFile := filepath.Join(t.TempDir(), "test.go")
+	template := "// Lower: {{.LowerName}}\n// Struct: {{.StructName}}\n// Desc: {{.Description}}"
+	data := mutatorData{
+		LowerName:   "arithmetic",
+		StructName:  "Arithmetic",
+		Description: "arithmetic operators",
+	}
+	
+	err := generateFile(tempFile, template, data)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	content, err := os.ReadFile(tempFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	contentStr := string(content)
+	if !strings.Contains(contentStr, "Lower: arithmetic") {
+		t.Error("expected lower name in output")
+	}
+	if !strings.Contains(contentStr, "Struct: Arithmetic") {
+		t.Error("expected struct name in output")
+	}
+	if !strings.Contains(contentStr, "Desc: arithmetic operators") {
+		t.Error("expected description in output")
+	}
+}
+
+func TestGenerateFileWithEmptyTemplate(t *testing.T) {
+	tempFile := filepath.Join(t.TempDir(), "test.go")
+	template := ""
+	data := mutatorData{
+		LowerName:   "test",
+		StructName:  "Test", 
+		Description: "test operators",
+	}
+	
+	err := generateFile(tempFile, template, data)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	content, err := os.ReadFile(tempFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(content) != "" {
+		t.Error("expected empty content for empty template")
 	}
 }
 
@@ -203,223 +236,322 @@ func TestGenerateFileInvalidPath(t *testing.T) {
 	}
 }
 
-func TestMainFunction(t *testing.T) {
-	tests := []struct {
-		name     string
-		args     []string
-		setup    func(t *testing.T) (cleanup func())
-		wantExit int
-		checkErr func(t *testing.T, output string)
-		checkOut func(t *testing.T, output string)
-	}{
-		{
-			name:     "missing_mutator_flag",
-			args:     []string{"cmd"},
-			wantExit: 1,
-			checkErr: func(t *testing.T, output string) {
-				if !strings.Contains(output, "Usage:") {
-					t.Error("expected usage message")
-				}
-			},
-		},
-		{
-			name:     "empty_mutator_flag",
-			args:     []string{"cmd", "-mutator="},
-			wantExit: 1,
-			checkErr: func(t *testing.T, output string) {
-				if !strings.Contains(output, "Usage:") {
-					t.Error("expected usage message")
-				}
-			},
-		},
-		{
-			name: "valid_mutator_generates_files",
-			args: []string{"cmd", "-mutator=testmutator"},
-			setup: func(t *testing.T) func() {
-				// Create a temporary mutation directory
-				tempDir := t.TempDir()
-				mutationDir := filepath.Join(tempDir, "internal", "mutation")
-				if err := os.MkdirAll(mutationDir, 0755); err != nil {
-					t.Fatal(err)
-				}
-
-				// Create engine.go to make findMutationDir succeed
-				engineFile := filepath.Join(mutationDir, "engine.go")
-				if err := os.WriteFile(engineFile, []byte("package mutation"), 0644); err != nil {
-					t.Fatal(err)
-				}
-
-				// Change to temp directory
-				oldWd, _ := os.Getwd()
-				os.Chdir(tempDir)
-
-				return func() {
-					os.Chdir(oldWd)
-				}
-			},
-			wantExit: 0,
-			checkOut: func(t *testing.T, output string) {
-				if !strings.Contains(output, "Generated testmutator mutator:") {
-					t.Error("expected generation message")
-				}
-			},
-		},
-		{
-			name: "error_finding_mutation_dir",
-			args: []string{"cmd", "-mutator=testmutator"},
-			setup: func(t *testing.T) func() {
-				// Change to a directory without mutation package
-				tempDir := t.TempDir()
-				deepDir := filepath.Join(tempDir, "a", "b", "c", "d", "e", "f")
-				os.MkdirAll(deepDir, 0755)
-				oldWd, _ := os.Getwd()
-				os.Chdir(deepDir)
-
-				// Override findMutationDir to always fail
-				oldFind := *FindMutationDir
-				*FindMutationDir = func() (string, error) {
-					return "", os.ErrNotExist
-				}
-
-				return func() {
-					os.Chdir(oldWd)
-					*FindMutationDir = oldFind
-				}
-			},
-			wantExit: 1,
-			checkErr: func(t *testing.T, output string) {
-				if !strings.Contains(output, "Error finding mutation directory") {
-					t.Error("expected error finding mutation directory")
-				}
-			},
-		},
+func TestMainFunctionWithMissingFlag(t *testing.T) {
+	// Save original state
+	oldArgs := os.Args
+	oldCommandLine := flag.CommandLine
+	oldStderr := os.Stderr
+	defer func() {
+		os.Args = oldArgs
+		flag.CommandLine = oldCommandLine
+		os.Stderr = oldStderr
+	}()
+	
+	// Setup test
+	flag.CommandLine = flag.NewFlagSet("cmd", flag.ContinueOnError)
+	rErr, wErr, _ := os.Pipe()
+	os.Stderr = wErr
+	os.Args = []string{"cmd"}
+	
+	exitCode := 0
+	origExit := exitFunc
+	exitFunc = func(code int) {
+		exitCode = code
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Save original os.Args and flag.CommandLine
-			oldArgs := os.Args
-			oldCommandLine := flag.CommandLine
-			oldStderr := os.Stderr
-			oldStdout := os.Stdout
-
-			// Create new flag set for testing
-			flag.CommandLine = flag.NewFlagSet(tt.args[0], flag.ContinueOnError)
-
-			// Capture stderr and stdout
-			rErr, wErr, _ := os.Pipe()
-			rOut, wOut, _ := os.Pipe()
-			os.Stderr = wErr
-			os.Stdout = wOut
-
-			var cleanup func()
-			if tt.setup != nil {
-				cleanup = tt.setup(t)
-			}
-
-			defer func() {
-				if cleanup != nil {
-					cleanup()
-				}
-				os.Args = oldArgs
-				flag.CommandLine = oldCommandLine
-				os.Stderr = oldStderr
-				os.Stdout = oldStdout
-			}()
-
-			// Set args and run with exit capture
-			os.Args = tt.args
-
-			exitCode := 0
-			origExit := exitFunc
-			exitFunc = func(code int) {
-				exitCode = code
-			}
-			defer func() { exitFunc = origExit }()
-
-			// Run main
-			main()
-
-			// Close writers and read output
-			wErr.Close()
-			wOut.Close()
-			var bufErr bytes.Buffer
-			var bufOut bytes.Buffer
-			io.Copy(&bufErr, rErr)
-			io.Copy(&bufOut, rOut)
-
-			if exitCode != tt.wantExit {
-				t.Errorf("expected exit code %d, got %d", tt.wantExit, exitCode)
-			}
-
-			if tt.checkErr != nil {
-				tt.checkErr(t, bufErr.String())
-			}
-
-			if tt.checkOut != nil {
-				tt.checkOut(t, bufOut.String())
-			}
-		})
+	defer func() { exitFunc = origExit }()
+	
+	// Run main
+	main()
+	
+	// Check results
+	wErr.Close()
+	var bufErr bytes.Buffer
+	io.Copy(&bufErr, rErr)
+	
+	if exitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", exitCode)
+	}
+	
+	output := bufErr.String()
+	if !strings.Contains(output, "Usage:") {
+		t.Error("expected usage message")
+	}
+	if !strings.Contains(output, "-mutator=<mutator_name>") {
+		t.Error("expected mutator flag in usage")
+	}
+	if !strings.Contains(output, "Example:") {
+		t.Error("expected example in usage")
 	}
 }
 
-func TestGenerateRegistry(t *testing.T) {
-	tests := []struct {
-		name      string
-		setup     func(t *testing.T) string
-		wantError bool
-	}{
-		{
-			name: "handles_directory_with_go_generate",
-			setup: func(t *testing.T) string {
-				tempDir := t.TempDir()
-				// Create a simple go.mod file
-				goMod := `module test
+func TestMainFunctionWithEmptyFlag(t *testing.T) {
+	// Save original state
+	oldArgs := os.Args
+	oldCommandLine := flag.CommandLine
+	oldStderr := os.Stderr
+	defer func() {
+		os.Args = oldArgs
+		flag.CommandLine = oldCommandLine
+		os.Stderr = oldStderr
+	}()
+	
+	// Setup test
+	flag.CommandLine = flag.NewFlagSet("cmd", flag.ContinueOnError)
+	rErr, wErr, _ := os.Pipe()
+	os.Stderr = wErr
+	os.Args = []string{"cmd", "-mutator="}
+	
+	exitCode := 0
+	origExit := exitFunc
+	exitFunc = func(code int) {
+		exitCode = code
+	}
+	defer func() { exitFunc = origExit }()
+	
+	// Run main
+	main()
+	
+	// Check results
+	wErr.Close()
+	var bufErr bytes.Buffer
+	io.Copy(&bufErr, rErr)
+	
+	if exitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", exitCode)
+	}
+	
+	output := bufErr.String()
+	if !strings.Contains(output, "Usage:") {
+		t.Error("expected usage message")
+	}
+	if !strings.Contains(output, "cmd -mutator=<mutator_name>") {
+		t.Error("expected proper usage format")
+	}
+}
+
+func TestMainFunctionWithValidMutator(t *testing.T) {
+	// Setup temporary mutation directory
+	tempDir := t.TempDir()
+	mutationDir := filepath.Join(tempDir, "internal", "mutation")
+	if err := os.MkdirAll(mutationDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	
+	// Create engine.go
+	engineFile := filepath.Join(mutationDir, "engine.go")
+	if err := os.WriteFile(engineFile, []byte("package mutation"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	
+	// Change to temp directory
+	oldWd, _ := os.Getwd()
+	os.Chdir(tempDir)
+	defer os.Chdir(oldWd)
+	
+	// Save original state
+	oldArgs := os.Args
+	oldCommandLine := flag.CommandLine
+	oldStdout := os.Stdout
+	defer func() {
+		os.Args = oldArgs
+		flag.CommandLine = oldCommandLine
+		os.Stdout = oldStdout
+	}()
+	
+	// Setup test
+	flag.CommandLine = flag.NewFlagSet("cmd", flag.ContinueOnError)
+	rOut, wOut, _ := os.Pipe()
+	os.Stdout = wOut
+	os.Args = []string{"cmd", "-mutator=sample"}
+	
+	exitCode := 0
+	origExit := exitFunc
+	exitFunc = func(code int) {
+		exitCode = code
+	}
+	defer func() { exitFunc = origExit }()
+	
+	// Run main
+	main()
+	
+	// Check results
+	wOut.Close()
+	var bufOut bytes.Buffer
+	io.Copy(&bufOut, rOut)
+	
+	if exitCode != 0 {
+		t.Errorf("expected exit code 0, got %d", exitCode)
+	}
+	
+	output := bufOut.String()
+	if !strings.Contains(output, "Generated sample mutator:") {
+		t.Error("expected generation message")
+	}
+	if !strings.Contains(output, "sample.go") {
+		t.Error("expected mutator file name")
+	}
+	if !strings.Contains(output, "sample_test.go") {
+		t.Error("expected test file name")
+	}
+	if !strings.Contains(output, "Regenerating registry...") {
+		t.Error("expected registry regeneration message")
+	}
+	if !strings.Contains(output, "Next steps:") {
+		t.Error("expected next steps message")
+	}
+}
+
+func TestMainFunctionWithMutationDirError(t *testing.T) {
+	// Save original state
+	oldArgs := os.Args
+	oldCommandLine := flag.CommandLine
+	oldStderr := os.Stderr
+	defer func() {
+		os.Args = oldArgs
+		flag.CommandLine = oldCommandLine
+		os.Stderr = oldStderr
+	}()
+	
+	// Override findMutationDir to fail
+	oldFind := *FindMutationDir
+	*FindMutationDir = func() (string, error) {
+		return "", os.ErrNotExist
+	}
+	defer func() {
+		*FindMutationDir = oldFind
+	}()
+	
+	// Setup test
+	flag.CommandLine = flag.NewFlagSet("cmd", flag.ContinueOnError)
+	rErr, wErr, _ := os.Pipe()
+	os.Stderr = wErr
+	os.Args = []string{"cmd", "-mutator=testmutator"}
+	
+	exitCode := 0
+	origExit := exitFunc
+	exitFunc = func(code int) {
+		exitCode = code
+	}
+	defer func() { exitFunc = origExit }()
+	
+	// Run main
+	main()
+	
+	// Check results
+	wErr.Close()
+	var bufErr bytes.Buffer
+	io.Copy(&bufErr, rErr)
+	
+	if exitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", exitCode)
+	}
+	
+	output := bufErr.String()
+	if !strings.Contains(output, "Error finding mutation directory") {
+		t.Error("expected error finding mutation directory")
+	}
+	if !strings.Contains(output, "file does not exist") {
+		t.Error("expected specific error message")
+	}
+}
+
+func TestMainFunctionWithFileGenerationError(t *testing.T) {
+	// Setup temporary mutation directory (read-only)
+	tempDir := t.TempDir()
+	mutationDir := filepath.Join(tempDir, "internal", "mutation")
+	if err := os.MkdirAll(mutationDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	
+	// Create engine.go
+	engineFile := filepath.Join(mutationDir, "engine.go")
+	if err := os.WriteFile(engineFile, []byte("package mutation"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	
+	// Make directory read-only to cause write error
+	os.Chmod(mutationDir, 0555)
+	defer os.Chmod(mutationDir, 0755)
+	
+	// Change to temp directory
+	oldWd, _ := os.Getwd()
+	os.Chdir(tempDir)
+	defer os.Chdir(oldWd)
+	
+	// Save original state
+	oldArgs := os.Args
+	oldCommandLine := flag.CommandLine
+	oldStderr := os.Stderr
+	defer func() {
+		os.Args = oldArgs
+		flag.CommandLine = oldCommandLine
+		os.Stderr = oldStderr
+	}()
+	
+	// Setup test
+	flag.CommandLine = flag.NewFlagSet("cmd", flag.ContinueOnError)
+	rErr, wErr, _ := os.Pipe()
+	os.Stderr = wErr
+	os.Args = []string{"cmd", "-mutator=test"}
+	
+	exitCode := 0
+	origExit := exitFunc
+	exitFunc = func(code int) {
+		exitCode = code
+	}
+	defer func() { exitFunc = origExit }()
+	
+	// Run main
+	main()
+	
+	// Check results
+	wErr.Close()
+	var bufErr bytes.Buffer
+	io.Copy(&bufErr, rErr)
+	
+	if exitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", exitCode)
+	}
+	
+	output := bufErr.String()
+	if !strings.Contains(output, "Error generating mutator file") {
+		t.Error("expected error generating mutator file")
+	}
+}
+
+func TestGenerateRegistryWithValidDirectory(t *testing.T) {
+	tempDir := t.TempDir()
+	// Create a simple go.mod file
+	goMod := `module test
 
 go 1.20
 `
-				if err := os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644); err != nil {
-					t.Fatal(err)
-				}
+	if err := os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644); err != nil {
+		t.Fatal(err)
+	}
 
-				// Create a simple Go file with generate directive
-				goFile := `package mutation
+	// Create a simple Go file with generate directive
+	goFile := `package mutation
 
 //go:generate echo "test"
 `
-				if err := os.WriteFile(filepath.Join(tempDir, "test.go"), []byte(goFile), 0644); err != nil {
-					t.Fatal(err)
-				}
-				return tempDir
-			},
-			wantError: false,
-		},
-		{
-			name: "handles_non_existent_directory",
-			setup: func(t *testing.T) string {
-				return "/nonexistent/directory"
-			},
-			wantError: true,
-		},
+	if err := os.WriteFile(filepath.Join(tempDir, "test.go"), []byte(goFile), 0644); err != nil {
+		t.Fatal(err)
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dir := tt.setup(t)
-			err := generateRegistry(dir)
-
-			if tt.wantError {
-				if err == nil {
-					t.Error("expected error but got none")
-				}
-			} else {
-				if err != nil {
-					// go generate might fail in test environment, but command should execute
-					if !strings.Contains(err.Error(), "go generate") {
-						t.Errorf("unexpected error: %v", err)
-					}
-				}
-			}
-		})
+	
+	err := generateRegistry(tempDir)
+	if err != nil {
+		// go generate might fail in test environment, but command should execute
+		if !strings.Contains(err.Error(), "go generate") {
+			t.Errorf("unexpected error: %v", err)
+		}
 	}
 }
+
+func TestGenerateRegistryWithNonExistentDirectory(t *testing.T) {
+	err := generateRegistry("/nonexistent/directory")
+	if err == nil {
+		t.Error("expected error but got none")
+	}
+}
+
