@@ -81,7 +81,7 @@ func (p *Parser) ShouldIgnore(filePath string) bool {
 	// Process patterns in order
 	for _, pattern := range p.patterns {
 		matched := p.matchPattern(pattern.pattern, normalizedPath)
-		
+
 		if matched {
 			if pattern.negate {
 				// Negation pattern - don't ignore this file

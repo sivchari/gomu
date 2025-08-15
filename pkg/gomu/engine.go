@@ -48,7 +48,7 @@ type RunOptions struct {
 func NewEngine(opts *RunOptions) (*Engine, error) {
 	// Load .gomuignore file once at initialization
 	var analyzerOpts []analysis.Option
-	
+
 	ignoreFile, err := ignore.FindIgnoreFile(".")
 	if err != nil {
 		return nil, fmt.Errorf("failed to find .gomuignore file: %w", err)
