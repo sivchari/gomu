@@ -205,12 +205,12 @@ func TestGenerateFileInvalidPath(t *testing.T) {
 
 func TestMainFunction(t *testing.T) {
 	tests := []struct {
-		name      string
-		args      []string
-		setup     func(t *testing.T) (cleanup func())
-		wantExit  int
-		checkErr  func(t *testing.T, output string)
-		checkOut  func(t *testing.T, output string)
+		name     string
+		args     []string
+		setup    func(t *testing.T) (cleanup func())
+		wantExit int
+		checkErr func(t *testing.T, output string)
+		checkOut func(t *testing.T, output string)
 	}{
 		{
 			name:     "missing_mutator_flag",
@@ -242,17 +242,17 @@ func TestMainFunction(t *testing.T) {
 				if err := os.MkdirAll(mutationDir, 0755); err != nil {
 					t.Fatal(err)
 				}
-				
+
 				// Create engine.go to make findMutationDir succeed
 				engineFile := filepath.Join(mutationDir, "engine.go")
 				if err := os.WriteFile(engineFile, []byte("package mutation"), 0644); err != nil {
 					t.Fatal(err)
 				}
-				
+
 				// Change to temp directory
 				oldWd, _ := os.Getwd()
 				os.Chdir(tempDir)
-				
+
 				return func() {
 					os.Chdir(oldWd)
 				}
@@ -274,13 +274,13 @@ func TestMainFunction(t *testing.T) {
 				os.MkdirAll(deepDir, 0755)
 				oldWd, _ := os.Getwd()
 				os.Chdir(deepDir)
-				
+
 				// Override findMutationDir to always fail
 				oldFind := *FindMutationDir
 				*FindMutationDir = func() (string, error) {
 					return "", os.ErrNotExist
 				}
-				
+
 				return func() {
 					os.Chdir(oldWd)
 					*FindMutationDir = oldFind
@@ -302,21 +302,21 @@ func TestMainFunction(t *testing.T) {
 			oldCommandLine := flag.CommandLine
 			oldStderr := os.Stderr
 			oldStdout := os.Stdout
-			
+
 			// Create new flag set for testing
 			flag.CommandLine = flag.NewFlagSet(tt.args[0], flag.ContinueOnError)
-			
+
 			// Capture stderr and stdout
 			rErr, wErr, _ := os.Pipe()
 			rOut, wOut, _ := os.Pipe()
 			os.Stderr = wErr
 			os.Stdout = wOut
-			
+
 			var cleanup func()
 			if tt.setup != nil {
 				cleanup = tt.setup(t)
 			}
-			
+
 			defer func() {
 				if cleanup != nil {
 					cleanup()
@@ -329,7 +329,7 @@ func TestMainFunction(t *testing.T) {
 
 			// Set args and run with exit capture
 			os.Args = tt.args
-			
+
 			exitCode := 0
 			origExit := exitFunc
 			exitFunc = func(code int) {
@@ -355,14 +355,13 @@ func TestMainFunction(t *testing.T) {
 			if tt.checkErr != nil {
 				tt.checkErr(t, bufErr.String())
 			}
-			
+
 			if tt.checkOut != nil {
 				tt.checkOut(t, bufOut.String())
 			}
 		})
 	}
 }
-
 
 func TestGenerateRegistry(t *testing.T) {
 	tests := []struct {
