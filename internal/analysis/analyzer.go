@@ -14,24 +14,44 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/sivchari/gomu/internal/ignore"
 )
 
 // Analyzer handles code analysis and file discovery.
 type Analyzer struct {
-	fileSet  *token.FileSet
-	typeInfo *types.Info
+	fileSet      *token.FileSet
+	typeInfo     *types.Info
+	ignoreParser *ignore.Parser
 }
 
-// New creates a new analyzer.
-func New() (*Analyzer, error) {
-	return &Analyzer{
+// Option is a functional option for configuring an Analyzer.
+type Option func(*Analyzer)
+
+// WithIgnoreParser sets the ignore parser for the analyzer.
+func WithIgnoreParser(parser *ignore.Parser) Option {
+	return func(a *Analyzer) {
+		a.ignoreParser = parser
+	}
+}
+
+// New creates a new analyzer with optional configuration.
+func New(opts ...Option) (*Analyzer, error) {
+	a := &Analyzer{
 		fileSet: token.NewFileSet(),
 		typeInfo: &types.Info{
 			Types: make(map[ast.Expr]types.TypeAndValue),
 			Uses:  make(map[*ast.Ident]types.Object),
 			Defs:  make(map[*ast.Ident]types.Object),
 		},
-	}, nil
+	}
+	
+	// Apply options
+	for _, opt := range opts {
+		opt(a)
+	}
+	
+	return a, nil
 }
 
 // FileInfo represents information about a Go source file.
@@ -44,6 +64,7 @@ type FileInfo struct {
 
 // FindTargetFiles discovers Go source files to be tested.
 func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
+
 	var files []string
 
 	err := filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
@@ -53,8 +74,16 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 
 		// Skip directories
 		if info.IsDir() {
+			// Check if directory should be ignored by .gomuignore
+			if a.ignoreParser != nil {
+				relPath, _ := filepath.Rel(rootPath, path)
+				if a.ignoreParser.ShouldIgnore(relPath) {
+					return filepath.SkipDir
+				}
+			}
+
 			// Skip standard excluded directories
-			excludeDirs := []string{"vendor/", "testdata/"}
+			excludeDirs := []string{"vendor", "testdata"}
 			for _, exclude := range excludeDirs {
 				if strings.Contains(path, exclude) {
 					return filepath.SkipDir
@@ -66,21 +95,15 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 
 		// Only process Go source files (not test files)
 		if strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go") {
-			// Skip excluded files
-			excluded := false
-			excludeDirs := []string{"vendor/", "testdata/"}
-
-			for _, exclude := range excludeDirs {
-				if strings.Contains(path, exclude) {
-					excluded = true
-
-					break
+			// Check if file should be ignored by .gomuignore (for file-specific patterns)
+			if a.ignoreParser != nil {
+				relPath, _ := filepath.Rel(rootPath, path)
+				if a.ignoreParser.ShouldIgnore(relPath) {
+					return nil
 				}
 			}
 
-			if !excluded {
-				files = append(files, path)
-			}
+			files = append(files, path)
 		}
 
 		return nil

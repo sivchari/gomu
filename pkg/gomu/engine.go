@@ -13,6 +13,7 @@ import (
 	"github.com/sivchari/gomu/internal/ci"
 	"github.com/sivchari/gomu/internal/execution"
 	"github.com/sivchari/gomu/internal/history"
+	"github.com/sivchari/gomu/internal/ignore"
 	"github.com/sivchari/gomu/internal/mutation"
 	"github.com/sivchari/gomu/internal/report"
 )
@@ -45,7 +46,26 @@ type RunOptions struct {
 
 // NewEngine creates a new mutation testing engine.
 func NewEngine(opts *RunOptions) (*Engine, error) {
-	analyzer, err := analysis.New()
+	// Load .gomuignore file once at initialization
+	var analyzerOpts []analysis.Option
+	
+	ignoreFile, err := ignore.FindIgnoreFile(".")
+	if err != nil {
+		return nil, fmt.Errorf("failed to find .gomuignore file: %w", err)
+	}
+	if ignoreFile != "" {
+		ignoreParser := ignore.New()
+		if err := ignoreParser.LoadFromFile(ignoreFile); err != nil {
+			return nil, fmt.Errorf("failed to load .gomuignore file: %w", err)
+		}
+		if opts != nil && opts.Verbose {
+			log.Printf("Loaded .gomuignore file from: %s", ignoreFile)
+		}
+		analyzerOpts = append(analyzerOpts, analysis.WithIgnoreParser(ignoreParser))
+	}
+
+	// Create analyzer with options
+	analyzer, err := analysis.New(analyzerOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create analyzer: %w", err)
 	}

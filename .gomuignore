@@ -1,7 +1,2 @@
-# Ignore scaffold tool from mutation testing
-cmd/scaffold/
+cmd/
 
-# Ignore generated files
-**/*_gen.go
-**/generated/
-vendor/
