@@ -232,6 +232,7 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 	}
 
 	var ignoreParser analysis.IgnoreParser
+
 	if ignoreFile != "" {
 		parser := ignore.New()
 		if err := parser.LoadFromFile(ignoreFile); err != nil {
@@ -247,6 +248,7 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		if err != nil {
 			return fmt.Errorf("failed to create analyzer with ignore parser: %w", err)
 		}
+
 		e.analyzer = analyzer
 		ignoreParser = parser
 	}
