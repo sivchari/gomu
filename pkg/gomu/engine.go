@@ -352,7 +352,7 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 			fileHash = ""
 		}
 
-		testHash := e.calculateTestHash(file, hasher)
+		testHash := calculateTestHash(file, hasher)
 		e.history.UpdateFileWithHashes(file, mutants, results, fileHash, testHash)
 
 		processedFiles++
@@ -493,9 +493,9 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 }
 
 // calculateTestHash calculates the combined hash of test files related to the given file.
-func (e *Engine) calculateTestHash(filePath string, hasher *analysis.FileHasher) string {
+func calculateTestHash(filePath string, hasher *analysis.FileHasher) string {
 	// Find related test files
-	testFiles := e.findRelatedTestFiles(filePath)
+	testFiles := analysis.FindRelatedTestFiles(filePath)
 
 	if len(testFiles) == 0 {
 		return ""
@@ -518,33 +518,6 @@ func (e *Engine) calculateTestHash(filePath string, hasher *analysis.FileHasher)
 	}
 
 	return hasher.HashContent(combinedContent)
-}
-
-// findRelatedTestFiles finds test files related to the given file.
-func (e *Engine) findRelatedTestFiles(filePath string) []string {
-	var testFiles []string
-
-	// Get directory and base name
-	dir := filepath.Dir(filePath)
-	base := filepath.Base(filePath)
-
-	// Remove .go extension
-	nameWithoutExt := base[:len(base)-3]
-
-	// Common test file patterns
-	patterns := []string{
-		nameWithoutExt + "_test.go",
-		"test_" + nameWithoutExt + ".go",
-	}
-
-	for _, pattern := range patterns {
-		testFile := filepath.Join(dir, pattern)
-		if _, err := os.Stat(testFile); err == nil {
-			testFiles = append(testFiles, testFile)
-		}
-	}
-
-	return testFiles
 }
 
 // historyStoreWrapper wraps history.Store to implement analysis.HistoryStore interface.

@@ -3,8 +3,6 @@ package analysis
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 )
 
 // HistoryStore defines the interface for history storage.
@@ -162,7 +160,7 @@ func (a *IncrementalAnalyzer) analyzeFile(filePath string) (FileAnalysisResult, 
 // hasTestFilesChanged checks if test files related to the given file have changed.
 func (a *IncrementalAnalyzer) hasTestFilesChanged(filePath string) bool {
 	// Find related test files
-	testFiles := a.findRelatedTestFiles(filePath)
+	testFiles := FindRelatedTestFiles(filePath)
 
 	for _, testFile := range testFiles {
 		if _, err := os.Stat(testFile); os.IsNotExist(err) {
@@ -182,33 +180,6 @@ func (a *IncrementalAnalyzer) hasTestFilesChanged(filePath string) bool {
 	}
 
 	return false
-}
-
-// findRelatedTestFiles finds test files related to the given file.
-func (a *IncrementalAnalyzer) findRelatedTestFiles(filePath string) []string {
-	var testFiles []string
-
-	// Get directory and base name
-	dir := filepath.Dir(filePath)
-	base := filepath.Base(filePath)
-
-	// Remove .go extension
-	nameWithoutExt := strings.TrimSuffix(base, ".go")
-
-	// Common test file patterns
-	patterns := []string{
-		nameWithoutExt + "_test.go",
-		"test_" + nameWithoutExt + ".go",
-	}
-
-	for _, pattern := range patterns {
-		testFile := filepath.Join(dir, pattern)
-		if _, err := os.Stat(testFile); err == nil {
-			testFiles = append(testFiles, testFile)
-		}
-	}
-
-	return testFiles
 }
 
 // GetFilesNeedingUpdate returns only the files that need mutation testing.

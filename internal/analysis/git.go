@@ -71,7 +71,7 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 	var goFiles []string
 
 	for _, file := range files {
-		if strings.HasSuffix(file, ".go") && !strings.HasSuffix(file, "_test.go") {
+		if IsGoSourceFile(file) {
 			// Convert to absolute path
 			absPath := filepath.Join(g.workDir, file)
 			goFiles = append(goFiles, absPath)
@@ -117,8 +117,8 @@ func (g *GitIntegration) GetAllGoFiles() ([]string, error) {
 
 			// Check if directory should be ignored by .gomuignore
 			if g.ignoreParser != nil {
-				relPath, err := filepath.Rel(g.workDir, path)
-				if err == nil && g.ignoreParser.ShouldIgnore(relPath) {
+				relPath := GetRelativePath(g.workDir, path)
+				if g.ignoreParser.ShouldIgnore(relPath) {
 					return filepath.SkipDir
 				}
 			}
@@ -126,12 +126,12 @@ func (g *GitIntegration) GetAllGoFiles() ([]string, error) {
 			return nil
 		}
 
-		// Only include Go files (not test files)
-		if strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go") {
+		// Only include Go source files (not test files)
+		if IsGoSourceFile(path) {
 			// Check if file should be ignored by .gomuignore
 			if g.ignoreParser != nil {
-				relPath, err := filepath.Rel(g.workDir, path)
-				if err == nil && g.ignoreParser.ShouldIgnore(relPath) {
+				relPath := GetRelativePath(g.workDir, path)
+				if g.ignoreParser.ShouldIgnore(relPath) {
 					return nil
 				}
 			}
