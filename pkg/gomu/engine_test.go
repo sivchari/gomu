@@ -923,10 +923,9 @@ func Untested() {}
 		t.Run(tt.name, func(t *testing.T) {
 			filePath, _ := tt.setupFiles(t)
 
-			engine := &Engine{}
 			hasher := analysis.NewFileHasher()
 
-			hash := engine.calculateTestHash(filePath, hasher)
+			hash := calculateTestHash(filePath, hasher)
 
 			if tt.expectHash && hash == "" {
 				t.Error("expected non-empty hash")
@@ -1010,8 +1009,7 @@ func TestFindRelatedTestFiles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			filePath, expectedFiles := tt.setupFiles(t)
 
-			engine := &Engine{}
-			testFiles := engine.findRelatedTestFiles(filePath)
+			testFiles := analysis.FindRelatedTestFiles(filePath)
 
 			if len(testFiles) != tt.expectedCount {
 				t.Errorf("expected %d test files, found %d", tt.expectedCount, len(testFiles))

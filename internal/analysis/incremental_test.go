@@ -306,14 +306,8 @@ func TestIncrementalAnalyzer_analyzeFile(t *testing.T) {
 
 func TestIncrementalAnalyzer_findRelatedTestFiles(t *testing.T) {
 	tmpDir := t.TempDir()
-	// History file is now handled by intelligent defaults
-
-	mockHistory := NewMockHistoryStore()
-
-	analyzer, err := NewIncrementalAnalyzer(tmpDir, mockHistory)
-	if err != nil {
-		t.Fatalf("Failed to create incremental analyzer: %v", err)
-	}
+	// The test now uses the standalone function FindRelatedTestFiles
+	// instead of the method on IncrementalAnalyzer
 
 	// Create main file and related test files
 	mainFile := filepath.Join(tmpDir, "utils.go")
@@ -327,7 +321,7 @@ func TestIncrementalAnalyzer_findRelatedTestFiles(t *testing.T) {
 		}
 	}
 
-	relatedFiles := analyzer.findRelatedTestFiles(mainFile)
+	relatedFiles := FindRelatedTestFiles(mainFile)
 
 	if len(relatedFiles) != 2 {
 		t.Errorf("Expected 2 related test files, got %d", len(relatedFiles))

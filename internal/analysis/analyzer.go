@@ -66,10 +66,7 @@ type FileInfo struct {
 func (a *Analyzer) shouldSkipDirectory(rootPath, path string) bool {
 	// Check if directory should be ignored by .gomuignore
 	if a.ignoreParser != nil {
-		relPath, err := filepath.Rel(rootPath, path)
-		if err != nil {
-			relPath = path
-		}
+		relPath := GetRelativePath(rootPath, path)
 
 		// For debugging: log what's being checked
 		// fmt.Printf("[Analyzer] Checking directory: %q (relative: %q)\n", path, relPath)
@@ -97,10 +94,7 @@ func (a *Analyzer) shouldIgnoreFile(rootPath, path string) bool {
 		return false
 	}
 
-	relPath, err := filepath.Rel(rootPath, path)
-	if err != nil {
-		relPath = path
-	}
+	relPath := GetRelativePath(rootPath, path)
 
 	// For debugging: log what's being checked
 	// fmt.Printf("[Analyzer] Checking file: %q (relative: %q)\n", path, relPath)
@@ -131,7 +125,7 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 		}
 
 		// Only process Go source files (not test files)
-		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+		if !IsGoSourceFile(path) {
 			return nil
 		}
 
@@ -282,7 +276,7 @@ func (a *Analyzer) parsePackageFiles(pkgDir string) ([]*ast.File, error) {
 
 	for _, file := range files {
 		// Skip test files for type checking
-		if strings.HasSuffix(file, "_test.go") {
+		if IsGoTestFile(file) {
 			continue
 		}
 
