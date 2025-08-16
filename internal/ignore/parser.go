@@ -183,6 +183,11 @@ func (p *Parser) GetPatterns() []Pattern {
 // FindIgnoreFile finds the .gomuignore file starting from the given directory
 // and walking up to parent directories until found or reaching the root.
 func FindIgnoreFile(startPath string) (string, error) {
+	// Handle empty path by using current directory
+	if startPath == "" {
+		startPath = "."
+	}
+
 	dir, err := filepath.Abs(startPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute path: %w", err)
