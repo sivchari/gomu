@@ -75,7 +75,10 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 		if info.IsDir() {
 			// Check if directory should be ignored by .gomuignore
 			if a.ignoreParser != nil {
-				relPath, _ := filepath.Rel(rootPath, path)
+				relPath, err := filepath.Rel(rootPath, path)
+				if err != nil {
+					relPath = path
+				}
 				if a.ignoreParser.ShouldIgnore(relPath) {
 					return filepath.SkipDir
 				}
@@ -96,7 +99,10 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 		if strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go") {
 			// Check if file should be ignored by .gomuignore (for file-specific patterns)
 			if a.ignoreParser != nil {
-				relPath, _ := filepath.Rel(rootPath, path)
+				relPath, err := filepath.Rel(rootPath, path)
+				if err != nil {
+					relPath = path
+				}
 				if a.ignoreParser.ShouldIgnore(relPath) {
 					return nil
 				}

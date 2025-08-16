@@ -22,10 +22,16 @@ type HistoryEntry struct {
 
 // IncrementalAnalyzer provides incremental analysis functionality.
 type IncrementalAnalyzer struct {
-	hasher  *FileHasher
-	git     *GitIntegration
-	history HistoryStore
-	workDir string
+	hasher       *FileHasher
+	git          *GitIntegration
+	history      HistoryStore
+	workDir      string
+	ignoreParser IgnoreParser
+}
+
+// IgnoreParser defines the interface for ignore file parsing.
+type IgnoreParser interface {
+	ShouldIgnore(filePath string) bool
 }
 
 // NewIncrementalAnalyzer creates a new incremental analyzer.
@@ -45,6 +51,12 @@ func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore) (*Increme
 		history: historyStore,
 		workDir: workDir,
 	}, nil
+}
+
+// SetIgnoreParser sets the ignore parser for the analyzer.
+func (a *IncrementalAnalyzer) SetIgnoreParser(parser IgnoreParser) {
+	a.ignoreParser = parser
+	a.git.SetIgnoreParser(parser)
 }
 
 // FileAnalysisResult represents the result of file analysis.
