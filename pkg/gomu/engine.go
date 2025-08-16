@@ -119,7 +119,7 @@ func (e *Engine) initializeCIComponents(opts *RunOptions) {
 // initializeGitHubIntegration initializes GitHub integration if conditions are met.
 func (e *Engine) initializeGitHubIntegration(opts *RunOptions) {
 	ciConfig := ci.LoadConfigFromEnv()
-	if !ciConfig.IsCIMode() || ciConfig.PRNumber >= 0 {
+	if !ciConfig.IsCIMode() || ciConfig.PRNumber <= 0 {
 		return
 	}
 
@@ -239,14 +239,8 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 			return fmt.Errorf("failed to load .gomuignore file: %w", err)
 		}
 
-		// Always log when .gomuignore is loaded in CI mode
-		if opts.Verbose || opts.CIMode {
+		if opts.Verbose {
 			log.Printf("Loaded .gomuignore file from: %s", ignoreFile)
-			log.Printf("Loaded patterns from .gomuignore:")
-
-			for _, p := range parser.GetPatterns() {
-				log.Printf("  Pattern: %q (negate: %v)", p.Pattern, p.Negate)
-			}
 		}
 
 		// Create new analyzer with ignore parser
@@ -257,8 +251,6 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 
 		e.analyzer = analyzer
 		ignoreParser = parser
-	} else if opts.CIMode {
-		log.Printf("No .gomuignore file found from path: %s", absPath)
 	}
 
 	analysisResults, files, err := e.performIncrementalAnalysis(absPath, opts, ignoreParser)

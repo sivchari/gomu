@@ -67,12 +67,7 @@ func (a *Analyzer) shouldSkipDirectory(rootPath, path string) bool {
 	// Check if directory should be ignored by .gomuignore
 	if a.ignoreParser != nil {
 		relPath := GetRelativePath(rootPath, path)
-
-		// For debugging: log what's being checked
-		// fmt.Printf("[Analyzer] Checking directory: %q (relative: %q)\n", path, relPath)
-
 		if a.ignoreParser.ShouldIgnore(relPath) {
-			// fmt.Printf("[Analyzer] Directory ignored: %q\n", relPath)
 			return true
 		}
 	}
@@ -96,14 +91,7 @@ func (a *Analyzer) shouldIgnoreFile(rootPath, path string) bool {
 
 	relPath := GetRelativePath(rootPath, path)
 
-	// For debugging: log what's being checked
-	// fmt.Printf("[Analyzer] Checking file: %q (relative: %q)\n", path, relPath)
-	result := a.ignoreParser.ShouldIgnore(relPath)
-	// if result {
-	// 	fmt.Printf("[Analyzer] File ignored: %q\n", relPath)
-	// }
-
-	return result
+	return a.ignoreParser.ShouldIgnore(relPath)
 }
 
 // FindTargetFiles discovers Go source files to be tested.
