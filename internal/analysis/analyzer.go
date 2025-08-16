@@ -62,6 +62,45 @@ type FileInfo struct {
 	TypeInfo *types.Info
 }
 
+// shouldSkipDirectory checks if a directory should be skipped.
+func (a *Analyzer) shouldSkipDirectory(rootPath, path string) bool {
+	// Check if directory should be ignored by .gomuignore
+	if a.ignoreParser != nil {
+		relPath, err := filepath.Rel(rootPath, path)
+		if err != nil {
+			relPath = path
+		}
+
+		if a.ignoreParser.ShouldIgnore(relPath) {
+			return true
+		}
+	}
+
+	// Skip standard excluded directories
+	excludeDirs := []string{"vendor", "testdata"}
+	for _, exclude := range excludeDirs {
+		if strings.Contains(path, exclude) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// shouldIgnoreFile checks if a file should be ignored.
+func (a *Analyzer) shouldIgnoreFile(rootPath, path string) bool {
+	if a.ignoreParser == nil {
+		return false
+	}
+
+	relPath, err := filepath.Rel(rootPath, path)
+	if err != nil {
+		relPath = path
+	}
+
+	return a.ignoreParser.ShouldIgnore(relPath)
+}
+
 // FindTargetFiles discovers Go source files to be tested.
 func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 	var files []string
@@ -73,43 +112,24 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 
 		// Skip directories
 		if info.IsDir() {
-			// Check if directory should be ignored by .gomuignore
-			if a.ignoreParser != nil {
-				relPath, err := filepath.Rel(rootPath, path)
-				if err != nil {
-					relPath = path
-				}
-				if a.ignoreParser.ShouldIgnore(relPath) {
-					return filepath.SkipDir
-				}
-			}
-
-			// Skip standard excluded directories
-			excludeDirs := []string{"vendor", "testdata"}
-			for _, exclude := range excludeDirs {
-				if strings.Contains(path, exclude) {
-					return filepath.SkipDir
-				}
+			if skip := a.shouldSkipDirectory(rootPath, path); skip {
+				return filepath.SkipDir
 			}
 
 			return nil
 		}
 
 		// Only process Go source files (not test files)
-		if strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go") {
-			// Check if file should be ignored by .gomuignore (for file-specific patterns)
-			if a.ignoreParser != nil {
-				relPath, err := filepath.Rel(rootPath, path)
-				if err != nil {
-					relPath = path
-				}
-				if a.ignoreParser.ShouldIgnore(relPath) {
-					return nil
-				}
-			}
-
-			files = append(files, path)
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
 		}
+
+		// Check if file should be ignored by .gomuignore (for file-specific patterns)
+		if a.shouldIgnoreFile(rootPath, path) {
+			return nil
+		}
+
+		files = append(files, path)
 
 		return nil
 	})

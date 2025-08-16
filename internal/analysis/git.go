@@ -135,6 +135,7 @@ func (g *GitIntegration) GetAllGoFiles() ([]string, error) {
 					return nil
 				}
 			}
+
 			goFiles = append(goFiles, path)
 		}
 
