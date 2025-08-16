@@ -37,9 +37,9 @@ func TestLoadFromReader(t *testing.T) {
 vendor/
 testdata/`,
 			expected: []Pattern{
-				{pattern: "*.go", negate: false},
-				{pattern: "vendor/", negate: false},
-				{pattern: "testdata/", negate: false},
+				{Pattern: "*.go", Negate: false},
+				{Pattern: "vendor/", Negate: false},
+				{Pattern: "testdata/", Negate: false},
 			},
 		},
 		{
@@ -50,8 +50,8 @@ testdata/`,
 # Another comment
 vendor/`,
 			expected: []Pattern{
-				{pattern: "*.go", negate: false},
-				{pattern: "vendor/", negate: false},
+				{Pattern: "*.go", Negate: false},
+				{Pattern: "vendor/", Negate: false},
 			},
 		},
 		{
@@ -61,10 +61,10 @@ vendor/`,
 vendor/
 !vendor/keep/`,
 			expected: []Pattern{
-				{pattern: "*.go", negate: false},
-				{pattern: "important.go", negate: true},
-				{pattern: "vendor/", negate: false},
-				{pattern: "vendor/keep/", negate: true},
+				{Pattern: "*.go", Negate: false},
+				{Pattern: "important.go", Negate: true},
+				{Pattern: "vendor/", Negate: false},
+				{Pattern: "vendor/keep/", Negate: true},
 			},
 		},
 	}
@@ -86,14 +86,14 @@ vendor/
 
 			for i, expected := range tc.expected {
 				actual := parser.patterns[i]
-				if actual.pattern != expected.pattern {
+				if actual.Pattern != expected.Pattern {
 					t.Errorf("pattern[%d] is wrong: expected='%s', actual='%s'",
-						i, expected.pattern, actual.pattern)
+						i, expected.Pattern, actual.Pattern)
 				}
 
-				if actual.negate != expected.negate {
+				if actual.Negate != expected.Negate {
 					t.Errorf("negate flag[%d] is wrong: expected=%t, actual=%t",
-						i, expected.negate, actual.negate)
+						i, expected.Negate, actual.Negate)
 				}
 			}
 		})
@@ -153,10 +153,10 @@ func TestShouldIgnore(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:     "partial path match",
-			patterns: "testdata",
+			name:     "subdirectory not matched by root pattern",
+			patterns: "testdata/",
 			filePath: "internal/testdata/sample.go",
-			expected: true,
+			expected: false,
 		},
 		{
 			name:     "no pattern match",
@@ -318,7 +318,7 @@ func TestMatchPattern(t *testing.T) {
 		{"vendor/", "vendor/pkg/file.go", true, "directory pattern (subdirectory)"},
 		{"src/main.go", "project/src/main.go", true, "path suffix match"},
 		{"config.json", "app/config/config.json", true, "basename match"},
-		{"test", "src/test/file.go", true, "partial path match"},
+		{"test/", "src/test/file.go", false, "subdirectory not matched"},
 		{"*.txt", "main.go", false, "wildcard (no match)"},
 		{"exact.go", "different.go", false, "exact match (no match)"},
 	}
@@ -362,14 +362,14 @@ vendor/
 	}
 
 	for i, exp := range expected {
-		if patterns[i].pattern != exp.pattern {
+		if patterns[i].Pattern != exp.pattern {
 			t.Errorf("pattern[%d] is wrong: expected='%s', actual='%s'",
-				i, exp.pattern, patterns[i].pattern)
+				i, exp.pattern, patterns[i].Pattern)
 		}
 
-		if patterns[i].negate != exp.negate {
+		if patterns[i].Negate != exp.negate {
 			t.Errorf("negate flag[%d] is wrong: expected=%t, actual=%t",
-				i, exp.negate, patterns[i].negate)
+				i, exp.negate, patterns[i].Negate)
 		}
 	}
 }
