@@ -11,7 +11,8 @@ import (
 
 // GitIntegration provides Git integration functionality.
 type GitIntegration struct {
-	workDir string
+	workDir      string
+	ignoreParser IgnoreParser
 }
 
 // NewGitIntegration creates a new Git integration.
@@ -19,6 +20,11 @@ func NewGitIntegration(workDir string) *GitIntegration {
 	return &GitIntegration{
 		workDir: workDir,
 	}
+}
+
+// SetIgnoreParser sets the ignore parser for the Git integration.
+func (g *GitIntegration) SetIgnoreParser(parser IgnoreParser) {
+	g.ignoreParser = parser
 }
 
 // IsGitRepository checks if the current directory is a Git repository.
@@ -109,11 +115,26 @@ func (g *GitIntegration) GetAllGoFiles() ([]string, error) {
 				return filepath.SkipDir
 			}
 
+			// Check if directory should be ignored by .gomuignore
+			if g.ignoreParser != nil {
+				relPath, err := filepath.Rel(g.workDir, path)
+				if err == nil && g.ignoreParser.ShouldIgnore(relPath) {
+					return filepath.SkipDir
+				}
+			}
+
 			return nil
 		}
 
 		// Only include Go files (not test files)
 		if strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go") {
+			// Check if file should be ignored by .gomuignore
+			if g.ignoreParser != nil {
+				relPath, err := filepath.Rel(g.workDir, path)
+				if err == nil && g.ignoreParser.ShouldIgnore(relPath) {
+					return nil
+				}
+			}
 			goFiles = append(goFiles, path)
 		}
 

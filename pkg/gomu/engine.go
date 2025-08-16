@@ -46,29 +46,8 @@ type RunOptions struct {
 
 // NewEngine creates a new mutation testing engine.
 func NewEngine(opts *RunOptions) (*Engine, error) {
-	// Load .gomuignore file once at initialization
-	var analyzerOpts []analysis.Option
-
-	ignoreFile, err := ignore.FindIgnoreFile(".")
-	if err != nil {
-		return nil, fmt.Errorf("failed to find .gomuignore file: %w", err)
-	}
-
-	if ignoreFile != "" {
-		ignoreParser := ignore.New()
-		if err := ignoreParser.LoadFromFile(ignoreFile); err != nil {
-			return nil, fmt.Errorf("failed to load .gomuignore file: %w", err)
-		}
-
-		if opts != nil && opts.Verbose {
-			log.Printf("Loaded .gomuignore file from: %s", ignoreFile)
-		}
-
-		analyzerOpts = append(analyzerOpts, analysis.WithIgnoreParser(ignoreParser))
-	}
-
-	// Create analyzer with options
-	analyzer, err := analysis.New(analyzerOpts...)
+	// Create analyzer without ignore parser - it will be set later in Run
+	analyzer, err := analysis.New()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create analyzer: %w", err)
 	}
@@ -195,7 +174,7 @@ func (e *Engine) getAbsolutePath(path string) (string, error) {
 }
 
 // performIncrementalAnalysis performs incremental analysis and returns results and files to process.
-func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions) ([]analysis.FileAnalysisResult, []string, error) {
+func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions, ignoreParser analysis.IgnoreParser) ([]analysis.FileAnalysisResult, []string, error) {
 	// Initialize incremental analyzer
 	historyWrapper := &historyStoreWrapper{store: e.history}
 
@@ -204,6 +183,11 @@ func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions) ([
 	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(absPath, historyWrapper)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create incremental analyzer: %w", err)
+	}
+
+	// Set ignore parser if provided
+	if ignoreParser != nil {
+		e.incrementalAnalyzer.SetIgnoreParser(ignoreParser)
 	}
 
 	// Perform incremental analysis
@@ -241,7 +225,33 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		return err
 	}
 
-	analysisResults, files, err := e.performIncrementalAnalysis(absPath, opts)
+	// Load .gomuignore file from the target path
+	ignoreFile, err := ignore.FindIgnoreFile(absPath)
+	if err != nil {
+		return fmt.Errorf("failed to find .gomuignore file: %w", err)
+	}
+
+	var ignoreParser analysis.IgnoreParser
+	if ignoreFile != "" {
+		parser := ignore.New()
+		if err := parser.LoadFromFile(ignoreFile); err != nil {
+			return fmt.Errorf("failed to load .gomuignore file: %w", err)
+		}
+
+		if opts.Verbose {
+			log.Printf("Loaded .gomuignore file from: %s", ignoreFile)
+		}
+
+		// Create new analyzer with ignore parser
+		analyzer, err := analysis.New(analysis.WithIgnoreParser(parser))
+		if err != nil {
+			return fmt.Errorf("failed to create analyzer with ignore parser: %w", err)
+		}
+		e.analyzer = analyzer
+		ignoreParser = parser
+	}
+
+	analysisResults, files, err := e.performIncrementalAnalysis(absPath, opts, ignoreParser)
 	if err != nil {
 		return err
 	}
