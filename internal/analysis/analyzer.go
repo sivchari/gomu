@@ -71,7 +71,11 @@ func (a *Analyzer) shouldSkipDirectory(rootPath, path string) bool {
 			relPath = path
 		}
 
+		// For debugging: log what's being checked
+		// fmt.Printf("[Analyzer] Checking directory: %q (relative: %q)\n", path, relPath)
+
 		if a.ignoreParser.ShouldIgnore(relPath) {
+			// fmt.Printf("[Analyzer] Directory ignored: %q\n", relPath)
 			return true
 		}
 	}
@@ -98,7 +102,14 @@ func (a *Analyzer) shouldIgnoreFile(rootPath, path string) bool {
 		relPath = path
 	}
 
-	return a.ignoreParser.ShouldIgnore(relPath)
+	// For debugging: log what's being checked
+	// fmt.Printf("[Analyzer] Checking file: %q (relative: %q)\n", path, relPath)
+	result := a.ignoreParser.ShouldIgnore(relPath)
+	// if result {
+	// 	fmt.Printf("[Analyzer] File ignored: %q\n", relPath)
+	// }
+
+	return result
 }
 
 // FindTargetFiles discovers Go source files to be tested.

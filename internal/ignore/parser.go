@@ -17,8 +17,8 @@ type Parser struct {
 
 // Pattern represents an ignore pattern.
 type Pattern struct {
-	pattern string
-	negate  bool // true if pattern starts with '!'
+	Pattern string
+	Negate  bool // true if pattern starts with '!'
 }
 
 // New creates a new ignore parser.
@@ -56,14 +56,14 @@ func (p *Parser) LoadFromReader(reader io.Reader) error {
 		}
 
 		pattern := Pattern{
-			pattern: line,
-			negate:  false,
+			Pattern: line,
+			Negate:  false,
 		}
 
 		// Handle negation patterns (starting with '!')
 		if strings.HasPrefix(line, "!") {
-			pattern.pattern = strings.TrimPrefix(line, "!")
-			pattern.negate = true
+			pattern.Pattern = strings.TrimPrefix(line, "!")
+			pattern.Negate = true
 		}
 
 		p.patterns = append(p.patterns, pattern)
@@ -85,10 +85,10 @@ func (p *Parser) ShouldIgnore(filePath string) bool {
 
 	// Process patterns in order
 	for _, pattern := range p.patterns {
-		matched := p.matchPattern(pattern.pattern, normalizedPath)
+		matched := p.matchPattern(pattern.Pattern, normalizedPath)
 
 		if matched {
-			if pattern.negate {
+			if pattern.Negate {
 				// Negation pattern - don't ignore this file
 				ignored = false
 			} else {
@@ -108,10 +108,7 @@ func (p *Parser) matchPattern(pattern, filePath string) bool {
 
 	// Handle directory patterns (ending with '/')
 	if strings.HasSuffix(pattern, "/") {
-		// Directory pattern - check if path starts with pattern
-		dirPattern := strings.TrimSuffix(pattern, "/")
-
-		return strings.HasPrefix(filePath, dirPattern+"/") || filePath == dirPattern
+		return p.matchDirectoryPattern(pattern, filePath)
 	}
 
 	// Handle patterns with wildcards
@@ -133,11 +130,6 @@ func (p *Parser) matchPattern(pattern, filePath string) bool {
 		return true
 	}
 
-	// Check if pattern matches any part of the path
-	if strings.Contains(filePath, pattern) {
-		return true
-	}
-
 	// Check if pattern matches the basename
 	if pattern == filepath.Base(filePath) {
 		return true
@@ -145,6 +137,38 @@ func (p *Parser) matchPattern(pattern, filePath string) bool {
 
 	// Handle patterns like "dir/file.go"
 	if strings.Contains(pattern, "/") && strings.HasSuffix(filePath, pattern) {
+		return true
+	}
+
+	return false
+}
+
+// matchDirectoryPattern handles directory pattern matching.
+func (p *Parser) matchDirectoryPattern(pattern, filePath string) bool {
+	// Directory pattern - check if path starts with pattern
+	dirPattern := strings.TrimSuffix(pattern, "/")
+
+	// For simple directory names (no slash in pattern), only match at the beginning
+	if !strings.Contains(dirPattern, "/") {
+		// Check if file is in the directory or subdirectory at the root level
+		if strings.HasPrefix(filePath, dirPattern+"/") {
+			return true
+		}
+
+		// Check if file path exactly matches the directory
+		if filePath == dirPattern {
+			return true
+		}
+
+		return false
+	}
+
+	// For patterns with slashes, match as prefix
+	if strings.HasPrefix(filePath, dirPattern+"/") {
+		return true
+	}
+
+	if filePath == dirPattern {
 		return true
 	}
 

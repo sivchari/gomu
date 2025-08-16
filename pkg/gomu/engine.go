@@ -241,6 +241,11 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 
 		if opts.Verbose {
 			log.Printf("Loaded .gomuignore file from: %s", ignoreFile)
+			log.Printf("Loaded patterns from .gomuignore:")
+
+			for _, p := range parser.GetPatterns() {
+				log.Printf("  Pattern: %q (negate: %v)", p.Pattern, p.Negate)
+			}
 		}
 
 		// Create new analyzer with ignore parser
