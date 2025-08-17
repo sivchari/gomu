@@ -454,8 +454,13 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 		fileResults[result.Mutant.FilePath] = append(fileResults[result.Mutant.FilePath], result)
 	}
 
-	// Create file reports
+	// Create file reports - only include files with actual mutations
 	for filePath, results := range fileResults {
+		// Skip files with no results (shouldn't happen but be defensive)
+		if len(results) == 0 {
+			continue
+		}
+
 		fileReport := &report.FileReport{
 			FilePath:      filePath,
 			TotalMutants:  len(results),
@@ -473,9 +478,9 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 
 		if fileReport.TotalMutants > 0 {
 			fileReport.MutationScore = float64(fileReport.KilledMutants) / float64(fileReport.TotalMutants) * 100
+			// Only add files with mutations to the report
+			files[filePath] = fileReport
 		}
-
-		files[filePath] = fileReport
 	}
 
 	return &report.Summary{
