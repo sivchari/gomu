@@ -236,6 +236,12 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 				continue
 			}
 
+			// Skip files in cmd/ directory (these should be ignored per .gomuignore)
+			// Check if the path contains "/cmd/" to handle both absolute and relative paths
+			if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
+				continue
+			}
+
 			// Truncate long file paths for better readability
 			displayPath := fileReport.FilePath
 			if len(displayPath) > 50 {
