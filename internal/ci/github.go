@@ -190,6 +190,7 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 			if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
 				continue
 			}
+
 			actualTotalMutants += fileReport.TotalMutants
 			actualKilledMutants += fileReport.KilledMutants
 		}
@@ -245,6 +246,7 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 		if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
 			continue
 		}
+
 		if fileReport.TotalMutants > 0 {
 			hasFilesWithMutations = true
 
