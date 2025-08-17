@@ -119,7 +119,7 @@ func (e *Engine) initializeCIComponents(opts *RunOptions) {
 // initializeGitHubIntegration initializes GitHub integration if conditions are met.
 func (e *Engine) initializeGitHubIntegration(opts *RunOptions) {
 	ciConfig := ci.LoadConfigFromEnv()
-	if !ciConfig.IsCIMode() || ciConfig.PRNumber <= 0 {
+	if !ciConfig.IsCIMode() || ciConfig.PRNumber < 0 {
 		return
 	}
 
