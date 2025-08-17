@@ -179,6 +179,19 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 
 	buf.WriteString("## 🧬 Mutation Testing Results\n\n")
 
+	// Calculate actual totals excluding ignored files (cmd/ directory)
+	actualTotalMutants := 0
+	actualKilledMutants := 0
+
+	for _, fileReport := range summary.Files {
+		// Skip files in cmd/ directory (these should be ignored per .gomuignore)
+		if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
+			continue
+		}
+		actualTotalMutants += fileReport.TotalMutants
+		actualKilledMutants += fileReport.KilledMutants
+	}
+
 	// Handle nil quality result
 	var mutationScore float64
 
@@ -186,16 +199,14 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 
 	var reason string
 
-	if qualityResult != nil {
-		mutationScore = qualityResult.MutationScore
-		passed = qualityResult.Pass
+	if qualityResult != nil && actualTotalMutants > 0 {
+		// Recalculate mutation score excluding ignored files
+		mutationScore = float64(actualKilledMutants) / float64(actualTotalMutants) * 100
+		passed = mutationScore >= 80.0
 		reason = qualityResult.Reason
-	} else {
-		// Calculate mutation score from summary if quality gate is not available
-		if summary.TotalMutants > 0 {
-			mutationScore = float64(summary.KilledMutants) / float64(summary.TotalMutants) * 100
-		}
-
+	} else if actualTotalMutants > 0 {
+		// Calculate mutation score from filtered summary
+		mutationScore = float64(actualKilledMutants) / float64(actualTotalMutants) * 100
 		passed = mutationScore >= 80.0 // Default threshold
 		reason = noQualityGateMessage
 	}
@@ -209,14 +220,18 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 
 	// Summary
 	buf.WriteString(fmt.Sprintf("**Overall Mutation Score:** %.1f%%\n", mutationScore))
-	buf.WriteString(fmt.Sprintf("**Total Mutants:** %d\n", summary.TotalMutants))
-	buf.WriteString(fmt.Sprintf("**Killed:** %d\n", summary.KilledMutants))
+	buf.WriteString(fmt.Sprintf("**Total Mutants:** %d\n", actualTotalMutants))
+	buf.WriteString(fmt.Sprintf("**Killed:** %d\n", actualKilledMutants))
 	buf.WriteString("\n")
 
 	// File details - only show files with mutations
 	hasFilesWithMutations := false
 
 	for _, fileReport := range summary.Files {
+		// Skip files in cmd/ directory
+		if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
+			continue
+		}
 		if fileReport.TotalMutants > 0 {
 			hasFilesWithMutations = true
 
