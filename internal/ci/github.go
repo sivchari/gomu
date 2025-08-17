@@ -182,25 +182,16 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	// Calculate actual totals excluding ignored files (cmd/ directory)
 	actualTotalMutants := 0
 	actualKilledMutants := 0
-	cmdFilesSkipped := 0
-	cmdMutantsSkipped := 0
 
 	// If Files is not empty, calculate from file reports
 	if len(summary.Files) > 0 {
 		for _, fileReport := range summary.Files {
 			// Skip files in cmd/ directory (these should be ignored per .gomuignore)
 			if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
-				cmdFilesSkipped++
-				cmdMutantsSkipped += fileReport.TotalMutants
 				continue
 			}
 			actualTotalMutants += fileReport.TotalMutants
 			actualKilledMutants += fileReport.KilledMutants
-		}
-		// If we filtered out files but ended up with 0 actual mutants, use the original totals minus the skipped ones
-		if actualTotalMutants == 0 && cmdFilesSkipped > 0 {
-			actualTotalMutants = summary.TotalMutants - cmdMutantsSkipped
-			actualKilledMutants = summary.KilledMutants
 		}
 	} else {
 		// Fallback to summary totals if Files is empty
