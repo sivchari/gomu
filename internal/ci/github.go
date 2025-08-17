@@ -213,14 +213,37 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	buf.WriteString(fmt.Sprintf("**Killed:** %d\n", summary.KilledMutants))
 	buf.WriteString("\n")
 
-	// File details
-	if len(summary.Files) > 0 {
+	// File details - only show files with mutations
+	hasFilesWithMutations := false
+
+	for _, fileReport := range summary.Files {
+		if fileReport.TotalMutants > 0 {
+			hasFilesWithMutations = true
+
+			break
+		}
+	}
+
+	if hasFilesWithMutations {
+		buf.WriteString("### Files with Mutations\n\n")
 		buf.WriteString("| File | Score | Mutants | Killed |\n")
 		buf.WriteString("|------|-------|---------|--------|\n")
 
+		// Sort and filter files
 		for _, fileReport := range summary.Files {
+			// Skip files with no mutations (likely ignored by .gomuignore)
+			if fileReport.TotalMutants == 0 {
+				continue
+			}
+
+			// Truncate long file paths for better readability
+			displayPath := fileReport.FilePath
+			if len(displayPath) > 50 {
+				displayPath = "..." + displayPath[len(displayPath)-47:]
+			}
+
 			buf.WriteString(fmt.Sprintf("| %s | %.1f%% | %d | %d |\n",
-				fileReport.FilePath,
+				displayPath,
 				fileReport.MutationScore,
 				fileReport.TotalMutants,
 				fileReport.KilledMutants,
