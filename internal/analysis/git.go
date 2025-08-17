@@ -67,11 +67,16 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 		return []string{}, nil
 	}
 
-	// Filter for Go files
+	// Filter for Go files and apply ignore patterns
 	var goFiles []string
 
 	for _, file := range files {
 		if IsGoSourceFile(file) {
+			// Check if file should be ignored
+			if g.ignoreParser != nil && g.ignoreParser.ShouldIgnore(file) {
+				continue
+			}
+
 			// Convert to absolute path
 			absPath := filepath.Join(g.workDir, file)
 			goFiles = append(goFiles, absPath)
