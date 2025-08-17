@@ -183,13 +183,20 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	actualTotalMutants := 0
 	actualKilledMutants := 0
 
-	for _, fileReport := range summary.Files {
-		// Skip files in cmd/ directory (these should be ignored per .gomuignore)
-		if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
-			continue
+	// If Files is not empty, calculate from file reports
+	if len(summary.Files) > 0 {
+		for _, fileReport := range summary.Files {
+			// Skip files in cmd/ directory (these should be ignored per .gomuignore)
+			if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
+				continue
+			}
+			actualTotalMutants += fileReport.TotalMutants
+			actualKilledMutants += fileReport.KilledMutants
 		}
-		actualTotalMutants += fileReport.TotalMutants
-		actualKilledMutants += fileReport.KilledMutants
+	} else {
+		// Fallback to summary totals if Files is empty
+		actualTotalMutants = summary.TotalMutants
+		actualKilledMutants = summary.KilledMutants
 	}
 
 	// Handle nil quality result
@@ -199,11 +206,17 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 
 	var reason string
 
-	if qualityResult != nil && actualTotalMutants > 0 {
-		// Recalculate mutation score excluding ignored files
-		mutationScore = float64(actualKilledMutants) / float64(actualTotalMutants) * 100
-		passed = mutationScore >= 80.0
+	if qualityResult != nil {
+		// Use the quality result's pass/fail decision and reason
+		passed = qualityResult.Pass
 		reason = qualityResult.Reason
+
+		// Recalculate mutation score with filtered data if Files is available
+		if actualTotalMutants > 0 {
+			mutationScore = float64(actualKilledMutants) / float64(actualTotalMutants) * 100
+		} else {
+			mutationScore = qualityResult.MutationScore
+		}
 	} else if actualTotalMutants > 0 {
 		// Calculate mutation score from filtered summary
 		mutationScore = float64(actualKilledMutants) / float64(actualTotalMutants) * 100
