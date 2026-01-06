@@ -474,6 +474,7 @@ func Subtract(a, b int) int {
 						funcCount++
 					}
 				}
+
 				if funcCount != 2 {
 					t.Errorf("expected 2 functions, got %d", funcCount)
 				}

@@ -130,6 +130,7 @@ func TestBitwiseMutator_Mutate(t *testing.T) {
 
 			// Find expression to mutate
 			var expr ast.Expr
+
 			ast.Inspect(file, func(node ast.Node) bool {
 				if e, ok := node.(ast.Expr); ok && mutator.CanMutate(e) {
 					expr = e
@@ -241,6 +242,7 @@ func TestBitwiseMutator_Apply(t *testing.T) {
 			}
 
 			var node ast.Node
+
 			ast.Inspect(file, func(n ast.Node) bool {
 				switch tt.mutantType {
 				case "bitwise_binary":

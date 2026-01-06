@@ -68,6 +68,7 @@ func TestGitHubIntegration_CreatePRComment(t *testing.T) {
 						// Create comment
 						var body PRComment
 						json.NewDecoder(r.Body).Decode(&body)
+
 						if body.Body == "" {
 							w.WriteHeader(http.StatusBadRequest)
 
