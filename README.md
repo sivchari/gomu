@@ -2,7 +2,7 @@
 
 A high-performance mutation testing tool for Go that helps validate the quality of your test suite.
 
-[![Go Version](https://img.shields.io/badge/go-1.24+-blue.svg)](https://golang.org/dl/)
+[![Go Version](https://img.shields.io/badge/go-1.21+-blue.svg)](https://golang.org/dl/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## What is Mutation Testing?
@@ -11,29 +11,29 @@ Mutation testing evaluates the quality of your test suite by introducing control
 
 ## Features
 
-### 🚀 High Performance
+### High Performance
 - **Incremental Analysis**: Only test changed files with Git integration
 - **Parallel Execution**: Leverage goroutines for concurrent mutation testing
 - **Efficient AST Processing**: Fast Go code analysis and mutation generation
 
-### 🎯 Go-Specific Optimizations
+### Go-Specific Optimizations
 - **Type-Safe Mutations**: Leverage Go's type system for intelligent mutations
 - **Error Handling Patterns**: Specialized mutations for Go error handling
 - **Interface Mutations**: Targeted interface implementation testing
 
-### 🔧 CI/CD Integration
+### CI/CD Integration
 - **Quality Gates**: Configurable mutation score thresholds
 - **GitHub Integration**: Automatic PR comments with test results
 - **Multiple Output Formats**: JSON, HTML, and console reporting
 - **Artifact Generation**: CI-friendly report artifacts
 
-### 🛠️ Developer Experience
-- **YAML Configuration**: Clean, unified configuration format
+### Developer Experience
+- **CLI-Based Configuration**: Simple command-line flags for all settings
 - **Rich Reporting**: Detailed HTML, JSON, and console output formats
-- **CLI Integration**: Simple command-line interface with intuitive subcommands
 - **Flexible Targeting**: Run on specific files, directories, or changed files only
+- **.gomuignore Support**: Exclude files and directories from mutation testing
 
-### 📊 Advanced Analysis
+### Advanced Analysis
 - **History Tracking**: JSON-based incremental analysis for faster reruns
 - **Git Integration**: Automatic detection of changed files
 - **Mutation Score**: Comprehensive quality metrics
@@ -55,160 +55,89 @@ go build -o gomu ./cmd/gomu
 
 ## Quick Start
 
-1. **Initialize configuration:**
-```bash
-gomu config init
-```
-
-2. **Run on current directory:**
+1. **Run on current directory:**
 ```bash
 gomu run
 ```
 
-3. **Run in CI environment:**
+2. **Run in CI environment:**
 ```bash
 gomu run --ci-mode
 ```
 
-4. **Run on specific directory:**
+3. **Run on specific directory:**
 ```bash
 gomu run ./pkg/mypackage
 ```
 
-5. **Verbose output:**
+4. **Verbose output:**
 ```bash
 gomu run -v
 ```
 
-## Configuration
-
-Create a `.gomu.yaml` file in your project root using:
-
+5. **Custom threshold and workers:**
 ```bash
-gomu config init
-```
-
-Example unified configuration (works for both local and CI environments):
-
-```yaml
-# General settings
-verbose: false
-workers: 4
-
-# Test configuration
-test:
-  command: "go test"
-  timeout: 30
-  patterns:
-    - "*_test.go"
-  exclude:
-    - "vendor/"
-    - ".git/"
-    - "node_modules/"
-
-# Mutation configuration
-mutation:
-  types:
-    - "arithmetic"
-    - "conditional" 
-    - "logical"
-  limit: 1000
-
-# Incremental analysis for performance
-incremental:
-  enabled: true
-  historyFile: ".gomu_history.json"
-  useGitDiff: true
-  baseBranch: "main"
-
-# Output configuration
-output:
-  format: "json"
-  file: ""
-  html:
-    template: ""
-    css: ""
-
-# CI/CD integration - single config file for both local and CI environments
-ci:
-  enabled: true
-  
-  # Environment detection (auto-detects CI vs local)
-  mode: "auto"  # auto, local, ci
-  
-  # Quality gates for CI/CD
-  qualityGate:
-    enabled: true
-    minMutationScore: 80.0
-    maxSurvivors: 0
-    failOnQualityGate: true
-    gradualEnforcement: false
-    baselineFile: ""
-  
-  # GitHub integration (only active in CI)
-  github:
-    enabled: true
-    prComments: true
-    badges: true
-    token: "${GITHUB_TOKEN}"
-    repository: "${GITHUB_REPOSITORY}"
-    prNumber: "${GITHUB_PR_NUMBER}"
-    baseRef: "${GITHUB_BASE_REF}"
-    headRef: "${GITHUB_HEAD_REF}"
-  
-  # CI reports and artifacts
-  reports:
-    formats:
-      - "json"
-      - "html"
-    outputDir: "."
-    artifacts: true
-    
-  # CI-specific optimizations
-  performance:
-    parallelWorkers: 4
-    timeoutMultiplier: 1.5
-    incrementalAnalysis: true
-```
-
-### Single Configuration Philosophy
-
-gomu uses a **single configuration file** approach:
-
-- **Local Development**: Run `gomu run` using the same `.gomu.yaml`
-- **CI Environment**: Run `gomu run --ci-mode` using the same `.gomu.yaml`
-- **Auto-Detection**: gomu automatically detects the environment and applies appropriate settings
-- **Environment Variables**: CI-specific values like `GITHUB_TOKEN` are injected automatically
-
-### Configuration Validation
-
-Validate your configuration:
-
-```bash
-gomu config validate
+gomu run --threshold 85.0 --workers 8
 ```
 
 ## Commands
 
 ### Basic Usage
 
-- `gomu run [path]` - Run mutation testing
-- `gomu run --ci-mode [path]` - Run mutation testing in CI/CD environment
+- `gomu run [path]` - Run mutation testing on the specified path (default: current directory)
 - `gomu version` - Show version information
 
-### Configuration Management
+### Run Command Options
 
-- `gomu config init` - Initialize a new configuration file
-- `gomu config validate [config-file]` - Validate configuration
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--ci-mode` | `false` | Enable CI mode with quality gates and GitHub integration |
+| `--threshold` | `80.0` | Minimum mutation score threshold (0-100) |
+| `--workers` | `4` | Number of parallel workers |
+| `--timeout` | `30` | Test timeout in seconds |
+| `--incremental` | `true` | Enable incremental analysis |
+| `--base-branch` | `main` | Base branch for incremental analysis |
+| `--output` | `json` | Output format (json, html, console) |
+| `--fail-on-gate` | `true` | Fail build when quality gate is not met |
+| `-v, --verbose` | `false` | Verbose output |
 
-### CI/CD Command Options
-
-The `gomu run --ci-mode` command includes additional options for CI/CD environments:
+### Examples
 
 ```bash
-gomu run --ci-mode --threshold 85.0                    # Set quality gate threshold
-gomu run --ci-mode --format html                       # Output format (json, html, console)
-gomu run --ci-mode --fail-on-gate=false               # Don't fail build on quality gate
+# Basic run with default settings
+gomu run
+
+# Run with custom threshold
+gomu run --threshold 85.0
+
+# Run in CI mode with HTML output
+gomu run --ci-mode --output html
+
+# Run with more workers and longer timeout
+gomu run --workers 8 --timeout 60
+
+# Run on specific package with verbose output
+gomu run ./internal/mypackage -v
+
+# Disable incremental analysis
+gomu run --incremental=false
+```
+
+## .gomuignore
+
+Create a `.gomuignore` file in your project root to exclude files and directories from mutation testing. The syntax is similar to `.gitignore`:
+
+```
+# Exclude directories
+cmd/
+vendor/
+testdata/
+
+# Exclude specific files
+*_generated.go
+
+# Negate pattern (include previously excluded)
+!cmd/important/
 ```
 
 ## Mutation Types
@@ -230,6 +159,13 @@ gomu run --ci-mode --fail-on-gate=false               # Don't fail build on qual
 - Replace `&&` with `||`
 - Replace `||` with `&&`
 - Remove `!` (NOT) operators
+
+### Bitwise Mutations
+- Replace `&` with `|`, `^`
+- Replace `|` with `&`, `^`
+- Replace `^` with `&`, `|`
+- Replace `>>` with `<<`
+- Replace `<<` with `>>`
 
 ## CI/CD Integration
 
@@ -253,16 +189,16 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
-    
+
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
+
     - name: Run mutation testing
       uses: sivchari/gomu@main
       with:
-        go-version: '1.24'
+        go-version: '1.21'
         threshold: '80'
         workers: '4'
         timeout: '30'
@@ -325,31 +261,31 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
-    
+
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
+
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.24'
-    
+        go-version: '1.21'
+
     - name: Install gomu
       run: go install github.com/sivchari/gomu/cmd/gomu@latest
-    
+
     - name: Run mutation testing
-      run: gomu run --ci-mode
+      run: gomu run --ci-mode --threshold 80.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_REPOSITORY: ${{ github.repository }}
         GITHUB_PR_NUMBER: ${{ github.event.number }}
         GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref }}
         GITHUB_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-    
+
     - name: Upload mutation report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: mutation-report
@@ -362,24 +298,30 @@ jobs:
 
 Quality gates automatically fail the build when mutation score falls below threshold:
 
-- Configurable minimum mutation score
-- Optional maximum survivor count
-- Gradual enforcement for legacy codebases
-- Detailed failure reporting
+- Configurable minimum mutation score via `--threshold`
+- Fail or continue build via `--fail-on-gate`
+- Detailed failure reporting in CI output
 
 ## Example Output
 
 ### Console Output
 ```
-🧬 Starting CI Mutation Testing...
-📁 Working directory: .
-⚙️  Configuration: .gomu.yaml
+Running mutation testing with the following settings:
+  Path: .
+  CI Mode: true
+  Workers: 4
+  Timeout: 30 seconds
+  Output: json
+  Incremental: true
+  Base Branch: main
+  Threshold: 80.0%
+  Fail on Gate: true
 
 Analyzing files for changes...
 Incremental Analysis Report
 ==========================
-✓ src/calculator.go - File content changed
-✓ src/utils.go - No previous history
+- src/calculator.go - File content changed
+- src/utils.go - No previous history
 
 Summary: 2 files need testing, 3 files skipped
 Performance improvement: 60.0% files skipped
@@ -387,7 +329,7 @@ Performance improvement: 60.0% files skipped
 Running mutation testing on 2 files...
 Quality Gate: PASSED (Score: 84.4%)
 
-✅ CI mutation testing completed successfully
+Mutation testing completed successfully
 ```
 
 ### HTML Report
@@ -405,7 +347,7 @@ gomu features PITest-inspired incremental analysis that dramatically speeds up r
 1. **File Hashing**: Tracks changes to source files and tests
 2. **Git Integration**: Automatically detects changed files since last commit
 3. **Result Caching**: Reuses previous results for unchanged code
-4. **JSON Storage**: Transparent, debuggable history format
+4. **JSON Storage**: Transparent, debuggable history format (`.gomu_history.json`)
 
 This can reduce execution time from minutes to seconds on large codebases.
 
