@@ -36,6 +36,7 @@ var exitFunc = os.Exit
 
 func main() {
 	var mutatorName = flag.String("mutator", "", "Name of the mutator to generate")
+
 	flag.Parse()
 
 	if *mutatorName == "" {

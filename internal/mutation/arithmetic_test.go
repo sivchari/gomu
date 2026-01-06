@@ -421,6 +421,7 @@ func TestArithmeticMutator_Apply(t *testing.T) {
 			}
 
 			var node ast.Node
+
 			ast.Inspect(file, func(n ast.Node) bool {
 				switch tt.mutantType {
 				case "arithmetic_binary":

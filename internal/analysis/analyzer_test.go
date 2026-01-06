@@ -275,6 +275,7 @@ func TestFindChangedFiles(t *testing.T) {
 				// Create a temp dir that's not a git repo
 				tempDir := t.TempDir()
 				origWd, _ := os.Getwd()
+
 				os.Chdir(tempDir)
 
 				return func() {
@@ -401,12 +402,15 @@ func main() {
 				if info.FileAST == nil {
 					t.Error("FileAST should not be nil")
 				}
+
 				if info.FileAST.Name.Name != "main" {
 					t.Errorf("expected package name 'main', got %s", info.FileAST.Name.Name)
 				}
+
 				if info.Hash == "" {
 					t.Error("Hash should not be empty")
 				}
+
 				if len(info.FileAST.Decls) != 2 { // import and func
 					t.Errorf("expected 2 declarations, got %d", len(info.FileAST.Decls))
 				}
@@ -464,6 +468,7 @@ func Subtract(a, b int) int {
 				}
 
 				funcCount := 0
+
 				for _, decl := range info.FileAST.Decls {
 					if _, ok := decl.(*ast.FuncDecl); ok {
 						funcCount++
