@@ -65,6 +65,7 @@ func (e *Engine) RunMutationsWithOptions(mutants []mutation.Mutant, workers, tim
 			defer wg.Done()
 
 			semaphore <- struct{}{}
+
 			defer func() { <-semaphore }()
 
 			result := e.runSingleMutation(m, timeout)
