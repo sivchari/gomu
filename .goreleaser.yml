@@ -80,6 +80,5 @@ homebrew_casks:
     homepage: https://github.com/sivchari/gomu
     description: "A Go code generator for validation functions"
     license: MIT
-    binary: gomu
     conflicts:
-      - formula: gomu
+      - cask: gomu
