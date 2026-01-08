@@ -3,6 +3,7 @@ package execution
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -12,30 +13,27 @@ import (
 	"github.com/sivchari/gomu/internal/mutation"
 )
 
-// Engine handles test execution.
+// Engine handles test execution using overlay-based mutation.
 type Engine struct {
-	mutator   *SourceMutator
-	fileLocks map[string]*sync.Mutex
-	fileMapMu sync.Mutex
+	overlay *OverlayMutator
 }
 
 // New creates a new execution engine.
 func New() (*Engine, error) {
-	mutator, err := NewSourceMutator()
+	overlay, err := NewOverlayMutator()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create source mutator: %w", err)
+		return nil, fmt.Errorf("failed to create overlay mutator: %w", err)
 	}
 
 	return &Engine{
-		mutator:   mutator,
-		fileLocks: make(map[string]*sync.Mutex),
+		overlay: overlay,
 	}, nil
 }
 
 // Close cleans up the execution engine.
 func (e *Engine) Close() error {
-	if e.mutator != nil {
-		return e.mutator.Cleanup()
+	if e.overlay != nil {
+		return e.overlay.Cleanup()
 	}
 
 	return nil
@@ -43,7 +41,7 @@ func (e *Engine) Close() error {
 
 // RunMutations executes tests for all mutants in parallel.
 func (e *Engine) RunMutations(mutants []mutation.Mutant) ([]mutation.Result, error) {
-	return e.RunMutationsWithOptions(mutants, 4, 30) // intelligent defaults
+	return e.RunMutationsWithOptions(mutants, 4, 30)
 }
 
 // RunMutationsWithOptions executes tests for all mutants in parallel with custom options.
@@ -55,19 +53,17 @@ func (e *Engine) RunMutationsWithOptions(mutants []mutation.Mutant, workers, tim
 	results := make([]mutation.Result, len(mutants))
 	resultsChan := make(chan indexedResult, len(mutants))
 
-	// Create worker pool
 	var wg sync.WaitGroup
 
 	semaphore := make(chan struct{}, workers)
 
-	// Start workers
+	// Start workers - no file locks needed with overlay approach
 	for i, mutant := range mutants {
 		wg.Add(1)
 
 		go func(index int, m mutation.Mutant) {
 			defer wg.Done()
 
-			// Acquire semaphore
 			semaphore <- struct{}{}
 
 			defer func() { <-semaphore }()
@@ -77,13 +73,11 @@ func (e *Engine) RunMutationsWithOptions(mutants []mutation.Mutant, workers, tim
 		}(i, mutant)
 	}
 
-	// Close results channel when all workers complete
 	go func() {
 		wg.Wait()
 		close(resultsChan)
 	}()
 
-	// Collect results
 	for indexedRes := range resultsChan {
 		results[indexedRes.index] = indexedRes.result
 	}
@@ -96,76 +90,80 @@ type indexedResult struct {
 	result mutation.Result
 }
 
-// getFileLock returns a mutex for the given file path.
-func (e *Engine) getFileLock(filePath string) *sync.Mutex {
-	e.fileMapMu.Lock()
-	defer e.fileMapMu.Unlock()
-
-	if lock, exists := e.fileLocks[filePath]; exists {
-		return lock
-	}
-
-	lock := &sync.Mutex{}
-	e.fileLocks[filePath] = lock
-
-	return lock
-}
-
-// runSingleMutation executes tests for a single mutant with timeout.
+// runSingleMutation executes tests for a single mutant using overlay.
 func (e *Engine) runSingleMutation(mutant mutation.Mutant, timeout int) mutation.Result {
 	result := mutation.Result{
 		Mutant: mutant,
 		Status: mutation.StatusError,
 	}
 
-	// Acquire file lock to prevent concurrent mutations on the same file
-	fileLock := e.getFileLock(mutant.FilePath)
-
-	fileLock.Lock()
-	defer fileLock.Unlock()
-
-	// 1. Apply the mutation to the source code
-	if err := e.mutator.ApplyMutation(mutant); err != nil {
-		result.Error = fmt.Sprintf("Failed to apply mutation: %v", err)
+	// 1. Prepare mutation (create mutated file + overlay.json)
+	mutCtx, err := e.overlay.PrepareMutation(mutant)
+	if err != nil {
+		result.Error = fmt.Sprintf("Failed to prepare mutation: %v", err)
 
 		return result
 	}
 
-	// 2. Check if the mutated code compiles
-	if err := e.checkCompilation(mutant.FilePath); err != nil {
+	defer func() {
+		if cleanupErr := e.overlay.CleanupMutation(mutCtx); cleanupErr != nil {
+			fmt.Printf("Warning: failed to cleanup mutation: %v\n", cleanupErr)
+		}
+	}()
+
+	// 2. Check if the mutated code compiles using overlay
+	if err := e.checkCompilationWithOverlay(mutCtx); err != nil {
 		result.Status = mutation.StatusNotViable
 		result.Error = fmt.Sprintf("Compilation failed: %v", err)
 		result.Output = err.Error()
 
-		// Always restore the original code
-		if restoreErr := e.mutator.RestoreOriginal(mutant.FilePath, mutant.ID); restoreErr != nil {
-			result.Error = fmt.Sprintf("Failed to restore original file after compilation check: %v", restoreErr)
-		}
-
 		return result
 	}
 
-	// 3. Run the tests
+	// 3. Run tests using overlay
+	return e.runTestWithOverlay(mutCtx, mutant, timeout)
+}
+
+// checkCompilationWithOverlay verifies that the mutated code compiles using overlay.
+func (e *Engine) checkCompilationWithOverlay(mutCtx *MutationContext) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Get the directory containing the original file for compilation
+	compileDir := filepath.Dir(mutCtx.OriginalPath)
+
+	// Build only the specific file to avoid issues with other invalid files in the directory
+	cmd := exec.CommandContext(ctx, "go", "build", "-overlay="+mutCtx.OverlayPath, filepath.Base(mutCtx.OriginalPath))
+	cmd.Dir = compileDir
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("compilation error: %s", string(output))
+	}
+
+	return nil
+}
+
+// runTestWithOverlay runs tests using the overlay configuration.
+func (e *Engine) runTestWithOverlay(mutCtx *MutationContext, mutant mutation.Mutant, timeout int) mutation.Result {
+	result := mutation.Result{
+		Mutant: mutant,
+		Status: mutation.StatusError,
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 
-	// Get the directory containing the mutated file for running tests
-	testDir := filepath.Dir(mutant.FilePath)
-	cmd := exec.CommandContext(ctx, "go", "test", "./...")
+	// Get the directory containing the original file for running tests
+	testDir := filepath.Dir(mutCtx.OriginalPath)
+
+	cmd := exec.CommandContext(ctx, "go", "test", "-overlay="+mutCtx.OverlayPath, "./...")
 	cmd.Dir = testDir
 
 	output, err := cmd.CombinedOutput()
 
-	// 4. Always restore the original code
-	restoreErr := e.mutator.RestoreOriginal(mutant.FilePath, mutant.ID)
-	if restoreErr != nil {
-		result.Error = fmt.Sprintf("Failed to restore original file: %v", restoreErr)
-
-		return result
-	}
-
-	// 5. Analyze the test results
-	if ctx.Err() == context.DeadlineExceeded {
+	// Analyze test results
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 		result.Status = mutation.StatusTimedOut
 		result.Error = "Test execution timed out"
 
@@ -177,7 +175,6 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant, timeout int) mutation
 	if err != nil {
 		// Tests failed - check if it's because the mutant was killed
 		if cmd.ProcessState != nil && cmd.ProcessState.ExitCode() != 0 {
-			// Test failure likely means the mutant was detected (killed)
 			result.Status = mutation.StatusKilled
 		} else {
 			result.Status = mutation.StatusError
@@ -189,25 +186,4 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant, timeout int) mutation
 	}
 
 	return result
-}
-
-// checkCompilation verifies that the mutated code compiles successfully.
-func (e *Engine) checkCompilation(filePath string) error {
-	// Get the directory containing the mutated file for compilation check
-	compileDir := filepath.Dir(filePath)
-
-	// Create a context with timeout for compilation check
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	// Run 'go build' on the specific file
-	cmd := exec.CommandContext(ctx, "go", "build", filepath.Base(filePath))
-	cmd.Dir = compileDir
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("compilation error: %s", string(output))
-	}
-
-	return nil
 }

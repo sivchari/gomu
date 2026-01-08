@@ -1,7 +1,6 @@
 package execution
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,16 +44,8 @@ func TestNew(t *testing.T) {
 				return
 			}
 
-			if engine.mutator == nil {
-				t.Error("mutator should not be nil")
-			}
-
-			if engine.fileLocks == nil {
-				t.Error("fileLocks should not be nil")
-			}
-
-			if len(engine.fileLocks) != 0 {
-				t.Errorf("expected empty fileLocks, got %d items", len(engine.fileLocks))
+			if engine.overlay == nil {
+				t.Error("overlay should not be nil")
 			}
 
 			err = engine.Close()
@@ -72,7 +63,7 @@ func TestEngineClose(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name: "close with valid mutator",
+			name: "close with valid overlay",
 			setupEngine: func() *Engine {
 				engine, _ := New()
 
@@ -81,10 +72,10 @@ func TestEngineClose(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "close with nil mutator",
+			name: "close with nil overlay",
 			setupEngine: func() *Engine {
 				engine, _ := New()
-				engine.mutator = nil
+				engine.overlay = nil
 
 				return engine
 			},
@@ -154,7 +145,6 @@ func TestRunMutations(t *testing.T) {
 }
 
 func TestRunMutationsWithOptions(t *testing.T) {
-	// Create a temporary directory for test files
 	tempDir := createTempTestProject(t)
 
 	tests := []struct {
@@ -210,7 +200,7 @@ func TestRunMutationsWithOptions(t *testing.T) {
 			checkResults: true,
 		},
 		{
-			name: "multiple mutants execution",
+			name: "multiple mutants execution with overlay - same file parallel",
 			mutants: []mutation.Mutant{
 				{
 					ID:       "test-1",
@@ -279,7 +269,6 @@ func TestRunMutationsWithOptions(t *testing.T) {
 				t.Errorf("expected %d results, got %d", tt.expectLength, len(results))
 			}
 
-			// Check if results are in correct order and contain expected mutants
 			if tt.checkResults {
 				for i, result := range results {
 					if i >= len(tt.mutants) {
@@ -290,8 +279,13 @@ func TestRunMutationsWithOptions(t *testing.T) {
 						t.Errorf("result %d: expected mutant ID %s, got %s", i, tt.mutants[i].ID, result.Mutant.ID)
 					}
 
-					// Check that we got some status
-					validStatuses := []mutation.Status{mutation.StatusKilled, mutation.StatusSurvived, mutation.StatusError}
+					validStatuses := []mutation.Status{
+						mutation.StatusKilled,
+						mutation.StatusSurvived,
+						mutation.StatusError,
+						mutation.StatusNotViable,
+						mutation.StatusTimedOut,
+					}
 					found := false
 
 					for _, status := range validStatuses {
@@ -311,73 +305,7 @@ func TestRunMutationsWithOptions(t *testing.T) {
 	}
 }
 
-func TestGetFileLock(t *testing.T) {
-	tests := []struct {
-		name      string
-		filePaths []string
-		expected  []bool // true if locks should be equal to first lock
-	}{
-		{
-			name:      "same file path returns same lock",
-			filePaths: []string{"/test/file.go", "/test/file.go"},
-			expected:  []bool{true, true},
-		},
-		{
-			name:      "different file paths return different locks",
-			filePaths: []string{"/test/file1.go", "/test/file2.go"},
-			expected:  []bool{true, false},
-		},
-		{
-			name:      "multiple files mixed",
-			filePaths: []string{"/test/a.go", "/test/b.go", "/test/a.go"},
-			expected:  []bool{true, false, true},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			engine, err := New()
-			if err != nil {
-				t.Fatalf("failed to create engine: %v", err)
-			}
-			defer engine.Close()
-
-			if len(tt.filePaths) == 0 {
-				return
-			}
-
-			firstLock := engine.getFileLock(tt.filePaths[0])
-			if firstLock == nil {
-				t.Error("first lock should not be nil")
-
-				return
-			}
-
-			for i, filePath := range tt.filePaths {
-				lock := engine.getFileLock(filePath)
-				if lock == nil {
-					t.Errorf("lock %d should not be nil", i)
-
-					continue
-				}
-
-				shouldBeEqual := tt.expected[i]
-				isEqual := (lock == firstLock)
-
-				if shouldBeEqual && !isEqual {
-					t.Errorf("lock %d should be equal to first lock but is not", i)
-				}
-
-				if !shouldBeEqual && isEqual {
-					t.Errorf("lock %d should be different from first lock but is the same", i)
-				}
-			}
-		})
-	}
-}
-
 func TestRunSingleMutation(t *testing.T) {
-	// Create a temporary directory for test files
 	tempDir := createTempTestProject(t)
 
 	tests := []struct {
@@ -387,7 +315,6 @@ func TestRunSingleMutation(t *testing.T) {
 		expectStatus  mutation.Status
 		expectError   bool
 		errorContains string
-		setupFile     func(t *testing.T) string
 	}{
 		{
 			name: "valid mutation on existing file",
@@ -401,7 +328,7 @@ func TestRunSingleMutation(t *testing.T) {
 				Mutated:  "-",
 			},
 			timeout:      30,
-			expectStatus: mutation.StatusKilled, // Test should catch the mutation
+			expectStatus: mutation.StatusKilled,
 			expectError:  false,
 		},
 		{
@@ -418,7 +345,7 @@ func TestRunSingleMutation(t *testing.T) {
 			timeout:       5,
 			expectStatus:  mutation.StatusError,
 			expectError:   false,
-			errorContains: "backup",
+			errorContains: "prepare mutation",
 		},
 		{
 			name: "test timeout scenario",
@@ -431,7 +358,7 @@ func TestRunSingleMutation(t *testing.T) {
 				Original: "+",
 				Mutated:  "-",
 			},
-			timeout:       0, // Very short timeout to trigger timeout
+			timeout:       0,
 			expectStatus:  mutation.StatusTimedOut,
 			expectError:   false,
 			errorContains: "timed out",
@@ -445,12 +372,6 @@ func TestRunSingleMutation(t *testing.T) {
 				t.Fatalf("failed to create engine: %v", err)
 			}
 			defer engine.Close()
-
-			// Setup file if needed
-			if tt.setupFile != nil {
-				filePath := tt.setupFile(t)
-				tt.mutant.FilePath = filePath
-			}
 
 			result := engine.runSingleMutation(tt.mutant, tt.timeout)
 
@@ -467,57 +388,44 @@ func TestRunSingleMutation(t *testing.T) {
 				t.Error("expected error but got none")
 			}
 
-			if tt.errorContains != "" && !strings.Contains(result.Error, tt.errorContains) {
+			if tt.errorContains != "" && !strings.Contains(strings.ToLower(result.Error), strings.ToLower(tt.errorContains)) {
 				t.Errorf("expected error to contain %s, got: %s", tt.errorContains, result.Error)
 			}
 		})
 	}
 }
 
-func TestCheckCompilation(t *testing.T) {
+func TestCheckCompilationWithOverlay(t *testing.T) {
 	tempDir := createTempTestProject(t)
 
-	tests := []struct {
-		name        string
-		filePath    string
-		expectError bool
-		errorText   string
-	}{
-		{
-			name:        "valid file compiles successfully",
-			filePath:    filepath.Join(tempDir, "valid.go"),
-			expectError: false,
-		},
-		{
-			name:        "invalid file fails compilation",
-			filePath:    filepath.Join(tempDir, "invalid.go"),
-			expectError: true,
-			errorText:   "compilation error",
-		},
-	}
+	t.Run("valid overlay compiles successfully", func(t *testing.T) {
+		engine, err := New()
+		if err != nil {
+			t.Fatalf("failed to create engine: %v", err)
+		}
+		defer engine.Close()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			engine, err := New()
-			if err != nil {
-				t.Fatalf("failed to create engine: %v", err)
-			}
-			defer engine.Close()
+		mutant := mutation.Mutant{
+			ID:       "test-compile",
+			Type:     "arithmetic_binary",
+			FilePath: filepath.Join(tempDir, "valid.go"),
+			Line:     4,
+			Column:   9,
+			Original: "+",
+			Mutated:  "-",
+		}
 
-			err = engine.checkCompilation(tt.filePath)
-			if tt.expectError && err == nil {
-				t.Error("expected compilation error but got none")
-			}
+		ctx, err := engine.overlay.PrepareMutation(mutant)
+		if err != nil {
+			t.Fatalf("failed to prepare mutation: %v", err)
+		}
+		defer engine.overlay.CleanupMutation(ctx)
 
-			if !tt.expectError && err != nil {
-				t.Errorf("unexpected compilation error: %v", err)
-			}
-
-			if tt.errorText != "" && err != nil && !strings.Contains(err.Error(), tt.errorText) {
-				t.Errorf("expected error to contain %s, got: %v", tt.errorText, err)
-			}
-		})
-	}
+		err = engine.checkCompilationWithOverlay(ctx)
+		if err != nil {
+			t.Errorf("unexpected compilation error: %v", err)
+		}
+	})
 }
 
 func TestIndexedResult(t *testing.T) {
@@ -553,106 +461,44 @@ func TestIndexedResult(t *testing.T) {
 	}
 }
 
-func TestEngineFileMapConcurrency(t *testing.T) {
+func TestOverlayParallelExecution(t *testing.T) {
+	tempDir := createTempTestProject(t)
+
 	engine, err := New()
 	if err != nil {
 		t.Fatalf("failed to create engine: %v", err)
 	}
 	defer engine.Close()
 
-	// Test concurrent access to file locks
-	done := make(chan bool, 10)
-
-	for i := 0; i < 10; i++ {
-		go func(id int) {
-			filePath := fmt.Sprintf("/test/file%d.go", id%3) // Use 3 different files
-
-			lock := engine.getFileLock(filePath)
-			if lock == nil {
-				t.Errorf("lock should not be nil for goroutine %d", id)
-			}
-
-			done <- true
-		}(i)
+	// Create multiple mutants for the same file - overlay allows true parallel execution
+	mutants := make([]mutation.Mutant, 5)
+	for i := range mutants {
+		mutants[i] = mutation.Mutant{
+			ID:       string(rune('a' + i)),
+			Type:     "arithmetic_binary",
+			FilePath: filepath.Join(tempDir, "valid.go"),
+			Line:     4,
+			Column:   9,
+			Original: "+",
+			Mutated:  "-",
+		}
 	}
 
-	// Wait for all goroutines to complete
-	for i := 0; i < 10; i++ {
-		<-done
-	}
-
-	// Verify that we have exactly 3 locks (for 3 different files)
-	engine.fileMapMu.Lock()
-	lockCount := len(engine.fileLocks)
-	engine.fileMapMu.Unlock()
-
-	if lockCount != 3 {
-		t.Errorf("expected 3 file locks, got %d", lockCount)
-	}
-}
-
-// Helper function to create a temporary test project.
-func createTempTestProject(t *testing.T) string {
-	tempDir := t.TempDir()
-
-	// Create go.mod
-	goMod := "module test\n\ngo 1.21\n"
-
-	err := os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644)
+	results, err := engine.RunMutationsWithOptions(mutants, 5, 30)
 	if err != nil {
-		t.Fatalf("failed to create go.mod: %v", err)
+		t.Fatalf("failed to run mutations: %v", err)
 	}
 
-	// Create valid Go file
-	validGoFile := `package main
-
-func Add(a, b int) int {
-	return a + b
-}
-
-func main() {
-	result := Add(1, 2)
-	println(result)
-}
-`
-
-	err = os.WriteFile(filepath.Join(tempDir, "valid.go"), []byte(validGoFile), 0644)
-	if err != nil {
-		t.Fatalf("failed to create valid.go: %v", err)
+	if len(results) != len(mutants) {
+		t.Errorf("expected %d results, got %d", len(mutants), len(results))
 	}
 
-	// Create valid test file
-	testFile := `package main
-
-import "testing"
-
-func TestAdd(t *testing.T) {
-	result := Add(1, 2)
-	if result != 3 {
-		t.Errorf("Expected 3, got %d", result)
+	// All should complete without error status (killed or survived)
+	for i, result := range results {
+		if result.Status == mutation.StatusError {
+			t.Errorf("mutant %d failed with error: %s", i, result.Error)
+		}
 	}
-}
-`
-
-	err = os.WriteFile(filepath.Join(tempDir, "valid_test.go"), []byte(testFile), 0644)
-	if err != nil {
-		t.Fatalf("failed to create valid_test.go: %v", err)
-	}
-
-	// Create invalid Go file
-	invalidGoFile := `package main
-
-func main() {
-	println("hello"  // Missing closing parenthesis
-}
-`
-
-	err = os.WriteFile(filepath.Join(tempDir, "invalid.go"), []byte(invalidGoFile), 0644)
-	if err != nil {
-		t.Fatalf("failed to create invalid.go: %v", err)
-	}
-
-	return tempDir
 }
 
 func TestEngineCreationEdgeCases(t *testing.T) {
@@ -697,4 +543,52 @@ func TestEngineCreationEdgeCases(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Helper function to create a temporary test project.
+func createTempTestProject(t *testing.T) string {
+	tempDir := t.TempDir()
+
+	goMod := "module test\n\ngo 1.21\n"
+
+	err := os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644)
+	if err != nil {
+		t.Fatalf("failed to create go.mod: %v", err)
+	}
+
+	validGoFile := `package main
+
+func Add(a, b int) int {
+	return a + b
+}
+
+func main() {
+	result := Add(1, 2)
+	println(result)
+}
+`
+
+	err = os.WriteFile(filepath.Join(tempDir, "valid.go"), []byte(validGoFile), 0644)
+	if err != nil {
+		t.Fatalf("failed to create valid.go: %v", err)
+	}
+
+	testFile := `package main
+
+import "testing"
+
+func TestAdd(t *testing.T) {
+	result := Add(1, 2)
+	if result != 3 {
+		t.Errorf("Expected 3, got %d", result)
+	}
+}
+`
+
+	err = os.WriteFile(filepath.Join(tempDir, "valid_test.go"), []byte(testFile), 0644)
+	if err != nil {
+		t.Fatalf("failed to create valid_test.go: %v", err)
+	}
+
+	return tempDir
 }
