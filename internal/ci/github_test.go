@@ -68,11 +68,13 @@ func TestGitHubIntegration_CreatePRComment(t *testing.T) {
 						// Create comment
 						var body PRComment
 						json.NewDecoder(r.Body).Decode(&body)
+
 						if body.Body == "" {
 							w.WriteHeader(http.StatusBadRequest)
 
 							return
 						}
+
 						w.WriteHeader(http.StatusCreated)
 						w.Write([]byte(`{"id": 1, "body": "test comment"}`))
 					default:
@@ -148,6 +150,7 @@ func TestGitHubIntegration_CreatePRComment(t *testing.T) {
 
 				return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					callCount++
+
 					switch {
 					case r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/comments"):
 						// Return existing mutation comment

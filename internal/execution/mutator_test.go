@@ -168,6 +168,7 @@ func TestBackupFile(t *testing.T) {
 				tempDir := t.TempDir()
 				testFile := filepath.Join(tempDir, "test.go")
 				content := testPackageContent
+
 				err := os.WriteFile(testFile, []byte(content), 0644)
 				if err != nil {
 					t.Fatalf("failed to create test file: %v", err)
@@ -384,6 +385,7 @@ func Add(a, b int) int {
 	return a + b
 }
 `
+
 				err := os.WriteFile(testFile, []byte(content), 0644)
 				if err != nil {
 					t.Fatalf("failed to create test file: %v", err)

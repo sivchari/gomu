@@ -131,6 +131,7 @@ func TestInitializeCIComponents(t *testing.T) {
 				if e.qualityGate == nil {
 					t.Error("quality gate should not be nil")
 				}
+
 				if e.ciReporter == nil {
 					t.Error("CI reporter should not be nil")
 				}

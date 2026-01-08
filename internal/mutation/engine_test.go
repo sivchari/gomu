@@ -628,6 +628,7 @@ func TestBitwise(a, b int) int {
 
 					// Find a node that can be mutated by this mutator
 					var targetNode ast.Node
+
 					findMutableNode(parsedFile, func(node ast.Node) bool {
 						if mutator.CanMutate(node) {
 							targetNode = node
@@ -815,6 +816,7 @@ func Test(a, b int) int { return a & b }`,
 
 				// Find a node that can be mutated
 				var targetNode ast.Node
+
 				findMutableNode(parsedFile, func(node ast.Node) bool {
 					if targetMutator.CanMutate(node) {
 						targetNode = node

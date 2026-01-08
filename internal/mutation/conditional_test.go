@@ -415,6 +415,7 @@ func TestConditionalMutator_Apply(t *testing.T) {
 			}
 
 			var node ast.Node
+
 			ast.Inspect(file, func(n ast.Node) bool {
 				if be, ok := n.(*ast.BinaryExpr); ok {
 					node = be
