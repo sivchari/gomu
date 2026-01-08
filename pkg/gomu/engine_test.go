@@ -716,7 +716,7 @@ func TestSetDefaultOptions(t *testing.T) {
 			input:           nil,
 			expectWorkers:   4,
 			expectTimeout:   30,
-			expectOutput:    "json",
+			expectOutput:    "console",
 			expectThreshold: 80.0,
 		},
 		{
@@ -1175,7 +1175,7 @@ func TestHandleCIWorkflow(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reporter, _ := report.New()
+			reporter, _ := report.New("json")
 			engine := &Engine{
 				reporter: reporter,
 			}
@@ -1214,7 +1214,7 @@ func TestProcessCIWorkflowDetailed(t *testing.T) {
 		FailOnGate: false,
 	}
 
-	reporter, _ := report.New()
+	reporter, _ := report.New("json")
 	engine := &Engine{
 		reporter:    reporter,
 		ciReporter:  ci.NewReporter(".", "json"),

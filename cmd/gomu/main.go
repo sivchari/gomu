@@ -52,7 +52,7 @@ func init() {
 	// Run command flags
 	runCmd.Flags().Bool("ci-mode", false, "enable CI mode with quality gates and reporting")
 	runCmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold")
-	runCmd.Flags().String("output", "json", "output format (json, html, console)")
+	runCmd.Flags().String("output", "console", "output format (console, json, html, text)")
 	runCmd.Flags().Bool("fail-on-gate", true, "fail build when quality gate is not met")
 	runCmd.Flags().Int("workers", 4, "number of parallel workers")
 	runCmd.Flags().Int("timeout", 30, "test timeout in seconds")

@@ -17,7 +17,7 @@ func abs(x float64) float64 {
 }
 
 func TestCalculateStatistics(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -121,7 +121,7 @@ func TestCalculateStatistics(t *testing.T) {
 }
 
 func TestCalculateStatistics_EmptyResults(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -166,7 +166,7 @@ func TestCalculateStatistics_EmptyResults(t *testing.T) {
 }
 
 func TestGenerateJSON(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -235,7 +235,7 @@ func TestGenerateJSON(t *testing.T) {
 }
 
 func TestGenerateText(t *testing.T) {
-	generator, err := New()
+	generator, err := New("text")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -332,7 +332,7 @@ func TestGenerateText(t *testing.T) {
 }
 
 func TestFormatTextReport(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -398,7 +398,7 @@ func TestFormatTextReport(t *testing.T) {
 }
 
 func TestFormatTextReport_NoSurvivedMutants(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -430,7 +430,7 @@ func TestFormatTextReport_NoSurvivedMutants(t *testing.T) {
 }
 
 func TestGenerateHTML(t *testing.T) {
-	generator, err := New()
+	generator, err := New("html")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -590,7 +590,7 @@ func TestPercentage(t *testing.T) {
 }
 
 func TestCalculateStatistics_UnknownMutationType(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -634,7 +634,7 @@ func TestCalculateStatistics_UnknownMutationType(t *testing.T) {
 }
 
 func TestCalculateStatistics_AllNotViable(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -659,7 +659,7 @@ func TestCalculateStatistics_AllNotViable(t *testing.T) {
 }
 
 func TestGenerateJSON_WriteError(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -689,7 +689,7 @@ func TestGenerateJSON_WriteError(t *testing.T) {
 }
 
 func TestGenerateText_LargeSummary(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -728,12 +728,10 @@ func TestGenerateText_LargeSummary(t *testing.T) {
 
 	// Cleanup
 	defer os.Remove("mutation-report.json")
-	defer os.Remove("mutation-report.txt")
-	defer os.Remove("mutation-report.html")
 }
 
 func TestGenerateHTML_ComplexData(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -792,7 +790,7 @@ func TestGenerateHTML_ComplexData(t *testing.T) {
 }
 
 func TestFormatTextReport_EdgeCases(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -899,7 +897,7 @@ func TestFormatTextReport_EdgeCases(t *testing.T) {
 }
 
 func TestGenerate_Timestamp(t *testing.T) {
-	generator, err := New()
+	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -937,14 +935,12 @@ func TestGenerate_Timestamp(t *testing.T) {
 
 	// Cleanup
 	defer os.Remove("mutation-report.json")
-	defer os.Remove("mutation-report.txt")
-	defer os.Remove("mutation-report.html")
 }
 
 func TestNew_AlwaysSucceeds(t *testing.T) {
 	// Test that New() always returns a valid generator
 	for i := 0; i < 10; i++ {
-		generator, err := New()
+		generator, err := New("json")
 		if err != nil {
 			t.Errorf("New() should never return error, got: %v", err)
 		}

@@ -13,7 +13,9 @@ import (
 )
 
 // Generator handles report generation.
-type Generator struct{}
+type Generator struct {
+	outputFormat string
+}
 
 // Summary contains the complete results of a mutation testing run.
 type Summary struct {
@@ -56,9 +58,16 @@ type TypeStatistics struct {
 	Survived int `json:"survived"`
 }
 
-// New creates a new report generator.
-func New() (*Generator, error) {
-	return &Generator{}, nil
+// New creates a new report generator with the specified output format.
+// Supported formats: "json", "html", "text", "console".
+func New(outputFormat string) (*Generator, error) {
+	if outputFormat == "" {
+		outputFormat = "console"
+	}
+
+	return &Generator{
+		outputFormat: outputFormat,
+	}, nil
 }
 
 const gomuVersion = "0.1.0"
@@ -70,16 +79,20 @@ func (g *Generator) Generate(summary *Summary) error {
 	summary.Timestamp = time.Now()
 	summary.Version = gomuVersion
 
-	// Generate all formats by default for comprehensive reporting
-	if err := g.generateJSON(summary); err != nil {
-		return err
+	// Generate only the requested format
+	switch g.outputFormat {
+	case "json":
+		return g.generateJSON(summary)
+	case "html":
+		return g.generateHTML(summary)
+	case "text":
+		return g.generateText(summary)
+	case "console":
+		return g.generateConsole(summary)
+	default:
+		// Default to console for unknown formats
+		return g.generateConsole(summary)
 	}
-
-	if err := g.generateText(summary); err != nil {
-		return err
-	}
-
-	return g.generateHTML(summary)
 }
 
 func (g *Generator) calculateStatistics(results []mutation.Result) Statistics {
@@ -135,13 +148,12 @@ func (g *Generator) generateJSON(summary *Summary) error {
 		return fmt.Errorf("failed to marshal summary: %w", err)
 	}
 
-	// Always write to standard file
 	outputFile := "mutation-report.json"
 	if err := os.WriteFile(outputFile, data, 0600); err != nil {
 		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
-	fmt.Println(string(data))
+	fmt.Printf("Report written to %s\n", outputFile)
 
 	return nil
 }
@@ -149,13 +161,12 @@ func (g *Generator) generateJSON(summary *Summary) error {
 func (g *Generator) generateText(summary *Summary) error {
 	output := g.formatTextReport(summary)
 
-	// Always write to standard file for text output
 	outputFile := "mutation-report.txt"
 	if err := os.WriteFile(outputFile, []byte(output), 0600); err != nil {
 		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
-	fmt.Print(output)
+	fmt.Printf("Report written to %s\n", outputFile)
 
 	return nil
 }
@@ -230,13 +241,12 @@ func (g *Generator) generateHTML(summary *Summary) error {
 		return fmt.Errorf("failed to execute HTML template: %w", err)
 	}
 
-	// Always write to standard file for HTML output
 	outputFile := "mutation-report.html"
 	if err := os.WriteFile(outputFile, []byte(output.String()), 0600); err != nil {
 		return fmt.Errorf("failed to write HTML output file: %w", err)
 	}
 
-	fmt.Print(output.String())
+	fmt.Printf("Report written to %s\n", outputFile)
 
 	return nil
 }
@@ -1105,6 +1115,27 @@ const htmlTemplate = `<!DOCTYPE html>
     </div>
 </body>
 </html>`
+
+func (g *Generator) generateConsole(summary *Summary) error {
+	stats := summary.Statistics
+
+	fmt.Println()
+	fmt.Println("Mutation Testing Results")
+	fmt.Println("========================")
+	fmt.Printf("Files: %d/%d processed\n", summary.ProcessedFiles, summary.TotalFiles)
+	fmt.Printf("Mutants: %d total\n", summary.TotalMutants)
+	fmt.Printf("Duration: %v\n", summary.Duration)
+	fmt.Println()
+	fmt.Printf("Killed:     %d (%.1f%%)\n", stats.Killed, percentage(stats.Killed, summary.TotalMutants))
+	fmt.Printf("Survived:   %d (%.1f%%)\n", stats.Survived, percentage(stats.Survived, summary.TotalMutants))
+	fmt.Printf("Timed out:  %d (%.1f%%)\n", stats.TimedOut, percentage(stats.TimedOut, summary.TotalMutants))
+	fmt.Printf("Errors:     %d (%.1f%%)\n", stats.Errors, percentage(stats.Errors, summary.TotalMutants))
+	fmt.Printf("Not viable: %d (%.1f%%)\n", stats.NotViable, percentage(stats.NotViable, summary.TotalMutants))
+	fmt.Println()
+	fmt.Printf("Mutation Score: %.1f%%\n", stats.Score)
+
+	return nil
+}
 
 func percentage(part, total int) float64 {
 	if total == 0 {
