@@ -101,8 +101,6 @@ func (m *ArithmeticMutator) mutateAssignStmt(stmt *ast.AssignStmt, pos token.Pos
 }
 
 func (m *ArithmeticMutator) mutateIncDecStmt(stmt *ast.IncDecStmt, pos token.Position) []Mutant {
-	var mutants []Mutant
-
 	var newOp token.Token
 
 	var desc string
@@ -115,16 +113,14 @@ func (m *ArithmeticMutator) mutateIncDecStmt(stmt *ast.IncDecStmt, pos token.Pos
 		desc = "Replace -- with ++"
 	}
 
-	mutants = append(mutants, Mutant{
+	return []Mutant{{
 		Line:        pos.Line,
 		Column:      pos.Column,
 		Type:        "arithmetic_incdec",
 		Original:    stmt.Tok.String(),
 		Mutated:     newOp.String(),
 		Description: desc,
-	})
-
-	return mutants
+	}}
 }
 
 func (m *ArithmeticMutator) getArithmeticMutations(op token.Token) []token.Token {
