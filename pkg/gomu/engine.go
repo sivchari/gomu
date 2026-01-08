@@ -69,7 +69,12 @@ func NewEngine(opts *RunOptions) (*Engine, error) {
 		return nil, fmt.Errorf("failed to create history store: %w", err)
 	}
 
-	reporter, err := report.New()
+	outputFormat := "console"
+	if opts != nil && opts.Output != "" {
+		outputFormat = opts.Output
+	}
+
+	reporter, err := report.New(outputFormat)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create reporter: %w", err)
 	}
@@ -95,11 +100,13 @@ func NewEngine(opts *RunOptions) (*Engine, error) {
 func (e *Engine) initializeCIComponents(opts *RunOptions) {
 	// Set intelligent defaults if opts is nil
 	threshold := 80.0
-	outputFormat := "json"
+	outputFormat := "console"
 
 	if opts != nil {
 		threshold = opts.Threshold
-		outputFormat = opts.Output
+		if opts.Output != "" {
+			outputFormat = opts.Output
+		}
 	}
 
 	// Initialize quality gate
@@ -142,7 +149,7 @@ func (e *Engine) setDefaultOptions(opts *RunOptions) *RunOptions {
 		return &RunOptions{
 			Workers:     4,
 			Timeout:     30,
-			Output:      "json",
+			Output:      "console",
 			Incremental: true,
 			BaseBranch:  "main",
 			Threshold:   80.0,
@@ -298,14 +305,21 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 	)
 
 	hasher := analysis.NewFileHasher()
+	totalFiles := len(files)
 
-	for _, file := range files {
+	fmt.Printf("Processing %d file(s)...\n", totalFiles)
+
+	for i, file := range files {
+		fmt.Printf("[%d/%d] %s ", i+1, totalFiles, filepath.Base(file))
+
 		if opts.Verbose {
 			log.Printf("Processing file: %s", file)
 		}
 
 		mutants, err := e.mutator.GenerateMutants(file)
 		if err != nil {
+			fmt.Printf("(error: %v)\n", err)
+
 			if opts.Verbose {
 				log.Printf("Warning: failed to generate mutants for %s: %v", file, err)
 			}
@@ -314,6 +328,8 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 		}
 
 		if len(mutants) == 0 {
+			fmt.Println("(no mutants)")
+
 			if opts.Verbose {
 				log.Printf("No mutants generated for file: %s", file)
 			}
@@ -323,18 +339,33 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 
 		totalMutants += len(mutants)
 
+		fmt.Printf("(%d mutants) ", len(mutants))
+
 		if opts.Verbose {
 			log.Printf("Generated %d mutants for %s", len(mutants), file)
 		}
 
 		results, err := e.executor.RunMutationsWithOptions(mutants, opts.Workers, opts.Timeout)
 		if err != nil {
+			fmt.Printf("(execution error: %v)\n", err)
+
 			if opts.Verbose {
 				log.Printf("Warning: failed to execute mutations for %s: %v", file, err)
 			}
 
 			continue
 		}
+
+		// Count killed mutants for this file
+		killed := 0
+
+		for _, r := range results {
+			if r.Status == mutation.StatusKilled {
+				killed++
+			}
+		}
+
+		fmt.Printf("-> %d/%d killed\n", killed, len(mutants))
 
 		allResults = append(allResults, results...)
 
