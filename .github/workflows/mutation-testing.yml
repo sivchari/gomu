@@ -35,5 +35,6 @@ jobs:
         version: 'local'
         workers: '2'
         timeout: '60'
-        threshold: 15
+        threshold: 0
+        fail-on-gate: 'false'  # TODO: Fix gomu bugs (.gomuignore, incremental analysis, not viable rate)
     
