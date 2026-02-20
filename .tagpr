@@ -5,3 +5,4 @@
 	releaseBranch = main
 	release = draft
 	changelog = true
+	versionFile = version.go
