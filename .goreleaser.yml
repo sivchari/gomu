@@ -78,7 +78,6 @@ homebrew_casks:
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     homepage: https://github.com/sivchari/gomu
-    description: "A Go code generator for validation functions"
+    description: "A high-performance mutation testing tool for Go"
     license: MIT
-    conflicts:
-      - cask: gomu
+    binaries: [gomu]
