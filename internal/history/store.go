@@ -77,7 +77,7 @@ func (s *Store) Save() error {
 	}{
 		Entries: s.entries,
 		SavedAt: time.Now(),
-		Version: "v0.0.0",
+		Version: "v0.0.1",
 	}
 
 	data, err := json.MarshalIndent(historyData, "", "  ")
