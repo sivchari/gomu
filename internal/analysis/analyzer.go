@@ -187,16 +187,19 @@ func (a *Analyzer) ParseFile(filePath string) (*FileInfo, error) {
 		return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
 
-	fileAST, err := parser.ParseFile(a.fileSet, filePath, src, parser.ParseComments)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse file %s: %w", filePath, err)
-	}
-
 	// Calculate file hash for incremental analysis
 	hash := calculateFileHash(src)
 
-	// Try to get type information for the file
-	typeInfo := a.getTypeInfo(fileAST, filePath)
+	// Try to get type information by parsing all package files together
+	fileAST, typeInfo, err := a.parseAndTypeCheck(filePath)
+	if err != nil {
+		// Fall back to syntax-only parsing
+		fileAST, err = parser.ParseFile(a.fileSet, filePath, src, parser.ParseComments)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse file %s: %w", filePath, err)
+		}
+		typeInfo = nil
+	}
 
 	return &FileInfo{
 		Path:     filePath,
@@ -216,41 +219,72 @@ func (a *Analyzer) GetFileSet() *token.FileSet {
 	return a.fileSet
 }
 
-// getTypeInfo attempts to get type information for a file.
-func (a *Analyzer) getTypeInfo(fileAST *ast.File, filePath string) *types.Info {
-	// Create a new type info for this file
+// parseAndTypeCheck parses all package files and type checks them, returning the AST and type info.
+func (a *Analyzer) parseAndTypeCheck(filePath string) (*ast.File, *types.Info, error) {
+	// Get the package directory
+	pkgDir := filepath.Dir(filePath)
+
+	// Parse all files in the package
+	files, err := filepath.Glob(filepath.Join(pkgDir, "*.go"))
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to glob files: %w", err)
+	}
+
+	astFiles := make([]*ast.File, 0, len(files))
+	var targetAST *ast.File
+
+	for _, file := range files {
+		// Skip test files for type checking
+		if IsGoTestFile(file) {
+			continue
+		}
+
+		astFile, err := parser.ParseFile(a.fileSet, file, nil, parser.ParseComments)
+		if err != nil {
+			// Skip files that can't be parsed
+			continue
+		}
+
+		astFiles = append(astFiles, astFile)
+
+		// Remember the target file's AST
+		if file == filePath {
+			targetAST = astFile
+		}
+	}
+
+	if targetAST == nil {
+		return nil, nil, fmt.Errorf("target file not found in parsed files")
+	}
+
+	if len(astFiles) == 0 {
+		return nil, nil, fmt.Errorf("no files to type check")
+	}
+
+	// Create type info
 	info := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),
 		Uses:  make(map[*ast.Ident]types.Object),
 		Defs:  make(map[*ast.Ident]types.Object),
 	}
 
-	// Get the package directory
-	pkgDir := filepath.Dir(filePath)
-
-	// Parse all files in the package
-	pkgFiles, err := a.parsePackageFiles(pkgDir)
-	if err != nil {
-		// If we can't parse the package, return nil (fall back to syntax-only)
-		return nil
-	}
-
 	// Create type checker config
 	config := &types.Config{
-		Importer: importer.ForCompiler(a.fileSet, "source", nil),
+		Importer: importer.Default(),
 		Error: func(_ error) {
 			// Ignore type errors for now - we want to be permissive
 		},
 	}
 
 	// Type check the package
-	_, err = config.Check(fileAST.Name.Name, a.fileSet, pkgFiles, info)
+	_, err = config.Check(targetAST.Name.Name, a.fileSet, astFiles, info)
 	if err != nil {
-		// If type checking fails, return nil (fall back to syntax-only)
-		return nil
+		// Type checking failed, but we still have the AST and partial type info
+		// Return the AST with whatever type info we collected
+		return targetAST, info, nil
 	}
 
-	return info
+	return targetAST, info, nil
 }
 
 // parsePackageFiles parses all Go files in a package directory.
