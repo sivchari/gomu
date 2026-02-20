@@ -10,6 +10,11 @@ import (
 )
 
 var (
+	// Version information set by ldflags
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+
 	verbose bool
 )
 
@@ -39,7 +44,9 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version information",
 	Run: func(_ *cobra.Command, _ []string) {
-		fmt.Println("gomu version 0.1.0")
+		fmt.Printf("gomu version %s\n", version)
+		fmt.Printf("  commit: %s\n", commit)
+		fmt.Printf("  built:  %s\n", date)
 	},
 }
 
