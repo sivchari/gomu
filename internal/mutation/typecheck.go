@@ -101,10 +101,9 @@ func (tc *TypeChecker) isValidConditionalMutation(node ast.Node, mutant Mutant) 
 
 // isNilIdent checks if an expression is the nil identifier.
 func (tc *TypeChecker) isNilIdent(expr ast.Expr) bool {
-	if ident, ok := expr.(*ast.Ident); ok {
-		return ident.Name == "nil"
-	}
-	return false
+	ident, ok := expr.(*ast.Ident)
+
+	return ok && ident.Name == "nil"
 }
 
 // getExprType returns the type of an expression.
@@ -124,11 +123,7 @@ func (tc *TypeChecker) getExprType(expr ast.Expr) types.Type {
 	}
 
 	// For SelectorExpr (e.g., fileInfo.TypeInfo), check the selector
-	if t := tc.getTypeFromUsesMapSelector(expr); t != nil {
-		return t
-	}
-
-	return nil
+	return tc.getTypeFromUsesMapSelector(expr)
 }
 
 // getTypeFromTypesMap tries to get type from Types map.

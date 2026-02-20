@@ -165,8 +165,8 @@ func TestConditionalMutator_Mutate(t *testing.T) {
 
 			// Check mutant properties
 			for _, mutant := range mutants {
-				if mutant.Type != "conditional_binary" {
-					t.Errorf("Expected mutant type 'conditional_binary', got %s", mutant.Type)
+				if mutant.Type != conditionalBinaryType {
+					t.Errorf("Expected mutant type %q, got %s", conditionalBinaryType, mutant.Type)
 				}
 
 				if mutant.Line <= 0 {
@@ -335,8 +335,8 @@ func TestConditionalMutator_AllMutationsGenerated(t *testing.T) {
 
 			// Verify all mutations are generated (standard mutation testing behavior)
 			for _, mutant := range mutants {
-				if mutant.Type != "conditional_binary" {
-					t.Errorf("Expected mutant type 'conditional_binary', got %s", mutant.Type)
+				if mutant.Type != conditionalBinaryType {
+					t.Errorf("Expected mutant type %q, got %s", conditionalBinaryType, mutant.Type)
 				}
 			}
 		})
@@ -358,7 +358,7 @@ func TestConditionalMutator_Apply(t *testing.T) {
 		{
 			name:          "apply conditional mutation EQL to NEQ",
 			code:          "a == b",
-			mutantType:    "conditional_binary",
+			mutantType:    conditionalBinaryType,
 			originalValue: "==",
 			mutantValue:   "!=",
 			expected:      true,
@@ -366,7 +366,7 @@ func TestConditionalMutator_Apply(t *testing.T) {
 		{
 			name:          "apply conditional mutation NEQ to EQL",
 			code:          "a != b",
-			mutantType:    "conditional_binary",
+			mutantType:    conditionalBinaryType,
 			originalValue: "!=",
 			mutantValue:   "==",
 			expected:      true,
@@ -374,7 +374,7 @@ func TestConditionalMutator_Apply(t *testing.T) {
 		{
 			name:          "apply conditional mutation LSS to GTR",
 			code:          "a < b",
-			mutantType:    "conditional_binary",
+			mutantType:    conditionalBinaryType,
 			originalValue: "<",
 			mutantValue:   ">",
 			expected:      true,
@@ -382,7 +382,7 @@ func TestConditionalMutator_Apply(t *testing.T) {
 		{
 			name:          "apply conditional mutation LEQ to GEQ",
 			code:          "a <= b",
-			mutantType:    "conditional_binary",
+			mutantType:    conditionalBinaryType,
 			originalValue: "<=",
 			mutantValue:   ">=",
 			expected:      true,
@@ -390,7 +390,7 @@ func TestConditionalMutator_Apply(t *testing.T) {
 		{
 			name:          "apply conditional mutation GTR to LSS",
 			code:          "a > b",
-			mutantType:    "conditional_binary",
+			mutantType:    conditionalBinaryType,
 			originalValue: ">",
 			mutantValue:   "<",
 			expected:      true,
@@ -398,7 +398,7 @@ func TestConditionalMutator_Apply(t *testing.T) {
 		{
 			name:          "apply conditional mutation GEQ to LEQ",
 			code:          "a >= b",
-			mutantType:    "conditional_binary",
+			mutantType:    conditionalBinaryType,
 			originalValue: ">=",
 			mutantValue:   "<=",
 			expected:      true,

@@ -83,6 +83,7 @@ func foo() bool {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fset := token.NewFileSet()
+
 			f, err := parser.ParseFile(fset, "test.go", tt.code, 0)
 			if err != nil {
 				t.Fatalf("failed to parse code: %v", err)
@@ -108,11 +109,14 @@ func foo() bool {
 			var binaryExpr *ast.BinaryExpr
 
 			ast.Inspect(f, func(n ast.Node) bool {
-				if be, ok := n.(*ast.BinaryExpr); ok {
-					binaryExpr = be
-					return false
+				be, ok := n.(*ast.BinaryExpr)
+				if !ok {
+					return true
 				}
-				return true
+
+				binaryExpr = be
+
+				return false
 			})
 
 			if binaryExpr == nil {
