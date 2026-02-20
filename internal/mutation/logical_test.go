@@ -130,8 +130,8 @@ func TestLogicalMutator_Mutate_BinaryExpr(t *testing.T) {
 
 			// Check mutant properties
 			for _, mutant := range mutants {
-				if mutant.Type != "logical_binary" {
-					t.Errorf("Expected type 'logical_binary', got %s", mutant.Type)
+				if mutant.Type != logicalBinaryType {
+					t.Errorf("Expected type %q, got %s", logicalBinaryType, mutant.Type)
 				}
 
 				if mutant.Line <= 0 {
@@ -267,7 +267,7 @@ func TestLogicalMutator_Apply(t *testing.T) {
 		{
 			name:          "apply logical binary mutation LAND to LOR",
 			code:          "a && b",
-			mutantType:    "logical_binary",
+			mutantType:    logicalBinaryType,
 			originalValue: "&&",
 			mutantValue:   "||",
 			expected:      true,
@@ -275,7 +275,7 @@ func TestLogicalMutator_Apply(t *testing.T) {
 		{
 			name:          "apply logical binary mutation LOR to LAND",
 			code:          "a || b",
-			mutantType:    "logical_binary",
+			mutantType:    logicalBinaryType,
 			originalValue: "||",
 			mutantValue:   "&&",
 			expected:      true,
@@ -283,7 +283,7 @@ func TestLogicalMutator_Apply(t *testing.T) {
 		{
 			name:          "apply logical not removal",
 			code:          "!a",
-			mutantType:    "logical_not_removal",
+			mutantType:    logicalNotRemovalType,
 			originalValue: "!",
 			mutantValue:   "",
 			expected:      false, // NOT removal not implemented
@@ -311,13 +311,13 @@ func TestLogicalMutator_Apply(t *testing.T) {
 
 			ast.Inspect(file, func(n ast.Node) bool {
 				switch tt.mutantType {
-				case "logical_binary":
+				case logicalBinaryType:
 					if be, ok := n.(*ast.BinaryExpr); ok {
 						node = be
 
 						return false
 					}
-				case "logical_not_removal":
+				case logicalNotRemovalType:
 					if ue, ok := n.(*ast.UnaryExpr); ok && ue.Op == token.NOT {
 						node = ue
 
