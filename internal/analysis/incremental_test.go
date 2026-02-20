@@ -49,7 +49,7 @@ func TestIncrementalAnalyzer_NewIncrementalAnalyzer(t *testing.T) {
 	tempDir := t.TempDir()
 	history := NewMockHistoryStore()
 
-	analyzer, err := NewIncrementalAnalyzer(tempDir, history)
+	analyzer, err := NewIncrementalAnalyzer(tempDir, history, false)
 	if err != nil {
 		t.Fatalf("Failed to create incremental analyzer: %v", err)
 	}
@@ -86,7 +86,7 @@ func TestIncrementalAnalyzer_AnalyzeFiles(t *testing.T) {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}
 
-	analyzer, err := NewIncrementalAnalyzer(tempDir, history)
+	analyzer, err := NewIncrementalAnalyzer(tempDir, history, false)
 	if err != nil {
 		t.Fatalf("Failed to create incremental analyzer: %v", err)
 	}
@@ -142,7 +142,7 @@ func TestIncrementalAnalyzer_GetFilesNeedingUpdate(t *testing.T) {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}
 
-	analyzer, err := NewIncrementalAnalyzer(tempDir, history)
+	analyzer, err := NewIncrementalAnalyzer(tempDir, history, false)
 	if err != nil {
 		t.Fatalf("Failed to create incremental analyzer: %v", err)
 	}
@@ -187,7 +187,7 @@ func TestIncrementalAnalyzer_PrintAnalysisReport(t *testing.T) {
 	history := NewMockHistoryStore()
 	tempDir := t.TempDir()
 
-	analyzer, err := NewIncrementalAnalyzer(tempDir, history)
+	analyzer, err := NewIncrementalAnalyzer(tempDir, history, false)
 	if err != nil {
 		t.Fatalf("Failed to create incremental analyzer: %v", err)
 	}
@@ -218,7 +218,7 @@ func TestIncrementalAnalyzer_EdgeCases(t *testing.T) {
 	history := NewMockHistoryStore()
 
 	// Test with empty directory
-	analyzer, err := NewIncrementalAnalyzer(tempDir, history)
+	analyzer, err := NewIncrementalAnalyzer(tempDir, history, false)
 	if err != nil {
 		t.Fatalf("Failed to create incremental analyzer: %v", err)
 	}
@@ -247,7 +247,7 @@ func TestIncrementalAnalyzer_InvalidPath(t *testing.T) {
 	history := NewMockHistoryStore()
 
 	// Test with non-existent directory
-	_, err := NewIncrementalAnalyzer("/nonexistent/path", history)
+	_, err := NewIncrementalAnalyzer("/nonexistent/path", history, false)
 	if err == nil {
 		t.Error("Expected error for non-existent path")
 	}
@@ -259,7 +259,7 @@ func TestIncrementalAnalyzer_analyzeFile(t *testing.T) {
 
 	mockHistory := NewMockHistoryStore()
 
-	analyzer, err := NewIncrementalAnalyzer(tmpDir, mockHistory)
+	analyzer, err := NewIncrementalAnalyzer(tmpDir, mockHistory, false)
 	if err != nil {
 		t.Fatalf("Failed to create incremental analyzer: %v", err)
 	}
@@ -346,7 +346,7 @@ func TestIncrementalAnalyzer_hasTestFilesChanged(t *testing.T) {
 	tmpDir := t.TempDir()
 	mockHistory := NewMockHistoryStore()
 
-	analyzer, err := NewIncrementalAnalyzer(tmpDir, mockHistory)
+	analyzer, err := NewIncrementalAnalyzer(tmpDir, mockHistory, false)
 	if err != nil {
 		t.Fatalf("Failed to create incremental analyzer: %v", err)
 	}

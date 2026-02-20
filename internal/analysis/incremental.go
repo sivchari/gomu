@@ -25,6 +25,7 @@ type IncrementalAnalyzer struct {
 	history      HistoryStore
 	workDir      string
 	ignoreParser IgnoreParser
+	incremental  bool
 }
 
 // IgnoreParser defines the interface for ignore file parsing.
@@ -33,7 +34,7 @@ type IgnoreParser interface {
 }
 
 // NewIncrementalAnalyzer creates a new incremental analyzer.
-func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore) (*IncrementalAnalyzer, error) {
+func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore, incremental bool) (*IncrementalAnalyzer, error) {
 	// Validate that the workDir exists
 	if _, err := os.Stat(workDir); err != nil {
 		if os.IsNotExist(err) {
@@ -44,10 +45,11 @@ func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore) (*Increme
 	}
 
 	return &IncrementalAnalyzer{
-		hasher:  NewFileHasher(),
-		git:     NewGitIntegration(workDir),
-		history: historyStore,
-		workDir: workDir,
+		hasher:      NewFileHasher(),
+		git:         NewGitIntegration(workDir),
+		history:     historyStore,
+		workDir:     workDir,
+		incremental: incremental,
 	}, nil
 }
 
@@ -91,9 +93,7 @@ func (a *IncrementalAnalyzer) AnalyzeFiles() ([]FileAnalysisResult, error) {
 
 // getFilesToAnalyze returns the list of files that should be analyzed.
 func (a *IncrementalAnalyzer) getFilesToAnalyze() ([]string, error) {
-	// Always enable incremental analysis by default
-	incrementalEnabled := true
-	if incrementalEnabled && a.git.IsGitRepository() {
+	if a.incremental && a.git.IsGitRepository() {
 		// Use Git diff to get changed files with intelligent default base branch
 		return a.git.GetChangedFiles("main")
 	}

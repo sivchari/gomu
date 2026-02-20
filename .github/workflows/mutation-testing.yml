@@ -35,6 +35,6 @@ jobs:
         version: 'local'
         workers: '2'
         timeout: '60'
-        threshold: 0
-        fail-on-gate: 'false'  # TODO: Fix gomu bugs (.gomuignore, incremental analysis, not viable rate)
+        threshold: '40'  # Current baseline ~46%, will improve incrementally
+        fail-on-gate: 'true'
     
