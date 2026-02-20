@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	// Version information set by ldflags
+	// Version information set by ldflags.
 	version = "dev"
 	commit  = "none"
 	date    = "unknown"
