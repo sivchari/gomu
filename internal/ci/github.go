@@ -233,9 +233,9 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	}
 
 	// Summary
-	buf.WriteString(fmt.Sprintf("**Overall Mutation Score:** %.1f%%\n", mutationScore))
-	buf.WriteString(fmt.Sprintf("**Total Mutants:** %d\n", actualTotalMutants))
-	buf.WriteString(fmt.Sprintf("**Killed:** %d\n", actualKilledMutants))
+	fmt.Fprintf(&buf, "**Overall Mutation Score:** %.1f%%\n", mutationScore)
+	fmt.Fprintf(&buf, "**Total Mutants:** %d\n", actualTotalMutants)
+	fmt.Fprintf(&buf, "**Killed:** %d\n", actualKilledMutants)
 	buf.WriteString("\n")
 
 	// File details - only show files with mutations
@@ -278,12 +278,12 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 				displayPath = "..." + displayPath[len(displayPath)-47:]
 			}
 
-			buf.WriteString(fmt.Sprintf("| %s | %.1f%% | %d | %d |\n",
+			fmt.Fprintf(&buf, "| %s | %.1f%% | %d | %d |\n",
 				displayPath,
 				fileReport.MutationScore,
 				fileReport.TotalMutants,
 				fileReport.KilledMutants,
-			))
+			)
 		}
 
 		buf.WriteString("\n")
@@ -293,7 +293,7 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 
 	// Quality gate reason
 	if !passed {
-		buf.WriteString(fmt.Sprintf("**Failure Reason:** %s\n", reason))
+		fmt.Fprintf(&buf, "**Failure Reason:** %s\n", reason)
 	}
 
 	buf.WriteString("\n---\n")
