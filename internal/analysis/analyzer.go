@@ -198,6 +198,7 @@ func (a *Analyzer) ParseFile(filePath string) (*FileInfo, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse file %s: %w", filePath, err)
 		}
+
 		typeInfo = nil
 	}
 
@@ -231,6 +232,7 @@ func (a *Analyzer) parseAndTypeCheck(filePath string) (*ast.File, *types.Info, e
 	}
 
 	astFiles := make([]*ast.File, 0, len(files))
+
 	var targetAST *ast.File
 
 	for _, file := range files {
@@ -277,12 +279,9 @@ func (a *Analyzer) parseAndTypeCheck(filePath string) (*ast.File, *types.Info, e
 	}
 
 	// Type check the package
-	_, err = config.Check(targetAST.Name.Name, a.fileSet, astFiles, info)
-	if err != nil {
-		// Type checking failed, but we still have the AST and partial type info
-		// Return the AST with whatever type info we collected
-		return targetAST, info, nil
-	}
+	// We ignore the error because we want to return partial type info even if
+	// type checking fails (e.g., due to missing imports)
+	_, _ = config.Check(targetAST.Name.Name, a.fileSet, astFiles, info)
 
 	return targetAST, info, nil
 }

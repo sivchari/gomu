@@ -736,6 +736,7 @@ func Broken() {
 func TestGetTypeInfo_TypesPopulated(t *testing.T) {
 	tempDir := t.TempDir()
 	filePath := filepath.Join(tempDir, "calc.go")
+
 	content := `package calc
 
 func Add(a, b int) int {
@@ -776,21 +777,29 @@ func Concat(a, b string) string {
 	foundStringConcat := false
 
 	ast.Inspect(fileInfo.FileAST, func(n ast.Node) bool {
-		if be, ok := n.(*ast.BinaryExpr); ok {
-			tv, exists := fileInfo.TypeInfo.Types[be]
-			if exists {
-				typeName := tv.Type.String()
-				t.Logf("Found BinaryExpr with type: %s", typeName)
-				if typeName == "int" {
-					foundIntAdd = true
-				}
-				if typeName == "string" {
-					foundStringConcat = true
-				}
-			} else {
-				t.Logf("BinaryExpr not in Types map")
-			}
+		be, ok := n.(*ast.BinaryExpr)
+		if !ok {
+			return true
 		}
+
+		tv, exists := fileInfo.TypeInfo.Types[be]
+		if !exists {
+			t.Logf("BinaryExpr not in Types map")
+
+			return true
+		}
+
+		typeName := tv.Type.String()
+		t.Logf("Found BinaryExpr with type: %s", typeName)
+
+		if typeName == "int" {
+			foundIntAdd = true
+		}
+
+		if typeName == "string" {
+			foundStringConcat = true
+		}
+
 		return true
 	})
 

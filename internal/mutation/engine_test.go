@@ -3,6 +3,7 @@ package mutation
 import (
 	"go/ast"
 	"go/parser"
+	"go/token"
 	"go/types"
 	"os"
 	"path/filepath"
@@ -11,6 +12,57 @@ import (
 
 	"github.com/sivchari/gomu/internal/analysis"
 )
+
+// logTypeFromUsesMap logs type info from Uses map for a binary expression's left operand.
+func logTypeFromUsesMap(t *testing.T, fileInfo *analysis.FileInfo, be *ast.BinaryExpr, pos token.Position) {
+	t.Helper()
+
+	if ident, ok := be.X.(*ast.Ident); ok {
+		logTypeFromIdent(t, fileInfo, be, pos, ident)
+
+		return
+	}
+
+	if sel, ok := be.X.(*ast.SelectorExpr); ok {
+		logTypeFromSelector(t, fileInfo, be, pos, sel)
+
+		return
+	}
+
+	t.Logf("Line %d: %T NO type info", pos.Line, be.X)
+}
+
+// logTypeFromIdent logs type info for an identifier from Uses map.
+func logTypeFromIdent(t *testing.T, fileInfo *analysis.FileInfo, be *ast.BinaryExpr, pos token.Position, ident *ast.Ident) {
+	t.Helper()
+
+	obj := fileInfo.TypeInfo.Uses[ident]
+	if obj == nil {
+		t.Logf("Line %d: %T NO type info in Types or Uses", pos.Line, be.X)
+
+		return
+	}
+
+	underlying := obj.Type().Underlying()
+	_, isInterface := underlying.(*types.Interface)
+	t.Logf("Line %d: %T left type (Uses): %v (interface=%v)", pos.Line, be.X, obj.Type(), isInterface)
+}
+
+// logTypeFromSelector logs type info for a selector expression from Uses map.
+func logTypeFromSelector(t *testing.T, fileInfo *analysis.FileInfo, be *ast.BinaryExpr, pos token.Position, sel *ast.SelectorExpr) {
+	t.Helper()
+
+	obj := fileInfo.TypeInfo.Uses[sel.Sel]
+	if obj == nil {
+		t.Logf("Line %d: %T NO type info in Types or Uses", pos.Line, be.X)
+
+		return
+	}
+
+	underlying := obj.Type().Underlying()
+	_, isInterface := underlying.(*types.Interface)
+	t.Logf("Line %d: %T left type (Uses.Sel): %v (interface=%v)", pos.Line, be.X, obj.Type(), isInterface)
+}
 
 func TestNew(t *testing.T) {
 	engine, err := New()
@@ -317,6 +369,7 @@ func Check() bool {
 
 	// Should only have == mutation (from != original)
 	conditionalCount := 0
+
 	for _, m := range mutants {
 		if m.Type == "conditional_binary" {
 			conditionalCount++
@@ -346,10 +399,12 @@ func TestGenerateMutants_RealEngineFile(t *testing.T) {
 	// Check for ordered comparisons on interface types (err != nil patterns)
 	// These should be filtered out
 	orderedOnInterface := 0
+
 	for _, m := range mutants {
 		if m.Type == "conditional_binary" && m.Original == "!=" {
 			if m.Mutated == "<" || m.Mutated == "<=" || m.Mutated == ">" || m.Mutated == ">=" {
 				t.Logf("Found ordered comparison at line %d: %s -> %s", m.Line, m.Original, m.Mutated)
+
 				orderedOnInterface++
 			}
 		}
@@ -395,29 +450,12 @@ func TestTypeInfoDebug(t *testing.T) {
 			underlying := tv.Type.Underlying()
 			_, isInterface := underlying.(*types.Interface)
 			t.Logf("Line %d: %T left type (Types): %v (interface=%v)", pos.Line, be.X, tv.Type, isInterface)
-		} else {
-			// Try Uses map for Ident
-			if ident, ok := be.X.(*ast.Ident); ok {
-				if obj := fileInfo.TypeInfo.Uses[ident]; obj != nil {
-					underlying := obj.Type().Underlying()
-					_, isInterface := underlying.(*types.Interface)
-					t.Logf("Line %d: %T left type (Uses): %v (interface=%v)", pos.Line, be.X, obj.Type(), isInterface)
-				} else {
-					t.Logf("Line %d: %T NO type info in Types or Uses", pos.Line, be.X)
-				}
-			} else if sel, ok := be.X.(*ast.SelectorExpr); ok {
-				// For selector expressions, check the selector ident
-				if obj := fileInfo.TypeInfo.Uses[sel.Sel]; obj != nil {
-					underlying := obj.Type().Underlying()
-					_, isInterface := underlying.(*types.Interface)
-					t.Logf("Line %d: %T left type (Uses.Sel): %v (interface=%v)", pos.Line, be.X, obj.Type(), isInterface)
-				} else {
-					t.Logf("Line %d: %T NO type info in Types or Uses", pos.Line, be.X)
-				}
-			} else {
-				t.Logf("Line %d: %T NO type info", pos.Line, be.X)
-			}
+
+			return true
 		}
+
+		// Try Uses map for Ident
+		logTypeFromUsesMap(t, fileInfo, be, pos)
 
 		return true
 	})
@@ -775,8 +813,10 @@ func TestBitwise(a, b int) int {
 					}
 
 					// Find a node that can be mutated by this mutator and get its original operator
-					var targetNode ast.Node
-					var originalOp string
+					var (
+						targetNode ast.Node
+						originalOp string
+					)
 
 					findMutableNode(parsedFile, func(node ast.Node) bool {
 						if mutator.CanMutate(node) {
@@ -974,8 +1014,10 @@ func Test(a, b int) int { return a & b }`,
 				}
 
 				// Find a node that can be mutated and get its original operator
-				var targetNode ast.Node
-				var originalOp string
+				var (
+					targetNode ast.Node
+					originalOp string
+				)
 
 				findMutableNode(parsedFile, func(node ast.Node) bool {
 					if targetMutator.CanMutate(node) {
