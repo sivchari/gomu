@@ -132,8 +132,8 @@ func (e *Engine) checkCompilationWithOverlay(mutCtx *MutationContext) error {
 	// Get the directory containing the original file for compilation
 	compileDir := filepath.Dir(mutCtx.OriginalPath)
 
-	// Build only the specific file to avoid issues with other invalid files in the directory
-	cmd := exec.CommandContext(ctx, "go", "build", "-overlay="+mutCtx.OverlayPath, filepath.Base(mutCtx.OriginalPath))
+	// Build the entire package with overlay to properly resolve dependencies
+	cmd := exec.CommandContext(ctx, "go", "build", "-overlay="+mutCtx.OverlayPath, ".")
 	cmd.Dir = compileDir
 
 	output, err := cmd.CombinedOutput()
