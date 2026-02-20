@@ -348,60 +348,68 @@ func TestConditionalMutator_Apply(t *testing.T) {
 	fset := token.NewFileSet()
 
 	tests := []struct {
-		name        string
-		code        string
-		mutantType  string
-		mutantValue string
-		expected    bool
+		name          string
+		code          string
+		mutantType    string
+		originalValue string
+		mutantValue   string
+		expected      bool
 	}{
 		{
-			name:        "apply conditional mutation EQL to NEQ",
-			code:        "a == b",
-			mutantType:  "conditional_binary",
-			mutantValue: "!=",
-			expected:    true,
+			name:          "apply conditional mutation EQL to NEQ",
+			code:          "a == b",
+			mutantType:    "conditional_binary",
+			originalValue: "==",
+			mutantValue:   "!=",
+			expected:      true,
 		},
 		{
-			name:        "apply conditional mutation NEQ to EQL",
-			code:        "a != b",
-			mutantType:  "conditional_binary",
-			mutantValue: "==",
-			expected:    true,
+			name:          "apply conditional mutation NEQ to EQL",
+			code:          "a != b",
+			mutantType:    "conditional_binary",
+			originalValue: "!=",
+			mutantValue:   "==",
+			expected:      true,
 		},
 		{
-			name:        "apply conditional mutation LSS to GTR",
-			code:        "a < b",
-			mutantType:  "conditional_binary",
-			mutantValue: ">",
-			expected:    true,
+			name:          "apply conditional mutation LSS to GTR",
+			code:          "a < b",
+			mutantType:    "conditional_binary",
+			originalValue: "<",
+			mutantValue:   ">",
+			expected:      true,
 		},
 		{
-			name:        "apply conditional mutation LEQ to GEQ",
-			code:        "a <= b",
-			mutantType:  "conditional_binary",
-			mutantValue: ">=",
-			expected:    true,
+			name:          "apply conditional mutation LEQ to GEQ",
+			code:          "a <= b",
+			mutantType:    "conditional_binary",
+			originalValue: "<=",
+			mutantValue:   ">=",
+			expected:      true,
 		},
 		{
-			name:        "apply conditional mutation GTR to LSS",
-			code:        "a > b",
-			mutantType:  "conditional_binary",
-			mutantValue: "<",
-			expected:    true,
+			name:          "apply conditional mutation GTR to LSS",
+			code:          "a > b",
+			mutantType:    "conditional_binary",
+			originalValue: ">",
+			mutantValue:   "<",
+			expected:      true,
 		},
 		{
-			name:        "apply conditional mutation GEQ to LEQ",
-			code:        "a >= b",
-			mutantType:  "conditional_binary",
-			mutantValue: "<=",
-			expected:    true,
+			name:          "apply conditional mutation GEQ to LEQ",
+			code:          "a >= b",
+			mutantType:    "conditional_binary",
+			originalValue: ">=",
+			mutantValue:   "<=",
+			expected:      true,
 		},
 		{
-			name:        "unknown mutation type",
-			code:        "a == b",
-			mutantType:  "unknown",
-			mutantValue: "!=",
-			expected:    false,
+			name:          "unknown mutation type",
+			code:          "a == b",
+			mutantType:    "unknown",
+			originalValue: "==",
+			mutantValue:   "!=",
+			expected:      false,
 		},
 	}
 
@@ -431,8 +439,9 @@ func TestConditionalMutator_Apply(t *testing.T) {
 			}
 
 			mutant := Mutant{
-				Type:    tt.mutantType,
-				Mutated: tt.mutantValue,
+				Type:     tt.mutantType,
+				Original: tt.originalValue,
+				Mutated:  tt.mutantValue,
 			}
 
 			result := mutator.Apply(node, mutant)

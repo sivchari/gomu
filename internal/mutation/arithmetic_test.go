@@ -370,39 +370,44 @@ func TestArithmeticMutator_Apply(t *testing.T) {
 	fset := token.NewFileSet()
 
 	tests := []struct {
-		name        string
-		code        string
-		mutantType  string
-		mutantValue string
-		expected    bool
+		name          string
+		code          string
+		mutantType    string
+		originalValue string
+		mutantValue   string
+		expected      bool
 	}{
 		{
-			name:        "apply binary mutation",
-			code:        "a + b",
-			mutantType:  "arithmetic_binary",
-			mutantValue: "-",
-			expected:    true,
+			name:          "apply binary mutation",
+			code:          "a + b",
+			mutantType:    "arithmetic_binary",
+			originalValue: "+",
+			mutantValue:   "-",
+			expected:      true,
 		},
 		{
-			name:        "apply assign mutation",
-			code:        "a += b",
-			mutantType:  "arithmetic_assign",
-			mutantValue: "-=",
-			expected:    true,
+			name:          "apply assign mutation",
+			code:          "a += b",
+			mutantType:    "arithmetic_assign",
+			originalValue: "+=",
+			mutantValue:   "-=",
+			expected:      true,
 		},
 		{
-			name:        "apply incdec mutation",
-			code:        "a++",
-			mutantType:  "arithmetic_incdec",
-			mutantValue: "--",
-			expected:    true,
+			name:          "apply incdec mutation",
+			code:          "a++",
+			mutantType:    "arithmetic_incdec",
+			originalValue: "++",
+			mutantValue:   "--",
+			expected:      true,
 		},
 		{
-			name:        "unknown mutation type",
-			code:        "a + b",
-			mutantType:  "unknown",
-			mutantValue: "-",
-			expected:    false,
+			name:          "unknown mutation type",
+			code:          "a + b",
+			mutantType:    "unknown",
+			originalValue: "+",
+			mutantValue:   "-",
+			expected:      false,
 		},
 	}
 
@@ -458,8 +463,9 @@ func TestArithmeticMutator_Apply(t *testing.T) {
 			}
 
 			mutant := Mutant{
-				Type:    tt.mutantType,
-				Mutated: tt.mutantValue,
+				Type:     tt.mutantType,
+				Original: tt.originalValue,
+				Mutated:  tt.mutantValue,
 			}
 
 			result := mutator.Apply(node, mutant)

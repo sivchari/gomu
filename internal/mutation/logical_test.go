@@ -257,39 +257,44 @@ func TestLogicalMutator_Apply(t *testing.T) {
 	fset := token.NewFileSet()
 
 	tests := []struct {
-		name        string
-		code        string
-		mutantType  string
-		mutantValue string
-		expected    bool
+		name          string
+		code          string
+		mutantType    string
+		originalValue string
+		mutantValue   string
+		expected      bool
 	}{
 		{
-			name:        "apply logical binary mutation LAND to LOR",
-			code:        "a && b",
-			mutantType:  "logical_binary",
-			mutantValue: "||",
-			expected:    true,
+			name:          "apply logical binary mutation LAND to LOR",
+			code:          "a && b",
+			mutantType:    "logical_binary",
+			originalValue: "&&",
+			mutantValue:   "||",
+			expected:      true,
 		},
 		{
-			name:        "apply logical binary mutation LOR to LAND",
-			code:        "a || b",
-			mutantType:  "logical_binary",
-			mutantValue: "&&",
-			expected:    true,
+			name:          "apply logical binary mutation LOR to LAND",
+			code:          "a || b",
+			mutantType:    "logical_binary",
+			originalValue: "||",
+			mutantValue:   "&&",
+			expected:      true,
 		},
 		{
-			name:        "apply logical not removal",
-			code:        "!a",
-			mutantType:  "logical_not_removal",
-			mutantValue: "",
-			expected:    false, // NOT removal not implemented
+			name:          "apply logical not removal",
+			code:          "!a",
+			mutantType:    "logical_not_removal",
+			originalValue: "!",
+			mutantValue:   "",
+			expected:      false, // NOT removal not implemented
 		},
 		{
-			name:        "unknown mutation type",
-			code:        "a && b",
-			mutantType:  "unknown",
-			mutantValue: "||",
-			expected:    false,
+			name:          "unknown mutation type",
+			code:          "a && b",
+			mutantType:    "unknown",
+			originalValue: "&&",
+			mutantValue:   "||",
+			expected:      false,
 		},
 	}
 
@@ -334,8 +339,9 @@ func TestLogicalMutator_Apply(t *testing.T) {
 			}
 
 			mutant := Mutant{
-				Type:    tt.mutantType,
-				Mutated: tt.mutantValue,
+				Type:     tt.mutantType,
+				Original: tt.originalValue,
+				Mutated:  tt.mutantValue,
 			}
 
 			result := mutator.Apply(node, mutant)
