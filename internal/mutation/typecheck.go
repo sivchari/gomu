@@ -17,6 +17,9 @@ func NewTypeChecker(typeInfo *types.Info) *TypeChecker {
 }
 
 // IsValidMutation checks if a mutation is valid for the given node.
+//
+// When adding a new mutation type, you MUST add a case here explicitly.
+// This ensures that type-based validation is considered for every mutation type.
 func (tc *TypeChecker) IsValidMutation(node ast.Node, mutant Mutant) bool {
 	if tc.typeInfo == nil {
 		// No type info available, assume valid
@@ -24,14 +27,30 @@ func (tc *TypeChecker) IsValidMutation(node ast.Node, mutant Mutant) bool {
 	}
 
 	switch mutant.Type {
+	// Mutation types that require type-based validation
 	case arithmeticBinaryType:
 		return tc.isValidArithmeticBinaryMutation(node, mutant)
 	case arithmeticAssignType:
 		return tc.isValidArithmeticAssignMutation(node, mutant)
 	case conditionalBinaryType:
 		return tc.isValidConditionalMutation(node, mutant)
+
+	// Mutation types that don't require type-based validation
+	// - arithmeticIncDecType: ++/-- only applies to numeric types (compiler enforces)
+	// - bitwiseBinaryType: bitwise ops only apply to integers (compiler enforces)
+	// - bitwiseAssignType: same as above
+	// - logicalBinaryType: &&/|| only applies to booleans (compiler enforces)
+	// - logicalNotRemovalType: ! only applies to booleans (compiler enforces)
+	case arithmeticIncDecType,
+		bitwiseBinaryType,
+		bitwiseAssignType,
+		logicalBinaryType,
+		logicalNotRemovalType:
+		return true
+
 	default:
-		// Other mutation types are assumed valid
+		// Unknown mutation type - this should not happen.
+		// If you see this, add the new mutation type to one of the cases above.
 		return true
 	}
 }
