@@ -172,6 +172,11 @@ func (m *ArithmeticMutator) Apply(node ast.Node, mutant Mutant) bool {
 // applyBinary applies binary operator mutation.
 func (m *ArithmeticMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 	if expr, ok := node.(*ast.BinaryExpr); ok {
+		// Verify the original operator matches
+		if expr.Op.String() != mutant.Original {
+			return false
+		}
+
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
@@ -186,6 +191,11 @@ func (m *ArithmeticMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 // applyAssign applies assignment operator mutation.
 func (m *ArithmeticMutator) applyAssign(node ast.Node, mutant Mutant) bool {
 	if stmt, ok := node.(*ast.AssignStmt); ok {
+		// Verify the original operator matches
+		if stmt.Tok.String() != mutant.Original {
+			return false
+		}
+
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp
@@ -200,6 +210,11 @@ func (m *ArithmeticMutator) applyAssign(node ast.Node, mutant Mutant) bool {
 // applyIncDec applies increment/decrement operator mutation.
 func (m *ArithmeticMutator) applyIncDec(node ast.Node, mutant Mutant) bool {
 	if stmt, ok := node.(*ast.IncDecStmt); ok {
+		// Verify the original operator matches
+		if stmt.Tok.String() != mutant.Original {
+			return false
+		}
+
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp

@@ -78,28 +78,94 @@ func (tc *TypeChecker) isValidConditionalMutation(node ast.Node, mutant Mutant) 
 		return false
 	}
 
+	// Check if this is a nil comparison
+	isNilComparison := tc.isNilIdent(expr.X) || tc.isNilIdent(expr.Y)
+
 	// Get the type of the left operand
 	leftType := tc.getExprType(expr.X)
 	if leftType == nil {
-		return true // Can't determine type, assume valid
+		// Can't determine type
+		// For nil comparisons, be conservative: only allow == and !=
+		// because ordered comparisons (<, <=, >, >=) are never valid for nil
+		if isNilComparison {
+			return mutant.Mutated == "==" || mutant.Mutated == "!="
+		}
+		return true // For non-nil comparisons, assume valid
 	}
 
 	// Check if the new operator is valid for this type
 	return tc.isComparisonOpValidForType(leftType, mutant.Mutated)
 }
 
+// isNilIdent checks if an expression is the nil identifier.
+func (tc *TypeChecker) isNilIdent(expr ast.Expr) bool {
+	if ident, ok := expr.(*ast.Ident); ok {
+		return ident.Name == "nil"
+	}
+	return false
+}
+
 // getExprType returns the type of an expression.
 func (tc *TypeChecker) getExprType(expr ast.Expr) types.Type {
-	if tc.typeInfo == nil || tc.typeInfo.Types == nil {
+	if tc.typeInfo == nil {
 		return nil
 	}
 
-	tv, ok := tc.typeInfo.Types[expr]
-	if !ok {
-		return nil
+	// First, try the Types map
+	if tc.typeInfo.Types != nil {
+		if tv, ok := tc.typeInfo.Types[expr]; ok {
+			// Check if type is valid (not types.Invalid)
+			if tv.Type != nil && !isInvalidType(tv.Type) {
+				return tv.Type
+			}
+		}
 	}
 
-	return tv.Type
+	// For Ident, try the Uses map
+	if tc.typeInfo.Uses != nil {
+		if ident, ok := expr.(*ast.Ident); ok {
+			if obj := tc.typeInfo.Uses[ident]; obj != nil {
+				t := obj.Type()
+				// Check if type is valid
+				if t != nil && !isInvalidType(t) {
+					return t
+				}
+			}
+		}
+	}
+
+	// For SelectorExpr (e.g., fileInfo.TypeInfo), check the selector
+	if tc.typeInfo.Uses != nil {
+		if sel, ok := expr.(*ast.SelectorExpr); ok {
+			if obj := tc.typeInfo.Uses[sel.Sel]; obj != nil {
+				t := obj.Type()
+				if t != nil && !isInvalidType(t) {
+					return t
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// isInvalidType checks if a type is invalid (due to type checking errors).
+func isInvalidType(t types.Type) bool {
+	if t == nil {
+		return true
+	}
+
+	// Check if it's directly the Invalid basic type
+	if basic, ok := t.(*types.Basic); ok {
+		return basic.Kind() == types.Invalid
+	}
+
+	// Check underlying type for named types
+	if basic, ok := t.Underlying().(*types.Basic); ok {
+		return basic.Kind() == types.Invalid
+	}
+
+	return false
 }
 
 // isArithmeticOpValidForType checks if an arithmetic operator is valid for a type.

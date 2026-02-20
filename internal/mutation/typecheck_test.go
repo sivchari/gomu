@@ -165,6 +165,89 @@ func TestTypeChecker_AssignToBinaryOp(t *testing.T) {
 	}
 }
 
+func TestTypeChecker_InterfaceNilComparison(t *testing.T) {
+	// Test that interface != nil cannot be mutated to <, <=, >, >=
+	code := `package test
+
+var errGlobal error
+
+func foo() bool {
+	return errGlobal != nil
+}`
+
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, "test.go", code, 0)
+	if err != nil {
+		t.Fatalf("failed to parse code: %v", err)
+	}
+
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+	}
+
+	config := &types.Config{
+		Error: func(_ error) {},
+	}
+
+	_, err = config.Check("test", fset, []*ast.File{f}, info)
+	if err != nil {
+		t.Fatalf("failed to type check: %v", err)
+	}
+
+	t.Logf("Types map has %d entries", len(info.Types))
+
+	tc := NewTypeChecker(info)
+
+	// Find the binary expression
+	var binaryExpr *ast.BinaryExpr
+	ast.Inspect(f, func(n ast.Node) bool {
+		if be, ok := n.(*ast.BinaryExpr); ok {
+			binaryExpr = be
+			return false
+		}
+		return true
+	})
+
+	if binaryExpr == nil {
+		t.Fatal("no binary expression found")
+	}
+
+	// Check left operand type
+	leftType := tc.getExprType(binaryExpr.X)
+	if leftType == nil {
+		t.Log("Left operand type is nil - type info not available for this expression")
+	} else {
+		t.Logf("Left operand type: %s (underlying: %T)", leftType, leftType.Underlying())
+	}
+
+	// Test mutations
+	tests := []struct {
+		mutated  string
+		expected bool
+	}{
+		{"==", true},  // Valid: interface can be compared with ==
+		{"!=", true},  // Valid: interface can be compared with !=
+		{"<", false},  // Invalid: interface cannot use ordered comparison
+		{"<=", false}, // Invalid
+		{">", false},  // Invalid
+		{">=", false}, // Invalid
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.mutated, func(t *testing.T) {
+			mutant := Mutant{
+				Type:    "conditional_binary",
+				Mutated: tt.mutated,
+			}
+
+			result := tc.IsValidMutation(binaryExpr, mutant)
+			if result != tt.expected {
+				t.Errorf("IsValidMutation for %s = %v, want %v", tt.mutated, result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestFilterMutants(t *testing.T) {
 	code := `package test
 func foo() {

@@ -3,10 +3,13 @@ package mutation
 import (
 	"go/ast"
 	"go/parser"
+	"go/types"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/sivchari/gomu/internal/analysis"
 )
 
 func TestNew(t *testing.T) {
@@ -267,6 +270,157 @@ func NoMutations() {
 	if len(mutants) != 0 {
 		t.Errorf("Expected 0 mutants for file with no mutations, got %d", len(mutants))
 	}
+}
+
+func TestGenerateMutants_InterfaceNilFiltering(t *testing.T) {
+	// Test that interface != nil comparisons don't generate <, <=, >, >= mutations
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test.go")
+
+	testCode := `package test
+
+var errGlobal error
+
+func Check() bool {
+	return errGlobal != nil
+}
+`
+
+	err := os.WriteFile(testFile, []byte(testCode), 0600)
+	if err != nil {
+		t.Fatalf("Failed to write test file: %v", err)
+	}
+
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create mutation engine: %v", err)
+	}
+
+	mutants, err := engine.GenerateMutants(testFile)
+	if err != nil {
+		t.Fatalf("Failed to generate mutants: %v", err)
+	}
+
+	// Log all mutants for debugging
+	for _, m := range mutants {
+		t.Logf("Mutant: %s -> %s (type: %s)", m.Original, m.Mutated, m.Type)
+	}
+
+	// Check that no ordered comparisons were generated for interface type
+	for _, m := range mutants {
+		if m.Type == "conditional_binary" {
+			if m.Mutated == "<" || m.Mutated == "<=" || m.Mutated == ">" || m.Mutated == ">=" {
+				t.Errorf("Should not generate ordered comparison mutation %s for interface type", m.Mutated)
+			}
+		}
+	}
+
+	// Should only have == mutation (from != original)
+	conditionalCount := 0
+	for _, m := range mutants {
+		if m.Type == "conditional_binary" {
+			conditionalCount++
+		}
+	}
+
+	if conditionalCount != 1 {
+		t.Errorf("Expected 1 conditional mutation (== only), got %d", conditionalCount)
+	}
+}
+
+func TestGenerateMutants_RealEngineFile(t *testing.T) {
+	// Test on the real engine.go file to verify type filtering works
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create mutation engine: %v", err)
+	}
+
+	// Use the actual engine.go file
+	mutants, err := engine.GenerateMutants("engine.go")
+	if err != nil {
+		t.Fatalf("Failed to generate mutants: %v", err)
+	}
+
+	t.Logf("Total mutants: %d", len(mutants))
+
+	// Check for ordered comparisons on interface types (err != nil patterns)
+	// These should be filtered out
+	orderedOnInterface := 0
+	for _, m := range mutants {
+		if m.Type == "conditional_binary" && m.Original == "!=" {
+			if m.Mutated == "<" || m.Mutated == "<=" || m.Mutated == ">" || m.Mutated == ">=" {
+				t.Logf("Found ordered comparison at line %d: %s -> %s", m.Line, m.Original, m.Mutated)
+				orderedOnInterface++
+			}
+		}
+	}
+
+	if orderedOnInterface > 0 {
+		t.Errorf("Found %d ordered comparison mutations that should have been filtered", orderedOnInterface)
+	}
+}
+
+func TestTypeInfoDebug(t *testing.T) {
+	// Debug test to investigate type info contents
+	a, err := analysis.New()
+	if err != nil {
+		t.Fatalf("Failed to create analyzer: %v", err)
+	}
+
+	fileInfo, err := a.ParseFile("engine.go")
+	if err != nil {
+		t.Fatalf("Failed to parse file: %v", err)
+	}
+
+	if fileInfo.TypeInfo == nil {
+		t.Fatal("TypeInfo is nil - this is why type filtering fails")
+	}
+
+	t.Logf("TypeInfo.Types has %d entries", len(fileInfo.TypeInfo.Types))
+	t.Logf("TypeInfo.Uses has %d entries", len(fileInfo.TypeInfo.Uses))
+	t.Logf("TypeInfo.Defs has %d entries", len(fileInfo.TypeInfo.Defs))
+
+	// Find binary expressions and check their type info
+	ast.Inspect(fileInfo.FileAST, func(n ast.Node) bool {
+		be, ok := n.(*ast.BinaryExpr)
+		if !ok {
+			return true
+		}
+
+		// Check if left operand has type info
+		tv, hasType := fileInfo.TypeInfo.Types[be.X]
+		pos := a.GetFileSet().Position(be.Pos())
+
+		if hasType {
+			underlying := tv.Type.Underlying()
+			_, isInterface := underlying.(*types.Interface)
+			t.Logf("Line %d: %T left type (Types): %v (interface=%v)", pos.Line, be.X, tv.Type, isInterface)
+		} else {
+			// Try Uses map for Ident
+			if ident, ok := be.X.(*ast.Ident); ok {
+				if obj := fileInfo.TypeInfo.Uses[ident]; obj != nil {
+					underlying := obj.Type().Underlying()
+					_, isInterface := underlying.(*types.Interface)
+					t.Logf("Line %d: %T left type (Uses): %v (interface=%v)", pos.Line, be.X, obj.Type(), isInterface)
+				} else {
+					t.Logf("Line %d: %T NO type info in Types or Uses", pos.Line, be.X)
+				}
+			} else if sel, ok := be.X.(*ast.SelectorExpr); ok {
+				// For selector expressions, check the selector ident
+				if obj := fileInfo.TypeInfo.Uses[sel.Sel]; obj != nil {
+					underlying := obj.Type().Underlying()
+					_, isInterface := underlying.(*types.Interface)
+					t.Logf("Line %d: %T left type (Uses.Sel): %v (interface=%v)", pos.Line, be.X, obj.Type(), isInterface)
+				} else {
+					t.Logf("Line %d: %T NO type info in Types or Uses", pos.Line, be.X)
+				}
+			} else {
+				t.Logf("Line %d: %T NO type info", pos.Line, be.X)
+			}
+		}
+
+		return true
+	})
 }
 
 func TestGetFileSet(t *testing.T) {
@@ -606,12 +760,6 @@ func TestBitwise(a, b int) int {
 					continue
 				}
 
-				// Create a mock mutant for testing Apply behavior
-				testMutant := Mutant{
-					Type:    mutationTest.mutantType,
-					Mutated: mutationTest.mutantValue,
-				}
-
 				// Exercise each mutator's Apply method directly
 				for _, mutator := range engine.mutators {
 					if targetMutant == nil {
@@ -626,12 +774,21 @@ func TestBitwise(a, b int) int {
 						t.Fatalf("Failed to parse file: %v", err)
 					}
 
-					// Find a node that can be mutated by this mutator
+					// Find a node that can be mutated by this mutator and get its original operator
 					var targetNode ast.Node
+					var originalOp string
 
 					findMutableNode(parsedFile, func(node ast.Node) bool {
 						if mutator.CanMutate(node) {
 							targetNode = node
+							// Get the original operator
+							if expr, ok := node.(*ast.BinaryExpr); ok {
+								originalOp = expr.Op.String()
+							} else if stmt, ok := node.(*ast.AssignStmt); ok {
+								originalOp = stmt.Tok.String()
+							} else if stmt, ok := node.(*ast.IncDecStmt); ok {
+								originalOp = stmt.Tok.String()
+							}
 
 							return false // stop searching
 						}
@@ -641,6 +798,13 @@ func TestBitwise(a, b int) int {
 
 					if targetNode == nil {
 						continue
+					}
+
+					// Create a mock mutant for testing Apply behavior
+					testMutant := Mutant{
+						Type:     mutationTest.mutantType,
+						Original: originalOp,
+						Mutated:  mutationTest.mutantValue,
 					}
 
 					// Test the Apply method
@@ -801,11 +965,6 @@ func Test(a, b int) int { return a & b }`,
 
 			// Test stringToToken indirectly through Apply method
 			for _, tokenTest := range tc.tokenTests {
-				testMutant := Mutant{
-					Type:    tc.mutatorName + "_binary",
-					Mutated: tokenTest.input,
-				}
-
 				// Parse file to get nodes for testing
 				fset := engine.GetFileSet()
 
@@ -814,12 +973,21 @@ func Test(a, b int) int { return a & b }`,
 					continue // Skip on parse error
 				}
 
-				// Find a node that can be mutated
+				// Find a node that can be mutated and get its original operator
 				var targetNode ast.Node
+				var originalOp string
 
 				findMutableNode(parsedFile, func(node ast.Node) bool {
 					if targetMutator.CanMutate(node) {
 						targetNode = node
+						// Get the original operator
+						if expr, ok := node.(*ast.BinaryExpr); ok {
+							originalOp = expr.Op.String()
+						} else if stmt, ok := node.(*ast.AssignStmt); ok {
+							originalOp = stmt.Tok.String()
+						} else if stmt, ok := node.(*ast.IncDecStmt); ok {
+							originalOp = stmt.Tok.String()
+						}
 
 						return false
 					}
@@ -828,14 +996,22 @@ func Test(a, b int) int { return a & b }`,
 				})
 
 				if targetNode != nil {
+					testMutant := Mutant{
+						Type:     tc.mutatorName + "_binary",
+						Original: originalOp,
+						Mutated:  tokenTest.input,
+					}
+
 					// Apply mutation - this exercises stringToToken
 					result := targetMutator.Apply(targetNode, testMutant)
 
-					// The result should match our expectation
-					// Valid tokens should succeed, invalid ones should fail
+					// The result should match our expectation:
+					// - Valid tokens should succeed (Apply returns true)
+					// - Invalid tokens should fail (Apply returns false)
+					// Note: Apply returns true even if mutating to the same operator
 					if result != tokenTest.expected {
-						t.Errorf("stringToToken integration test for %s with input %q: Apply returned %v, expected %v",
-							tc.mutatorName, tokenTest.input, result, tokenTest.expected)
+						t.Errorf("stringToToken integration test for %s with input %q (original=%q): Apply returned %v, expected %v",
+							tc.mutatorName, tokenTest.input, originalOp, result, tokenTest.expected)
 					}
 				}
 			}

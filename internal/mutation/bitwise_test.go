@@ -177,53 +177,60 @@ func TestBitwiseMutator_Apply(t *testing.T) {
 	fset := token.NewFileSet()
 
 	tests := []struct {
-		name        string
-		code        string
-		mutantType  string
-		mutantValue string
-		expected    bool
+		name          string
+		code          string
+		mutantType    string
+		originalValue string
+		mutantValue   string
+		expected      bool
 	}{
 		{
-			name:        "apply binary mutation AND to OR",
-			code:        "x & y",
-			mutantType:  "bitwise_binary",
-			mutantValue: "|",
-			expected:    true,
+			name:          "apply binary mutation AND to OR",
+			code:          "x & y",
+			mutantType:    "bitwise_binary",
+			originalValue: "&",
+			mutantValue:   "|",
+			expected:      true,
 		},
 		{
-			name:        "apply binary mutation OR to AND",
-			code:        "x | y",
-			mutantType:  "bitwise_binary",
-			mutantValue: "&",
-			expected:    true,
+			name:          "apply binary mutation OR to AND",
+			code:          "x | y",
+			mutantType:    "bitwise_binary",
+			originalValue: "|",
+			mutantValue:   "&",
+			expected:      true,
 		},
 		{
-			name:        "apply binary mutation XOR to AND",
-			code:        "x ^ y",
-			mutantType:  "bitwise_binary",
-			mutantValue: "&",
-			expected:    true,
+			name:          "apply binary mutation XOR to AND",
+			code:          "x ^ y",
+			mutantType:    "bitwise_binary",
+			originalValue: "^",
+			mutantValue:   "&",
+			expected:      true,
 		},
 		{
-			name:        "apply assign mutation AND_ASSIGN to OR_ASSIGN",
-			code:        "x &= y",
-			mutantType:  "bitwise_assign",
-			mutantValue: "|=",
-			expected:    true,
+			name:          "apply assign mutation AND_ASSIGN to OR_ASSIGN",
+			code:          "x &= y",
+			mutantType:    "bitwise_assign",
+			originalValue: "&=",
+			mutantValue:   "|=",
+			expected:      true,
 		},
 		{
-			name:        "apply shift mutation LEFT to RIGHT",
-			code:        "x << 2",
-			mutantType:  "bitwise_binary",
-			mutantValue: ">>",
-			expected:    true,
+			name:          "apply shift mutation LEFT to RIGHT",
+			code:          "x << 2",
+			mutantType:    "bitwise_binary",
+			originalValue: "<<",
+			mutantValue:   ">>",
+			expected:      true,
 		},
 		{
-			name:        "unknown mutation type",
-			code:        "x & y",
-			mutantType:  "unknown",
-			mutantValue: "|",
-			expected:    false,
+			name:          "unknown mutation type",
+			code:          "x & y",
+			mutantType:    "unknown",
+			originalValue: "&",
+			mutantValue:   "|",
+			expected:      false,
 		},
 	}
 
@@ -273,8 +280,9 @@ func TestBitwiseMutator_Apply(t *testing.T) {
 			}
 
 			mutant := Mutant{
-				Type:    tt.mutantType,
-				Mutated: tt.mutantValue,
+				Type:     tt.mutantType,
+				Original: tt.originalValue,
+				Mutated:  tt.mutantValue,
 			}
 
 			result := mutator.Apply(node, mutant)

@@ -157,6 +157,11 @@ func (m *BitwiseMutator) Apply(node ast.Node, mutant Mutant) bool {
 // applyBinary applies binary operator mutation.
 func (m *BitwiseMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 	if expr, ok := node.(*ast.BinaryExpr); ok {
+		// Verify the original operator matches
+		if expr.Op.String() != mutant.Original {
+			return false
+		}
+
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
@@ -171,6 +176,11 @@ func (m *BitwiseMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 // applyAssign applies assignment operator mutation.
 func (m *BitwiseMutator) applyAssign(node ast.Node, mutant Mutant) bool {
 	if stmt, ok := node.(*ast.AssignStmt); ok {
+		// Verify the original operator matches
+		if stmt.Tok.String() != mutant.Original {
+			return false
+		}
+
 		newOp := m.stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp
