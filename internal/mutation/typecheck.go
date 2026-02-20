@@ -24,11 +24,11 @@ func (tc *TypeChecker) IsValidMutation(node ast.Node, mutant Mutant) bool {
 	}
 
 	switch mutant.Type {
-	case "arithmetic_binary":
+	case arithmeticBinaryType:
 		return tc.isValidArithmeticBinaryMutation(node, mutant)
-	case "arithmetic_assign":
+	case arithmeticAssignType:
 		return tc.isValidArithmeticAssignMutation(node, mutant)
-	case "conditional_binary":
+	case conditionalBinaryType:
 		return tc.isValidConditionalMutation(node, mutant)
 	default:
 		// Other mutation types are assumed valid
@@ -68,6 +68,7 @@ func (tc *TypeChecker) isValidArithmeticAssignMutation(node ast.Node, mutant Mut
 
 	// Convert assign operator to binary operator for validation
 	binaryOp := tc.assignToBinaryOp(mutant.Mutated)
+
 	return tc.isArithmeticOpValidForType(lhsType, binaryOp)
 }
 
@@ -90,6 +91,7 @@ func (tc *TypeChecker) isValidConditionalMutation(node ast.Node, mutant Mutant) 
 		if isNilComparison {
 			return mutant.Mutated == "==" || mutant.Mutated == "!="
 		}
+
 		return true // For non-nil comparisons, assume valid
 	}
 
@@ -112,38 +114,84 @@ func (tc *TypeChecker) getExprType(expr ast.Expr) types.Type {
 	}
 
 	// First, try the Types map
-	if tc.typeInfo.Types != nil {
-		if tv, ok := tc.typeInfo.Types[expr]; ok {
-			// Check if type is valid (not types.Invalid)
-			if tv.Type != nil && !isInvalidType(tv.Type) {
-				return tv.Type
-			}
-		}
+	if t := tc.getTypeFromTypesMap(expr); t != nil {
+		return t
 	}
 
 	// For Ident, try the Uses map
-	if tc.typeInfo.Uses != nil {
-		if ident, ok := expr.(*ast.Ident); ok {
-			if obj := tc.typeInfo.Uses[ident]; obj != nil {
-				t := obj.Type()
-				// Check if type is valid
-				if t != nil && !isInvalidType(t) {
-					return t
-				}
-			}
-		}
+	if t := tc.getTypeFromUsesMapIdent(expr); t != nil {
+		return t
 	}
 
 	// For SelectorExpr (e.g., fileInfo.TypeInfo), check the selector
-	if tc.typeInfo.Uses != nil {
-		if sel, ok := expr.(*ast.SelectorExpr); ok {
-			if obj := tc.typeInfo.Uses[sel.Sel]; obj != nil {
-				t := obj.Type()
-				if t != nil && !isInvalidType(t) {
-					return t
-				}
-			}
-		}
+	if t := tc.getTypeFromUsesMapSelector(expr); t != nil {
+		return t
+	}
+
+	return nil
+}
+
+// getTypeFromTypesMap tries to get type from Types map.
+func (tc *TypeChecker) getTypeFromTypesMap(expr ast.Expr) types.Type {
+	if tc.typeInfo.Types == nil {
+		return nil
+	}
+
+	tv, ok := tc.typeInfo.Types[expr]
+	if !ok {
+		return nil
+	}
+
+	if tv.Type != nil && !isInvalidType(tv.Type) {
+		return tv.Type
+	}
+
+	return nil
+}
+
+// getTypeFromUsesMapIdent tries to get type from Uses map for Ident expressions.
+func (tc *TypeChecker) getTypeFromUsesMapIdent(expr ast.Expr) types.Type {
+	if tc.typeInfo.Uses == nil {
+		return nil
+	}
+
+	ident, ok := expr.(*ast.Ident)
+	if !ok {
+		return nil
+	}
+
+	obj := tc.typeInfo.Uses[ident]
+	if obj == nil {
+		return nil
+	}
+
+	t := obj.Type()
+	if t != nil && !isInvalidType(t) {
+		return t
+	}
+
+	return nil
+}
+
+// getTypeFromUsesMapSelector tries to get type from Uses map for SelectorExpr.
+func (tc *TypeChecker) getTypeFromUsesMapSelector(expr ast.Expr) types.Type {
+	if tc.typeInfo.Uses == nil {
+		return nil
+	}
+
+	sel, ok := expr.(*ast.SelectorExpr)
+	if !ok {
+		return nil
+	}
+
+	obj := tc.typeInfo.Uses[sel.Sel]
+	if obj == nil {
+		return nil
+	}
+
+	t := obj.Type()
+	if t != nil && !isInvalidType(t) {
+		return t
 	}
 
 	return nil
@@ -269,7 +317,7 @@ func FilterMutants(mutants []Mutant, node ast.Node, typeInfo *types.Info) []Muta
 }
 
 // GetNodeTypeInfo returns the type information for a specific node position.
-func GetNodeTypeInfo(fset *token.FileSet, typeInfo *types.Info, line, column int) types.Type {
+func GetNodeTypeInfo(_ *token.FileSet, typeInfo *types.Info, _, _ int) types.Type {
 	if typeInfo == nil || typeInfo.Types == nil {
 		return nil
 	}

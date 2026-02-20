@@ -106,6 +106,7 @@ func foo() bool {
 
 			// Find the binary expression in the AST
 			var binaryExpr *ast.BinaryExpr
+
 			ast.Inspect(f, func(n ast.Node) bool {
 				if be, ok := n.(*ast.BinaryExpr); ok {
 					binaryExpr = be
@@ -176,6 +177,7 @@ func foo() bool {
 }`
 
 	fset := token.NewFileSet()
+
 	f, err := parser.ParseFile(fset, "test.go", code, 0)
 	if err != nil {
 		t.Fatalf("failed to parse code: %v", err)
@@ -200,6 +202,7 @@ func foo() bool {
 
 	// Find the binary expression
 	var binaryExpr *ast.BinaryExpr
+
 	ast.Inspect(f, func(n ast.Node) bool {
 		if be, ok := n.(*ast.BinaryExpr); ok {
 			binaryExpr = be
@@ -256,6 +259,7 @@ func foo() {
 }`
 
 	fset := token.NewFileSet()
+
 	f, err := parser.ParseFile(fset, "test.go", code, 0)
 	if err != nil {
 		t.Fatalf("failed to parse code: %v", err)
@@ -276,6 +280,7 @@ func foo() {
 
 	// Find the binary expression
 	var binaryExpr *ast.BinaryExpr
+
 	ast.Inspect(f, func(n ast.Node) bool {
 		if be, ok := n.(*ast.BinaryExpr); ok {
 			binaryExpr = be
