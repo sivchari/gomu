@@ -162,8 +162,8 @@ func TestArithmeticMutator_Mutate_BinaryExpr(t *testing.T) {
 
 			// Check mutant properties
 			for _, mutant := range mutants {
-				if mutant.Type != "arithmetic_binary" {
-					t.Errorf("Expected type 'arithmetic_binary', got %s", mutant.Type)
+				if mutant.Type != arithmeticBinaryType {
+					t.Errorf("Expected type %q, got %s", arithmeticBinaryType, mutant.Type)
 				}
 
 				if mutant.Line <= 0 {
@@ -380,7 +380,7 @@ func TestArithmeticMutator_Apply(t *testing.T) {
 		{
 			name:          "apply binary mutation",
 			code:          "a + b",
-			mutantType:    "arithmetic_binary",
+			mutantType:    arithmeticBinaryType,
 			originalValue: "+",
 			mutantValue:   "-",
 			expected:      true,
@@ -388,7 +388,7 @@ func TestArithmeticMutator_Apply(t *testing.T) {
 		{
 			name:          "apply assign mutation",
 			code:          "a += b",
-			mutantType:    "arithmetic_assign",
+			mutantType:    arithmeticAssignType,
 			originalValue: "+=",
 			mutantValue:   "-=",
 			expected:      true,
@@ -396,7 +396,7 @@ func TestArithmeticMutator_Apply(t *testing.T) {
 		{
 			name:          "apply incdec mutation",
 			code:          "a++",
-			mutantType:    "arithmetic_incdec",
+			mutantType:    arithmeticIncDecType,
 			originalValue: "++",
 			mutantValue:   "--",
 			expected:      true,
@@ -414,7 +414,7 @@ func TestArithmeticMutator_Apply(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var src string
-			if tt.mutantType == "arithmetic_assign" || tt.mutantType == "arithmetic_incdec" {
+			if tt.mutantType == arithmeticAssignType || tt.mutantType == arithmeticIncDecType {
 				src = "package main\nfunc test() {\n\t" + tt.code + "\n}"
 			} else {
 				src = "package main\nfunc test() { _ = " + tt.code + " }"
@@ -429,19 +429,19 @@ func TestArithmeticMutator_Apply(t *testing.T) {
 
 			ast.Inspect(file, func(n ast.Node) bool {
 				switch tt.mutantType {
-				case "arithmetic_binary":
+				case arithmeticBinaryType:
 					if be, ok := n.(*ast.BinaryExpr); ok {
 						node = be
 
 						return false
 					}
-				case "arithmetic_assign":
+				case arithmeticAssignType:
 					if as, ok := n.(*ast.AssignStmt); ok {
 						node = as
 
 						return false
 					}
-				case "arithmetic_incdec":
+				case arithmeticIncDecType:
 					if ids, ok := n.(*ast.IncDecStmt); ok {
 						node = ids
 

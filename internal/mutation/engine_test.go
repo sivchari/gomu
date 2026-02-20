@@ -197,7 +197,7 @@ func LogicalTest(a, b bool) bool {
 		mutationTypes[mutant.Type] = true
 	}
 
-	expectedTypes := []string{"arithmetic_binary", "conditional_binary", "logical_binary"}
+	expectedTypes := []string{arithmeticBinaryType, conditionalBinaryType, logicalBinaryType}
 	for _, expectedType := range expectedTypes {
 		if !mutationTypes[expectedType] {
 			t.Errorf("Expected mutation type %s not found", expectedType)
@@ -360,7 +360,7 @@ func Check() bool {
 
 	// Check that no ordered comparisons were generated for interface type
 	for _, m := range mutants {
-		if m.Type == "conditional_binary" {
+		if m.Type == conditionalBinaryType {
 			if m.Mutated == "<" || m.Mutated == "<=" || m.Mutated == ">" || m.Mutated == ">=" {
 				t.Errorf("Should not generate ordered comparison mutation %s for interface type", m.Mutated)
 			}
@@ -371,7 +371,7 @@ func Check() bool {
 	conditionalCount := 0
 
 	for _, m := range mutants {
-		if m.Type == "conditional_binary" {
+		if m.Type == conditionalBinaryType {
 			conditionalCount++
 		}
 	}
@@ -401,7 +401,7 @@ func TestGenerateMutants_RealEngineFile(t *testing.T) {
 	orderedOnInterface := 0
 
 	for _, m := range mutants {
-		if m.Type == "conditional_binary" && m.Original == "!=" {
+		if m.Type == "conditionalBinaryType" && m.Original == "!=" {
 			if m.Mutated == "<" || m.Mutated == "<=" || m.Mutated == ">" || m.Mutated == ">=" {
 				t.Logf("Found ordered comparison at line %d: %s -> %s", m.Line, m.Original, m.Mutated)
 
@@ -697,9 +697,9 @@ func TestArithmetic() int {
 				mutantValue string
 				expected    bool
 			}{
-				{"arithmetic_binary", "-", true},
-				{"arithmetic_binary", "*", true},
-				{"arithmetic_binary", "/", true},
+				{arithmeticBinaryType, "-", true},
+				{arithmeticBinaryType, "*", true},
+				{arithmeticBinaryType, "/", true},
 				{"invalid_type", "+", false},
 			},
 		},
@@ -714,11 +714,11 @@ func TestConditional(a, b int) bool {
 				mutantValue string
 				expected    bool
 			}{
-				{"conditional_binary", "!=", true},
-				{"conditional_binary", "<", true},
-				{"conditional_binary", ">", true},
-				{"conditional_binary", "<=", true},
-				{"conditional_binary", ">=", true},
+				{conditionalBinaryType, "!=", true},
+				{conditionalBinaryType, "<", true},
+				{conditionalBinaryType, ">", true},
+				{conditionalBinaryType, "<=", true},
+				{conditionalBinaryType, ">=", true},
 				{"invalid_type", "==", false},
 			},
 		},
@@ -733,7 +733,7 @@ func TestLogical(a, b bool) bool {
 				mutantValue string
 				expected    bool
 			}{
-				{"logical_binary", "||", true},
+				{logicalBinaryType, "||", true},
 				{"invalid_type", "&&", false},
 			},
 		},

@@ -23,7 +23,7 @@ func foo() {
 	_ = x
 }`,
 			mutant: Mutant{
-				Type:    "arithmetic_binary",
+				Type:    arithmeticBinaryType,
 				Mutated: "-",
 			},
 			expected: true,
@@ -36,7 +36,7 @@ func foo() {
 	_ = x
 }`,
 			mutant: Mutant{
-				Type:    "arithmetic_binary",
+				Type:    arithmeticBinaryType,
 				Mutated: "-",
 			},
 			expected: false,
@@ -49,7 +49,7 @@ func foo() {
 	_ = x
 }`,
 			mutant: Mutant{
-				Type:    "arithmetic_binary",
+				Type:    arithmeticBinaryType,
 				Mutated: "+",
 			},
 			expected: true,
@@ -136,7 +136,7 @@ func TestTypeChecker_NilTypeInfo(t *testing.T) {
 
 	// With nil type info, all mutations should be valid
 	mutant := Mutant{
-		Type:    "arithmetic_binary",
+		Type:    arithmeticBinaryType,
 		Mutated: "-",
 	}
 
@@ -208,11 +208,14 @@ func foo() bool {
 	var binaryExpr *ast.BinaryExpr
 
 	ast.Inspect(f, func(n ast.Node) bool {
-		if be, ok := n.(*ast.BinaryExpr); ok {
-			binaryExpr = be
-			return false
+		be, ok := n.(*ast.BinaryExpr)
+		if !ok {
+			return true
 		}
-		return true
+
+		binaryExpr = be
+
+		return false
 	})
 
 	if binaryExpr == nil {
@@ -286,18 +289,21 @@ func foo() {
 	var binaryExpr *ast.BinaryExpr
 
 	ast.Inspect(f, func(n ast.Node) bool {
-		if be, ok := n.(*ast.BinaryExpr); ok {
-			binaryExpr = be
-			return false
+		be, ok := n.(*ast.BinaryExpr)
+		if !ok {
+			return true
 		}
-		return true
+
+		binaryExpr = be
+
+		return false
 	})
 
 	mutants := []Mutant{
-		{Type: "arithmetic_binary", Mutated: "+"}, // Valid for string
-		{Type: "arithmetic_binary", Mutated: "-"}, // Invalid for string
-		{Type: "arithmetic_binary", Mutated: "*"}, // Invalid for string
-		{Type: "arithmetic_binary", Mutated: "/"}, // Invalid for string
+		{Type: arithmeticBinaryType, Mutated: "+"}, // Valid for string
+		{Type: arithmeticBinaryType, Mutated: "-"}, // Invalid for string
+		{Type: arithmeticBinaryType, Mutated: "*"}, // Invalid for string
+		{Type: arithmeticBinaryType, Mutated: "/"}, // Invalid for string
 	}
 
 	filtered := FilterMutants(mutants, binaryExpr, info)
