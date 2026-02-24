@@ -97,7 +97,7 @@ gomu run --threshold 85.0 --workers 8
 | `--timeout` | `30` | Test timeout in seconds |
 | `--incremental` | `true` | Enable incremental analysis |
 | `--base-branch` | `main` | Base branch for incremental analysis |
-| `--output` | `json` | Output format (json, html, console) |
+| `--output` | `console` | Output format (console, json, html, text) |
 | `--fail-on-gate` | `true` | Fail build when quality gate is not met |
 | `-v, --verbose` | `false` | Verbose output |
 
@@ -171,10 +171,6 @@ testdata/
 
 ### GitHub Actions
 
-#### Using the GitHub Action (Recommended)
-
-The easiest way to integrate gomu into your workflow is using the official GitHub Action:
-
 ```yaml
 name: Mutation Testing
 
@@ -185,82 +181,6 @@ on:
 jobs:
   mutation-test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-      issues: write
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Run mutation testing
-      uses: sivchari/gomu@main
-      with:
-        go-version: '1.21'
-        threshold: '80'
-        workers: '4'
-        timeout: '30'
-        upload-artifacts: 'true'
-        comment-pr: 'true'
-```
-
-#### Required Permissions
-
-**Important**: For PR comments and artifact uploads to work, your workflow needs the following permissions:
-
-```yaml
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-```
-
-#### Available Inputs
-
-| Input | Description | Default |
-|-------|-------------|---------|
-| `go-version` | Go version to use | `1.21` |
-| `version` | gomu version to use (latest, nightly, local, or specific version) | `latest` |
-| `working-directory` | Working directory for the action | `.` |
-| `threshold` | Minimum mutation score threshold (0-100) | `80` |
-| `workers` | Number of parallel workers | `4` |
-| `timeout` | Test timeout in seconds | `30` |
-| `incremental` | Enable incremental analysis | `true` |
-| `base-branch` | Base branch for incremental analysis | `main` |
-| `output` | Output format (json, html, console) | `json` |
-| `fail-on-gate` | Whether to fail the build if quality gate is not met | `true` |
-| `upload-artifacts` | Whether to upload mutation reports as artifacts | `true` |
-| `comment-pr` | Whether to comment on pull requests with results | `true` |
-
-#### Outputs
-
-| Output | Description |
-|--------|-------------|
-| `mutation-score` | The mutation score percentage |
-| `total-mutants` | Total number of mutants generated |
-| `killed-mutants` | Number of killed mutants |
-| `survived-mutants` | Number of survived mutants |
-
-#### Manual Setup
-
-If you prefer to set up the workflow manually:
-
-```yaml
-name: Mutation Testing
-
-on:
-  pull_request:
-    branches: [main]
-
-jobs:
-  mutation-test:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-      issues: write
 
     steps:
     - uses: actions/checkout@v4
@@ -277,12 +197,6 @@ jobs:
 
     - name: Run mutation testing
       run: gomu run --ci-mode --threshold 80.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_PR_NUMBER: ${{ github.event.number }}
-        GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref }}
-        GITHUB_HEAD_REF: ${{ github.event.pull_request.head.ref }}
 
     - name: Upload mutation report
       uses: actions/upload-artifact@v4
