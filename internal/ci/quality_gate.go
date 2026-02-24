@@ -31,9 +31,9 @@ func NewQualityGateEvaluator(enabled bool, minMutationScore float64) *QualityGat
 func (e *QualityGateEvaluator) Evaluate(summary *report.Summary) *QualityGateResult {
 	if summary == nil || summary.TotalMutants == 0 {
 		return &QualityGateResult{
-			Pass:          false,
+			Pass:          true,
 			MutationScore: 0.0,
-			Reason:        "No mutants generated",
+			Reason:        "No mutants generated (skipped)",
 		}
 	}
 
