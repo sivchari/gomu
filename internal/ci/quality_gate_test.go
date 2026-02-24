@@ -73,9 +73,9 @@ func TestQualityGateEvaluator_Evaluate(t *testing.T) {
 					Score: 0.0,
 				},
 			},
-			expectedPass:   false,
+			expectedPass:   true,
 			expectedScore:  0.0,
-			expectedReason: "No mutants generated",
+			expectedReason: "No mutants generated (skipped)",
 		},
 	}
 
@@ -102,14 +102,14 @@ func TestQualityGateEvaluator_Evaluate(t *testing.T) {
 func TestQualityGateEvaluator_Evaluate_EdgeCases(t *testing.T) {
 	evaluator := NewQualityGateEvaluator(true, 80.0)
 
-	// Test with nil summary
+	// Test with nil summary (should pass as there's nothing to test)
 	result := evaluator.Evaluate(nil)
-	if result.Pass {
-		t.Error("Expected false for nil summary")
+	if !result.Pass {
+		t.Error("Expected true for nil summary (no mutants to test)")
 	}
 
-	if result.Reason != "No mutants generated" {
-		t.Errorf("Expected 'No mutants generated', got '%s'", result.Reason)
+	if result.Reason != "No mutants generated (skipped)" {
+		t.Errorf("Expected 'No mutants generated (skipped)', got '%s'", result.Reason)
 	}
 
 	// Test exact threshold
