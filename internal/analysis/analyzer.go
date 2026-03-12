@@ -317,6 +317,7 @@ func (a *Analyzer) parsePackageFiles(pkgDir string) ([]*ast.File, error) {
 // calculateFileHash calculates a SHA256 hash for the given file content.
 func calculateFileHash(content []byte) string {
 	h := sha256.Sum256(content)
+
 	return fmt.Sprintf("%x", h)
 }
 
