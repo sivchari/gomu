@@ -905,7 +905,7 @@ func TestParsePackageFiles(t *testing.T) {
 				t.Fatalf("failed to create analyzer: %v", err)
 			}
 
-			files, err := analyzer.parsePackageFiles(pkgDir)
+			files, _, err := analyzer.parsePackageFiles(pkgDir)
 
 			if tt.expectError {
 				if err == nil {
