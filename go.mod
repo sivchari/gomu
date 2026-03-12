@@ -6,6 +6,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/text v0.27.0
+	golang.org/x/tools v0.34.0
 )
 
 require (

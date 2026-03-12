@@ -35,7 +35,7 @@ func TestLogicalMutator_CanMutate(t *testing.T) {
 		{
 			name:     "logical not",
 			code:     "!a",
-			expected: false,
+			expected: true,
 		},
 		{
 			name:     "arithmetic addition",

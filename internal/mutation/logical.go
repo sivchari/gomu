@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	logicalMutatorName = "logical"
-	logicalBinaryType  = "logical_binary"
+	logicalMutatorName    = "logical"
+	logicalBinaryType     = "logical_binary"
+	logicalNotRemovalType = "logical_not_removal"
 )
 
 // LogicalMutator mutates logical operators.
@@ -26,6 +27,10 @@ func (m *LogicalMutator) CanMutate(node ast.Node) bool {
 		return m.isLogicalOp(n.Op)
 	}
 
+	if n, ok := node.(*ast.UnaryExpr); ok {
+		return n.Op == token.NOT
+	}
+
 	return false
 }
 
@@ -37,7 +42,24 @@ func (m *LogicalMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
 		return m.mutateBinaryExpr(n, pos)
 	}
 
+	if n, ok := node.(*ast.UnaryExpr); ok {
+		return m.mutateUnaryExpr(n, pos)
+	}
+
 	return nil
+}
+
+func (m *LogicalMutator) mutateUnaryExpr(expr *ast.UnaryExpr, pos token.Position) []Mutant {
+	return []Mutant{
+		{
+			Line:        pos.Line,
+			Column:      pos.Column,
+			Type:        logicalNotRemovalType,
+			Original:    expr.Op.String(),
+			Mutated:     "",
+			Description: fmt.Sprintf("Remove %s operator", expr.Op.String()),
+		},
+	}
 }
 
 func (m *LogicalMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Position) []Mutant {
@@ -85,7 +107,28 @@ func (m *LogicalMutator) Apply(node ast.Node, mutant Mutant) bool {
 		return m.applyBinary(node, mutant)
 	}
 
+	if mutant.Type == logicalNotRemovalType {
+		// NOT removal requires node replacement via CursorApplier; not supported here.
+		return false
+	}
+
 	return false
+}
+
+// ApplyWithCursor applies the NOT removal mutation using a replace function for node replacement.
+func (m *LogicalMutator) ApplyWithCursor(node ast.Node, replaceFunc func(ast.Node), mutant Mutant) bool {
+	if mutant.Type != logicalNotRemovalType {
+		return false
+	}
+
+	expr, ok := node.(*ast.UnaryExpr)
+	if !ok || expr.Op != token.NOT {
+		return false
+	}
+
+	replaceFunc(expr.X)
+
+	return true
 }
 
 // applyBinary applies binary operator mutation.

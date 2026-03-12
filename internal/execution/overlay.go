@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"golang.org/x/tools/go/ast/astutil"
+
 	"github.com/sivchari/gomu/internal/mutation"
 )
 
@@ -110,13 +112,11 @@ func (om *OverlayMutator) Cleanup() error {
 
 // createMutatedFile creates a mutated version of the source file.
 func (om *OverlayMutator) createMutatedFile(mutant mutation.Mutant, originalPath, mutatedPath string) error {
-	// Read original source
 	src, err := os.ReadFile(originalPath)
 	if err != nil {
 		return fmt.Errorf("failed to read source file: %w", err)
 	}
 
-	// Parse the source file
 	fset := token.NewFileSet()
 
 	file, err := parser.ParseFile(fset, originalPath, src, parser.ParseComments)
@@ -124,17 +124,23 @@ func (om *OverlayMutator) createMutatedFile(mutant mutation.Mutant, originalPath
 		return fmt.Errorf("failed to parse file: %w", err)
 	}
 
-	// Apply mutation
 	mutated := false
 
-	ast.Inspect(file, func(node ast.Node) bool {
-		if node == nil || mutated {
+	astutil.Apply(file, nil, func(c *astutil.Cursor) bool {
+		if mutated {
 			return false
+		}
+
+		node := c.Node()
+		if node == nil {
+			return true
 		}
 
 		pos := fset.Position(node.Pos())
 		if pos.Line == mutant.Line && pos.Column == mutant.Column {
-			mutated = om.applyMutationToNode(node, mutant)
+			mutated = om.applyMutationToNode(node, func(replacement ast.Node) {
+				c.Replace(replacement)
+			}, mutant)
 		}
 
 		return !mutated
@@ -144,11 +150,11 @@ func (om *OverlayMutator) createMutatedFile(mutant mutation.Mutant, originalPath
 		return fmt.Errorf("failed to find mutation target at %s:%d:%d", originalPath, mutant.Line, mutant.Column)
 	}
 
-	// Write mutated code to the new file
 	f, err := os.Create(mutatedPath)
 	if err != nil {
 		return fmt.Errorf("failed to create mutated file: %w", err)
 	}
+
 	defer f.Close()
 
 	if err := format.Node(f, fset, file); err != nil {
@@ -159,14 +165,22 @@ func (om *OverlayMutator) createMutatedFile(mutant mutation.Mutant, originalPath
 }
 
 // applyMutationToNode applies the mutation to a specific AST node.
-func (om *OverlayMutator) applyMutationToNode(node ast.Node, mutant mutation.Mutant) bool {
+func (om *OverlayMutator) applyMutationToNode(node ast.Node, replaceFunc func(ast.Node), mutant mutation.Mutant) bool {
 	engine, err := mutation.New()
 	if err != nil {
 		return false
 	}
 
-	for _, mutatorInterface := range engine.GetMutators() {
-		if mutatorInterface.Apply(node, mutant) {
+	for _, m := range engine.GetMutators() {
+		if ca, ok := m.(mutation.CursorApplier); ok {
+			if ca.ApplyWithCursor(node, replaceFunc, mutant) {
+				return true
+			}
+		}
+	}
+
+	for _, m := range engine.GetMutators() {
+		if m.Apply(node, mutant) {
 			return true
 		}
 	}

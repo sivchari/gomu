@@ -2,6 +2,7 @@ package execution
 
 import (
 	"encoding/json"
+	"go/ast"
 	"os"
 	"path/filepath"
 	"strings"
@@ -585,7 +586,7 @@ func TestApplyMutationToNodeWithOverlay(t *testing.T) {
 			defer mutator.Cleanup()
 
 			// Use nil node - method checks type anyway
-			result := mutator.applyMutationToNode(nil, mutation.Mutant{
+			result := mutator.applyMutationToNode(nil, func(_ ast.Node) {}, mutation.Mutant{
 				Type:    tt.mutationType,
 				Mutated: "+",
 			})
