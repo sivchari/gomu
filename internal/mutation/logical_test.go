@@ -35,7 +35,7 @@ func TestLogicalMutator_CanMutate(t *testing.T) {
 		{
 			name:     "logical not",
 			code:     "!a",
-			expected: true,
+			expected: false,
 		},
 		{
 			name:     "arithmetic addition",
@@ -146,62 +146,6 @@ func TestLogicalMutator_Mutate_BinaryExpr(t *testing.T) {
 	}
 }
 
-func TestLogicalMutator_Mutate_UnaryExpr(t *testing.T) {
-	mutator := &LogicalMutator{}
-	fset := token.NewFileSet()
-
-	// Parse unary NOT expression
-	src := `package main
-func test() bool {
-	return !condition
-}`
-
-	file, err := parser.ParseFile(fset, "", src, 0)
-	if err != nil {
-		t.Fatalf("Failed to parse file: %v", err)
-	}
-
-	// Find the unary expression
-	var unaryExpr *ast.UnaryExpr
-
-	ast.Inspect(file, func(node ast.Node) bool {
-		if expr, ok := node.(*ast.UnaryExpr); ok && expr.Op == token.NOT {
-			unaryExpr = expr
-
-			return false
-		}
-
-		return true
-	})
-
-	if unaryExpr == nil {
-		t.Fatal("Unary NOT expression not found")
-	}
-
-	mutants := mutator.Mutate(unaryExpr, fset)
-
-	// Logical NOT removal should generate 1 mutant
-	expectedMutants := 1
-	if len(mutants) != expectedMutants {
-		t.Errorf("Expected %d mutants, got %d", expectedMutants, len(mutants))
-	}
-
-	if len(mutants) > 0 {
-		mutant := mutants[0]
-		if mutant.Type != "logical_not_removal" {
-			t.Errorf("Expected type 'logical_not_removal', got %s", mutant.Type)
-		}
-
-		if mutant.Original != "!" {
-			t.Errorf("Expected original '!', got %s", mutant.Original)
-		}
-
-		if mutant.Mutated != "" {
-			t.Errorf("Expected mutated '', got %s", mutant.Mutated)
-		}
-	}
-}
-
 func TestLogicalMutator_IsLogicalOp(t *testing.T) {
 	mutator := &LogicalMutator{}
 
@@ -281,14 +225,6 @@ func TestLogicalMutator_Apply(t *testing.T) {
 			expected:      true,
 		},
 		{
-			name:          "apply logical not removal",
-			code:          "!a",
-			mutantType:    logicalNotRemovalType,
-			originalValue: "!",
-			mutantValue:   "",
-			expected:      false, // NOT removal not implemented
-		},
-		{
 			name:          "unknown mutation type",
 			code:          "a && b",
 			mutantType:    "unknown",
@@ -310,25 +246,10 @@ func TestLogicalMutator_Apply(t *testing.T) {
 			var node ast.Node
 
 			ast.Inspect(file, func(n ast.Node) bool {
-				switch tt.mutantType {
-				case logicalBinaryType:
-					if be, ok := n.(*ast.BinaryExpr); ok {
-						node = be
+				if be, ok := n.(*ast.BinaryExpr); ok {
+					node = be
 
-						return false
-					}
-				case logicalNotRemovalType:
-					if ue, ok := n.(*ast.UnaryExpr); ok && ue.Op == token.NOT {
-						node = ue
-
-						return false
-					}
-				default:
-					if be, ok := n.(*ast.BinaryExpr); ok {
-						node = be
-
-						return false
-					}
+					return false
 				}
 
 				return true

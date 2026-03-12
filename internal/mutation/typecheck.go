@@ -40,12 +40,10 @@ func (tc *TypeChecker) IsValidMutation(node ast.Node, mutant Mutant) bool {
 	// - bitwiseBinaryType: bitwise ops only apply to integers (compiler enforces)
 	// - bitwiseAssignType: same as above
 	// - logicalBinaryType: &&/|| only applies to booleans (compiler enforces)
-	// - logicalNotRemovalType: ! only applies to booleans (compiler enforces)
 	case arithmeticIncDecType,
 		bitwiseBinaryType,
 		bitwiseAssignType,
-		logicalBinaryType,
-		logicalNotRemovalType:
+		logicalBinaryType:
 		return true
 
 	default:
