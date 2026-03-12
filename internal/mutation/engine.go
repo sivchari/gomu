@@ -75,6 +75,12 @@ type Mutator interface {
 	Apply(node ast.Node, mutant Mutant) bool
 }
 
+// CursorApplier is an optional interface that mutators can implement
+// to support mutations requiring parent node context (e.g., node replacement).
+type CursorApplier interface {
+	ApplyWithCursor(node ast.Node, replaceFunc func(ast.Node), mutant Mutant) bool
+}
+
 // New creates a new mutation engine.
 func New() (*Engine, error) {
 	analyzer, err := analysis.New()

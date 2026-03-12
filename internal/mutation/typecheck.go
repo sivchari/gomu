@@ -43,7 +43,8 @@ func (tc *TypeChecker) IsValidMutation(node ast.Node, mutant Mutant) bool {
 	case arithmeticIncDecType,
 		bitwiseBinaryType,
 		bitwiseAssignType,
-		logicalBinaryType:
+		logicalBinaryType,
+		logicalNotRemovalType:
 		return true
 
 	default:
