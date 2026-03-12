@@ -95,7 +95,7 @@ func (m *LogicalMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 			return false
 		}
 
-		newOp := m.stringToToken(mutant.Mutated)
+		newOp := stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
 
@@ -104,16 +104,4 @@ func (m *LogicalMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 	}
 
 	return false
-}
-
-// stringToToken converts string representation to token.Token for logical operations.
-func (m *LogicalMutator) stringToToken(s string) token.Token {
-	switch s {
-	case "&&":
-		return token.LAND
-	case "||":
-		return token.LOR
-	default:
-		return token.ILLEGAL
-	}
 }

@@ -293,37 +293,6 @@ func TestBitwiseMutator_Apply(t *testing.T) {
 	}
 }
 
-func TestBitwiseMutator_stringToToken(t *testing.T) {
-	mutator := &BitwiseMutator{}
-
-	tests := []struct {
-		input    string
-		expected token.Token
-	}{
-		{"&", token.AND},
-		{"|", token.OR},
-		{"^", token.XOR},
-		{"&^", token.AND_NOT},
-		{"<<", token.SHL},
-		{">>", token.SHR},
-		{"&=", token.AND_ASSIGN},
-		{"|=", token.OR_ASSIGN},
-		{"^=", token.XOR_ASSIGN},
-		{"<<=", token.SHL_ASSIGN},
-		{">>=", token.SHR_ASSIGN},
-		{"invalid", token.ILLEGAL},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.input, func(t *testing.T) {
-			result := mutator.stringToToken(tt.input)
-			if result != tt.expected {
-				t.Errorf("stringToToken(%q) = %v, expected %v", tt.input, result, tt.expected)
-			}
-		})
-	}
-}
-
 func TestBitwiseMutator_getBitwiseMutations(t *testing.T) {
 	mutator := &BitwiseMutator{}
 
