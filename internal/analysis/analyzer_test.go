@@ -1,7 +1,6 @@
 package analysis
 
 import (
-	"fmt"
 	"go/ast"
 	"go/parser"
 	"os"
@@ -596,17 +595,17 @@ func TestCalculateFileHash(t *testing.T) {
 		{
 			name:     "empty content",
 			content:  []byte{},
-			expected: "0",
+			expected: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 		},
 		{
 			name:     "simple content",
 			content:  []byte("hello"),
-			expected: "5",
+			expected: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
 		},
 		{
 			name:     "longer content",
 			content:  []byte("package main\n\nfunc main() {}\n"),
-			expected: fmt.Sprintf("%x", 29), // Actual length is 29
+			expected: "55a60bb97151b2b4b680462447ce60ec34511b14fa10d77440c97b9777101566",
 		},
 	}
 

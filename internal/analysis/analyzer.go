@@ -3,6 +3,7 @@ package analysis
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"go/ast"
 	"go/importer"
@@ -313,10 +314,10 @@ func (a *Analyzer) parsePackageFiles(pkgDir string) ([]*ast.File, error) {
 	return astFiles, nil
 }
 
-// CalculateFileHash calculates a hash for the given file content.
+// calculateFileHash calculates a SHA256 hash for the given file content.
 func calculateFileHash(content []byte) string {
-	// Simple hash implementation - in production, use crypto/sha256
-	return fmt.Sprintf("%x", len(content))
+	h := sha256.Sum256(content)
+	return fmt.Sprintf("%x", h)
 }
 
 // isValidBranchName validates branch names to prevent command injection.
