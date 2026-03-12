@@ -7,9 +7,8 @@ import (
 )
 
 const (
-	logicalMutatorName    = "logical"
-	logicalBinaryType     = "logical_binary"
-	logicalNotRemovalType = "logical_not_removal"
+	logicalMutatorName = "logical"
+	logicalBinaryType  = "logical_binary"
 )
 
 // LogicalMutator mutates logical operators.
@@ -23,11 +22,8 @@ func (m *LogicalMutator) Name() string {
 
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *LogicalMutator) CanMutate(node ast.Node) bool {
-	switch n := node.(type) {
-	case *ast.BinaryExpr:
+	if n, ok := node.(*ast.BinaryExpr); ok {
 		return m.isLogicalOp(n.Op)
-	case *ast.UnaryExpr:
-		return n.Op == token.NOT
 	}
 
 	return false
@@ -35,25 +31,17 @@ func (m *LogicalMutator) CanMutate(node ast.Node) bool {
 
 // Mutate generates mutants for the given node.
 func (m *LogicalMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
-	var mutants []Mutant
-
 	pos := fset.Position(node.Pos())
 
-	switch n := node.(type) {
-	case *ast.BinaryExpr:
-		mutants = append(mutants, m.mutateBinaryExpr(n, pos)...)
-	case *ast.UnaryExpr:
-		mutants = append(mutants, m.mutateUnaryExpr(n, pos)...)
+	if n, ok := node.(*ast.BinaryExpr); ok {
+		return m.mutateBinaryExpr(n, pos)
 	}
 
-	return mutants
+	return nil
 }
 
 func (m *LogicalMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Position) []Mutant {
 	mutations := m.getLogicalMutations(expr.Op)
-
-	// Generate all mutations - validation will be done at compile time
-	// No pre-filtering based on type safety
 
 	mutants := make([]Mutant, 0, len(mutations))
 
@@ -61,29 +49,10 @@ func (m *LogicalMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Positi
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,
 			Column:      pos.Column,
-			Type:        "logical_binary",
+			Type:        logicalBinaryType,
 			Original:    expr.Op.String(),
 			Mutated:     newOp.String(),
 			Description: fmt.Sprintf("Replace %s with %s", expr.Op.String(), newOp.String()),
-		})
-	}
-
-	return mutants
-}
-
-func (m *LogicalMutator) mutateUnaryExpr(expr *ast.UnaryExpr, pos token.Position) []Mutant {
-	var mutants []Mutant
-
-	if expr.Op == token.NOT {
-		// Generate all mutations - validation will be done at compile time
-		// Remove the NOT operator
-		mutants = append(mutants, Mutant{
-			Line:        pos.Line,
-			Column:      pos.Column,
-			Type:        "logical_not_removal",
-			Original:    "!",
-			Mutated:     "",
-			Description: "Remove ! (NOT) operator",
 		})
 	}
 
@@ -112,11 +81,8 @@ func (m *LogicalMutator) getLogicalMutations(op token.Token) []token.Token {
 
 // Apply applies the mutation to the given AST node.
 func (m *LogicalMutator) Apply(node ast.Node, mutant Mutant) bool {
-	switch mutant.Type {
-	case logicalBinaryType:
+	if mutant.Type == logicalBinaryType {
 		return m.applyBinary(node, mutant)
-	case logicalNotRemovalType:
-		return m.applyNotRemoval(node, mutant)
 	}
 
 	return false
@@ -125,7 +91,6 @@ func (m *LogicalMutator) Apply(node ast.Node, mutant Mutant) bool {
 // applyBinary applies binary operator mutation.
 func (m *LogicalMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 	if expr, ok := node.(*ast.BinaryExpr); ok {
-		// Verify the original operator matches
 		if expr.Op.String() != mutant.Original {
 			return false
 		}
@@ -138,14 +103,6 @@ func (m *LogicalMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 		}
 	}
 
-	return false
-}
-
-// applyNotRemoval applies NOT removal mutation.
-func (m *LogicalMutator) applyNotRemoval(_ ast.Node, _ Mutant) bool {
-	// For NOT removal, we need to replace the unary expression with its operand
-	// This is more complex and requires parent node manipulation
-	// For now, we'll return false to indicate this mutation type isn't fully implemented
 	return false
 }
 
