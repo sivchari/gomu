@@ -152,6 +152,7 @@ func TestIssue34_LogicalAndNotMutatedToComparison(t *testing.T) {
 
 			// Confirm that the expected || mutation is present for &&.
 			logicalMuts := make(map[string]bool)
+
 			for _, m := range mutants {
 				if m.Type == logicalBinaryType && m.Original == "&&" {
 					logicalMuts[m.Mutated] = true
