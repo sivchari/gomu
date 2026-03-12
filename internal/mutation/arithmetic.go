@@ -25,16 +25,34 @@ func (m *ArithmeticMutator) Name() string {
 
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *ArithmeticMutator) CanMutate(node ast.Node) bool {
-	switch node.(type) {
+	switch n := node.(type) {
 	case *ast.BinaryExpr:
-		return true
+		return m.isArithmeticOp(n.Op)
 	case *ast.AssignStmt:
-		return true
+		return m.isArithmeticAssignOp(n.Tok)
 	case *ast.IncDecStmt:
 		return true
 	}
 
 	return false
+}
+
+func (m *ArithmeticMutator) isArithmeticOp(op token.Token) bool {
+	switch op {
+	case token.ADD, token.SUB, token.MUL, token.QUO, token.REM:
+		return true
+	default:
+		return false
+	}
+}
+
+func (m *ArithmeticMutator) isArithmeticAssignOp(op token.Token) bool {
+	switch op {
+	case token.ADD_ASSIGN, token.SUB_ASSIGN, token.MUL_ASSIGN, token.QUO_ASSIGN:
+		return true
+	default:
+		return false
+	}
 }
 
 // Mutate generates mutants for the given node.
