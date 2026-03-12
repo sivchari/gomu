@@ -162,7 +162,7 @@ func (m *BitwiseMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 			return false
 		}
 
-		newOp := m.stringToToken(mutant.Mutated)
+		newOp := stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
 
@@ -181,7 +181,7 @@ func (m *BitwiseMutator) applyAssign(node ast.Node, mutant Mutant) bool {
 			return false
 		}
 
-		newOp := m.stringToToken(mutant.Mutated)
+		newOp := stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp
 
@@ -190,34 +190,4 @@ func (m *BitwiseMutator) applyAssign(node ast.Node, mutant Mutant) bool {
 	}
 
 	return false
-}
-
-// stringToToken converts string representation to token.Token for bitwise operations.
-func (m *BitwiseMutator) stringToToken(s string) token.Token {
-	switch s {
-	case "&":
-		return token.AND
-	case "|":
-		return token.OR
-	case "^":
-		return token.XOR
-	case "&^":
-		return token.AND_NOT
-	case "<<":
-		return token.SHL
-	case ">>":
-		return token.SHR
-	case "&=":
-		return token.AND_ASSIGN
-	case "|=":
-		return token.OR_ASSIGN
-	case "^=":
-		return token.XOR_ASSIGN
-	case "<<=":
-		return token.SHL_ASSIGN
-	case ">>=":
-		return token.SHR_ASSIGN
-	default:
-		return token.ILLEGAL
-	}
 }

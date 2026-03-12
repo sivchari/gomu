@@ -108,7 +108,7 @@ func (m *ConditionalMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 			return false
 		}
 
-		newOp := m.stringToToken(mutant.Mutated)
+		newOp := stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
 
@@ -117,24 +117,4 @@ func (m *ConditionalMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 	}
 
 	return false
-}
-
-// stringToToken converts string representation to token.Token for conditional operations.
-func (m *ConditionalMutator) stringToToken(s string) token.Token {
-	switch s {
-	case "==":
-		return token.EQL
-	case "!=":
-		return token.NEQ
-	case "<":
-		return token.LSS
-	case "<=":
-		return token.LEQ
-	case ">":
-		return token.GTR
-	case ">=":
-		return token.GEQ
-	default:
-		return token.ILLEGAL
-	}
 }

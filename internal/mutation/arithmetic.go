@@ -195,7 +195,7 @@ func (m *ArithmeticMutator) applyBinary(node ast.Node, mutant Mutant) bool {
 			return false
 		}
 
-		newOp := m.stringToToken(mutant.Mutated)
+		newOp := stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			expr.Op = newOp
 
@@ -214,7 +214,7 @@ func (m *ArithmeticMutator) applyAssign(node ast.Node, mutant Mutant) bool {
 			return false
 		}
 
-		newOp := m.stringToToken(mutant.Mutated)
+		newOp := stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp
 
@@ -233,7 +233,7 @@ func (m *ArithmeticMutator) applyIncDec(node ast.Node, mutant Mutant) bool {
 			return false
 		}
 
-		newOp := m.stringToToken(mutant.Mutated)
+		newOp := stringToToken(mutant.Mutated)
 		if newOp != token.ILLEGAL {
 			stmt.Tok = newOp
 
@@ -242,34 +242,4 @@ func (m *ArithmeticMutator) applyIncDec(node ast.Node, mutant Mutant) bool {
 	}
 
 	return false
-}
-
-// stringToToken converts string representation to token.Token for arithmetic operations.
-func (m *ArithmeticMutator) stringToToken(s string) token.Token {
-	switch s {
-	case "+":
-		return token.ADD
-	case "-":
-		return token.SUB
-	case "*":
-		return token.MUL
-	case "/":
-		return token.QUO
-	case "%":
-		return token.REM
-	case "++":
-		return token.INC
-	case "--":
-		return token.DEC
-	case "+=":
-		return token.ADD_ASSIGN
-	case "-=":
-		return token.SUB_ASSIGN
-	case "*=":
-		return token.MUL_ASSIGN
-	case "/=":
-		return token.QUO_ASSIGN
-	default:
-		return token.ILLEGAL
-	}
 }
