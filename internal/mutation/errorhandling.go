@@ -9,6 +9,8 @@ import (
 const (
 	errorHandlingMutatorName = "error_handling"
 	errorNilifyType          = "error_nilify"
+	errIdentName             = "err"
+	nilIdentName             = "nil"
 )
 
 // ErrorHandlingMutator mutates error return values by replacing err with nil.
@@ -47,7 +49,7 @@ func (m *ErrorHandlingMutator) Mutate(node ast.Node, fset *token.FileSet) []Muta
 
 	for _, expr := range stmt.Results {
 		ident, ok := expr.(*ast.Ident)
-		if !ok || ident.Name != "err" {
+		if !ok || ident.Name != errIdentName {
 			continue
 		}
 
@@ -58,7 +60,7 @@ func (m *ErrorHandlingMutator) Mutate(node ast.Node, fset *token.FileSet) []Muta
 			Column:      pos.Column,
 			Type:        errorNilifyType,
 			Original:    ident.Name,
-			Mutated:     "nil",
+			Mutated:     nilIdentName,
 			Description: fmt.Sprintf("Replace return %s with return nil", ident.Name),
 		})
 	}
@@ -87,7 +89,7 @@ func (m *ErrorHandlingMutator) Apply(node ast.Node, mutant Mutant) bool {
 			continue
 		}
 
-		stmt.Results[i] = &ast.Ident{Name: "nil"}
+		stmt.Results[i] = &ast.Ident{Name: nilIdentName}
 
 		return true
 	}
@@ -99,5 +101,5 @@ func (m *ErrorHandlingMutator) Apply(node ast.Node, mutant Mutant) bool {
 func isErrIdent(expr ast.Expr) bool {
 	ident, ok := expr.(*ast.Ident)
 
-	return ok && ident.Name == "err"
+	return ok && ident.Name == errIdentName
 }

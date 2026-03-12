@@ -125,7 +125,7 @@ func (tc *TypeChecker) isValidConditionalMutation(node ast.Node, mutant Mutant) 
 func (tc *TypeChecker) isNilIdent(expr ast.Expr) bool {
 	ident, ok := expr.(*ast.Ident)
 
-	return ok && ident.Name == "nil"
+	return ok && ident.Name == nilIdentName
 }
 
 // getExprType returns the type of an expression.
