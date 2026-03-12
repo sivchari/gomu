@@ -10,6 +10,8 @@ const (
 	returnMutatorName     = "return"
 	returnBoolLiteralType = "return_bool_literal"
 	returnZeroValueType   = "return_zero_value"
+	boolTrue              = "true"
+	boolFalse             = "false"
 )
 
 // ReturnMutator mutates return statement values.
@@ -39,7 +41,7 @@ func (m *ReturnMutator) CanMutate(node ast.Node) bool {
 
 func (m *ReturnMutator) isMutableExpr(expr ast.Expr) bool {
 	if ident, ok := expr.(*ast.Ident); ok {
-		return ident.Name == "true" || ident.Name == "false"
+		return ident.Name == boolTrue || ident.Name == boolFalse
 	}
 
 	if lit, ok := expr.(*ast.BasicLit); ok {
@@ -82,10 +84,10 @@ func (m *ReturnMutator) mutateExpr(expr ast.Expr, pos token.Position) []Mutant {
 func (m *ReturnMutator) mutateBoolIdent(ident *ast.Ident, pos token.Position) []Mutant {
 	var mutated string
 
-	if ident.Name == "true" {
-		mutated = "false"
+	if ident.Name == boolTrue {
+		mutated = boolFalse
 	} else {
-		mutated = "true"
+		mutated = boolTrue
 	}
 
 	return []Mutant{{
