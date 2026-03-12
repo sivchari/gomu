@@ -2,7 +2,6 @@
 package analysis
 
 import (
-	"context"
 	"crypto/sha256"
 	"fmt"
 	"go/ast"
@@ -11,7 +10,6 @@ import (
 	"go/token"
 	"go/types"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -132,53 +130,6 @@ func (a *Analyzer) FindTargetFiles(rootPath string) ([]string, error) {
 	}
 
 	return files, nil
-}
-
-// FindChangedFiles returns files that have changed compared to the base branch.
-func (a *Analyzer) FindChangedFiles(allFiles []string) ([]string, error) {
-	// Always enable incremental analysis by default
-	incrementalEnabled := true
-	if !incrementalEnabled {
-		return allFiles, nil
-	}
-
-	// Use intelligent default for base branch
-	baseBranch := "main"
-
-	// Get changed files from git
-	// Validate base branch name to prevent command injection
-	if !isValidBranchName(baseBranch) {
-		return nil, fmt.Errorf("invalid base branch name: %s", baseBranch)
-	}
-
-	ctx := context.Background()
-	cmd := exec.CommandContext(ctx, "git", "diff", "--name-only", baseBranch+"...HEAD")
-
-	output, err := cmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get git diff: %w", err)
-	}
-
-	changedPaths := strings.Split(strings.TrimSpace(string(output)), "\n")
-	if len(changedPaths) == 1 && changedPaths[0] == "" {
-		// No changes
-		return []string{}, nil
-	}
-
-	// Convert to absolute paths and filter
-	var changedFiles []string
-
-	for _, file := range allFiles {
-		for _, changedPath := range changedPaths {
-			if strings.HasSuffix(file, changedPath) {
-				changedFiles = append(changedFiles, file)
-
-				break
-			}
-		}
-	}
-
-	return changedFiles, nil
 }
 
 // ParseFile parses a Go source file and returns its AST.

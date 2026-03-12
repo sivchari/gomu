@@ -187,7 +187,7 @@ func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions, ig
 
 	var err error
 
-	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(absPath, historyWrapper, opts.Incremental)
+	e.incrementalAnalyzer, err = analysis.NewIncrementalAnalyzer(absPath, historyWrapper, opts.Incremental, opts.BaseBranch)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create incremental analyzer: %w", err)
 	}
