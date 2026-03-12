@@ -85,7 +85,7 @@ func (m *ArithmeticMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Pos
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,
 			Column:      pos.Column,
-			Type:        "arithmetic_binary",
+			Type:        arithmeticBinaryType,
 			Original:    expr.Op.String(),
 			Mutated:     newOp.String(),
 			Description: fmt.Sprintf("Replace %s with %s", expr.Op.String(), newOp.String()),
@@ -108,7 +108,7 @@ func (m *ArithmeticMutator) mutateAssignStmt(stmt *ast.AssignStmt, pos token.Pos
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,
 			Column:      pos.Column,
-			Type:        "arithmetic_assign",
+			Type:        arithmeticAssignType,
 			Original:    op.String(),
 			Mutated:     newOp.String(),
 			Description: fmt.Sprintf("Replace %s with %s", op.String(), newOp.String()),
@@ -134,7 +134,7 @@ func (m *ArithmeticMutator) mutateIncDecStmt(stmt *ast.IncDecStmt, pos token.Pos
 	return []Mutant{{
 		Line:        pos.Line,
 		Column:      pos.Column,
-		Type:        "arithmetic_incdec",
+		Type:        arithmeticIncDecType,
 		Original:    stmt.Tok.String(),
 		Mutated:     newOp.String(),
 		Description: desc,

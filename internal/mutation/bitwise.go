@@ -58,7 +58,7 @@ func (m *BitwiseMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Positi
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,
 			Column:      pos.Column,
-			Type:        "bitwise_binary",
+			Type:        bitwiseBinaryType,
 			Original:    expr.Op.String(),
 			Mutated:     newOp.String(),
 			Description: fmt.Sprintf("Replace %s with %s", expr.Op.String(), newOp.String()),
@@ -78,7 +78,7 @@ func (m *BitwiseMutator) mutateAssignStmt(stmt *ast.AssignStmt, pos token.Positi
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,
 			Column:      pos.Column,
-			Type:        "bitwise_assign",
+			Type:        bitwiseAssignType,
 			Original:    op.String(),
 			Mutated:     newOp.String(),
 			Description: fmt.Sprintf("Replace %s with %s", op.String(), newOp.String()),

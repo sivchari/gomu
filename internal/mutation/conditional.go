@@ -51,7 +51,7 @@ func (m *ConditionalMutator) mutateBinaryExpr(expr *ast.BinaryExpr, pos token.Po
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,
 			Column:      pos.Column,
-			Type:        "conditional_binary",
+			Type:        conditionalBinaryType,
 			Original:    expr.Op.String(),
 			Mutated:     newOp.String(),
 			Description: fmt.Sprintf("Replace %s with %s", expr.Op.String(), newOp.String()),
