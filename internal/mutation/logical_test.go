@@ -214,8 +214,10 @@ func TestLogicalMutator_Mutate_UnaryExpr(t *testing.T) {
 	ast.Inspect(file, func(n ast.Node) bool {
 		if ue, ok := n.(*ast.UnaryExpr); ok {
 			expr = ue
+
 			return false
 		}
+
 		return true
 	})
 
@@ -329,8 +331,8 @@ func TestLogicalMutator_Apply_NotRemoval(t *testing.T) {
 		Mutated:  "",
 	}
 
-	if result := mutator.Apply(expr, mutant); result != false {
-		t.Errorf("Apply() = %v, want false for logicalNotRemovalType", result)
+	if mutator.Apply(expr, mutant) {
+		t.Error("Apply() = true, want false for logicalNotRemovalType")
 	}
 }
 
@@ -367,8 +369,10 @@ func TestLogicalMutator_Apply_WrongOriginal(t *testing.T) {
 	ast.Inspect(file, func(n ast.Node) bool {
 		if be, ok := n.(*ast.BinaryExpr); ok {
 			node = be
+
 			return false
 		}
+
 		return true
 	})
 
@@ -382,8 +386,8 @@ func TestLogicalMutator_Apply_WrongOriginal(t *testing.T) {
 		Mutated:  "&&",
 	}
 
-	if result := mutator.Apply(node, mutant); result != false {
-		t.Errorf("Apply() = %v, want false when Original doesn't match node operator", result)
+	if mutator.Apply(node, mutant) {
+		t.Error("Apply() = true, want false when Original doesn't match node operator")
 	}
 }
 
@@ -403,8 +407,8 @@ func TestLogicalMutator_Apply_NonBinaryNode(t *testing.T) {
 		Mutated:  "||",
 	}
 
-	if result := mutator.Apply(expr, mutant); result != false {
-		t.Errorf("Apply() = %v, want false for non-BinaryExpr node with logicalBinaryType", result)
+	if mutator.Apply(expr, mutant) {
+		t.Error("Apply() = true, want false for non-BinaryExpr node with logicalBinaryType")
 	}
 }
 
