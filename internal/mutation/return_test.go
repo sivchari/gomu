@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+const returnBoolTrueSrc = "package main\nfunc f() bool { return true }"
+
 func TestReturnMutator_Name(t *testing.T) {
 	t.Parallel()
 
@@ -28,7 +30,7 @@ func TestReturnMutator_CanMutate(t *testing.T) {
 	}{
 		{
 			name:     "return true",
-			src:      "package main\nfunc f() bool { return true }",
+			src:      returnBoolTrueSrc,
 			expected: true,
 		},
 		{
@@ -113,7 +115,7 @@ func TestReturnMutator_Mutate_BoolLiteral(t *testing.T) {
 	mutator := &ReturnMutator{}
 	fset := token.NewFileSet()
 
-	src := "package main\nfunc f() bool { return true }"
+	src := returnBoolTrueSrc
 
 	file, err := parser.ParseFile(fset, "test.go", src, 0)
 	if err != nil {
@@ -259,7 +261,7 @@ func TestReturnMutator_Apply_BoolLiteral(t *testing.T) {
 	mutator := &ReturnMutator{}
 	fset := token.NewFileSet()
 
-	src := "package main\nfunc f() bool { return true }"
+	src := returnBoolTrueSrc
 
 	file, err := parser.ParseFile(fset, "test.go", src, 0)
 	if err != nil {
@@ -384,7 +386,7 @@ func TestReturnMutator_Apply_WrongType(t *testing.T) {
 	mutator := &ReturnMutator{}
 	fset := token.NewFileSet()
 
-	src := "package main\nfunc f() bool { return true }"
+	src := returnBoolTrueSrc
 
 	file, err := parser.ParseFile(fset, "test.go", src, 0)
 	if err != nil {
