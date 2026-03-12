@@ -24,6 +24,7 @@ type IncrementalAnalyzer struct {
 	git          *GitIntegration
 	history      HistoryStore
 	workDir      string
+	baseBranch   string
 	ignoreParser IgnoreParser
 	incremental  bool
 }
@@ -34,7 +35,7 @@ type IgnoreParser interface {
 }
 
 // NewIncrementalAnalyzer creates a new incremental analyzer.
-func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore, incremental bool) (*IncrementalAnalyzer, error) {
+func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore, incremental bool, baseBranch string) (*IncrementalAnalyzer, error) {
 	// Validate that the workDir exists
 	if _, err := os.Stat(workDir); err != nil {
 		if os.IsNotExist(err) {
@@ -44,11 +45,16 @@ func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore, increment
 		return nil, fmt.Errorf("error accessing work directory: %w", err)
 	}
 
+	if baseBranch == "" {
+		baseBranch = "main"
+	}
+
 	return &IncrementalAnalyzer{
 		hasher:      NewFileHasher(),
 		git:         NewGitIntegration(workDir),
 		history:     historyStore,
 		workDir:     workDir,
+		baseBranch:  baseBranch,
 		incremental: incremental,
 	}, nil
 }
@@ -95,7 +101,7 @@ func (a *IncrementalAnalyzer) AnalyzeFiles() ([]FileAnalysisResult, error) {
 func (a *IncrementalAnalyzer) getFilesToAnalyze() ([]string, error) {
 	if a.incremental && a.git.IsGitRepository() {
 		// Use Git diff to get changed files with intelligent default base branch
-		return a.git.GetChangedFiles("main")
+		return a.git.GetChangedFiles(a.baseBranch)
 	}
 
 	// Fallback to all Go files
