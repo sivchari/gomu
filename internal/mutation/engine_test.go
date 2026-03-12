@@ -74,8 +74,8 @@ func TestNew(t *testing.T) {
 		t.Fatal("Expected engine to be non-nil")
 	}
 
-	if len(engine.mutators) != 5 {
-		t.Errorf("Expected 5 mutators, got %d", len(engine.mutators))
+	if len(engine.mutators) != 6 {
+		t.Errorf("Expected 6 mutators, got %d", len(engine.mutators))
 	}
 
 	// Check mutator types
@@ -85,7 +85,7 @@ func TestNew(t *testing.T) {
 		mutatorNames[mutator.Name()] = true
 	}
 
-	expectedMutators := []string{"arithmetic", "conditional", "logical", "return"}
+	expectedMutators := []string{"arithmetic", "branch", "conditional", "logical", "return"}
 
 	for _, expected := range expectedMutators {
 		if !mutatorNames[expected] {
@@ -101,8 +101,8 @@ func TestNew_CustomMutators(t *testing.T) {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
 
-	if len(engine.mutators) != 5 {
-		t.Errorf("Expected 5 mutators (all types enabled by default), got %d", len(engine.mutators))
+	if len(engine.mutators) != 6 {
+		t.Errorf("Expected 6 mutators (all types enabled by default), got %d", len(engine.mutators))
 	}
 }
 
@@ -114,8 +114,8 @@ func TestNew_InvalidMutator(t *testing.T) {
 	}
 
 	// Should ignore invalid mutator
-	if len(engine.mutators) != 5 {
-		t.Errorf("Expected 5 mutators (all types enabled by default), got %d", len(engine.mutators))
+	if len(engine.mutators) != 6 {
+		t.Errorf("Expected 6 mutators (all types enabled by default), got %d", len(engine.mutators))
 	}
 }
 
@@ -733,6 +733,8 @@ func getExpectedMutatorName(mutantType string) string {
 	switch {
 	case strings.HasPrefix(mutantType, "arithmetic_"):
 		return "arithmetic"
+	case strings.HasPrefix(mutantType, "branch_"):
+		return "branch"
 	case strings.HasPrefix(mutantType, "conditional_"):
 		return "conditional"
 	case strings.HasPrefix(mutantType, "logical_"):

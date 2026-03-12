@@ -7,6 +7,7 @@ func getAllMutators() []Mutator {
 	return []Mutator{
 		&ArithmeticMutator{},
 		&BitwiseMutator{},
+		&BranchMutator{},
 		&ConditionalMutator{},
 		&LogicalMutator{},
 		&ReturnMutator{},

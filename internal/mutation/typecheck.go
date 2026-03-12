@@ -46,7 +46,8 @@ func (tc *TypeChecker) IsValidMutation(node ast.Node, mutant Mutant) bool {
 		logicalBinaryType,
 		logicalNotRemovalType,
 		returnBoolLiteralType,
-		returnZeroValueType:
+		returnZeroValueType,
+		branchConditionType:
 		return true
 
 	default:
