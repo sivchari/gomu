@@ -196,6 +196,218 @@ func TestLogicalMutator_GetLogicalMutations(t *testing.T) {
 	}
 }
 
+func TestLogicalMutator_Mutate_UnaryExpr(t *testing.T) {
+	t.Parallel()
+
+	mutator := &LogicalMutator{}
+	fset := token.NewFileSet()
+
+	src := "package main\nfunc test() { _ = !a }"
+
+	file, err := parser.ParseFile(fset, "test.go", src, 0)
+	if err != nil {
+		t.Fatalf("Failed to parse file: %v", err)
+	}
+
+	var expr ast.Node
+
+	ast.Inspect(file, func(n ast.Node) bool {
+		if ue, ok := n.(*ast.UnaryExpr); ok {
+			expr = ue
+			return false
+		}
+		return true
+	})
+
+	if expr == nil {
+		t.Fatal("UnaryExpr not found")
+	}
+
+	mutants := mutator.Mutate(expr, fset)
+
+	if len(mutants) != 1 {
+		t.Fatalf("Expected 1 mutant, got %d", len(mutants))
+	}
+
+	m := mutants[0]
+
+	if m.Type != logicalNotRemovalType {
+		t.Errorf("Type = %q, want %q", m.Type, logicalNotRemovalType)
+	}
+
+	if m.Original != "!" {
+		t.Errorf("Original = %q, want %q", m.Original, "!")
+	}
+
+	if m.Mutated != "" {
+		t.Errorf("Mutated = %q, want %q", m.Mutated, "")
+	}
+
+	if m.Line <= 0 {
+		t.Errorf("Expected positive line number, got %d", m.Line)
+	}
+
+	if m.Description == "" {
+		t.Error("Expected non-empty description")
+	}
+}
+
+func TestLogicalMutator_ApplyWithCursor(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		code        string
+		mutantType  string
+		expected    bool
+		wantReplace bool
+	}{
+		{
+			name:        "NOT removal applies and calls replaceFunc",
+			code:        "!a",
+			mutantType:  logicalNotRemovalType,
+			expected:    true,
+			wantReplace: true,
+		},
+		{
+			name:        "non-NOT-removal type returns false",
+			code:        "!a",
+			mutantType:  logicalBinaryType,
+			expected:    false,
+			wantReplace: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			mutator := &LogicalMutator{}
+
+			expr, err := parser.ParseExpr(tt.code)
+			if err != nil {
+				t.Fatalf("Failed to parse expression: %v", err)
+			}
+
+			replaced := false
+			replaceFunc := func(ast.Node) {
+				replaced = true
+			}
+
+			mutant := Mutant{
+				Type:     tt.mutantType,
+				Original: "!",
+				Mutated:  "",
+			}
+
+			result := mutator.ApplyWithCursor(expr, replaceFunc, mutant)
+
+			if result != tt.expected {
+				t.Errorf("ApplyWithCursor() = %v, want %v", result, tt.expected)
+			}
+
+			if replaced != tt.wantReplace {
+				t.Errorf("replaceFunc called = %v, want %v", replaced, tt.wantReplace)
+			}
+		})
+	}
+}
+
+func TestLogicalMutator_Apply_NotRemoval(t *testing.T) {
+	t.Parallel()
+
+	mutator := &LogicalMutator{}
+
+	expr, err := parser.ParseExpr("!a")
+	if err != nil {
+		t.Fatalf("Failed to parse expression: %v", err)
+	}
+
+	mutant := Mutant{
+		Type:     logicalNotRemovalType,
+		Original: "!",
+		Mutated:  "",
+	}
+
+	if result := mutator.Apply(expr, mutant); result != false {
+		t.Errorf("Apply() = %v, want false for logicalNotRemovalType", result)
+	}
+}
+
+func TestLogicalMutator_CanMutate_NonNotUnary(t *testing.T) {
+	t.Parallel()
+
+	mutator := &LogicalMutator{}
+
+	expr, err := parser.ParseExpr("-a")
+	if err != nil {
+		t.Fatalf("Failed to parse expression: %v", err)
+	}
+
+	if mutator.CanMutate(expr) {
+		t.Error("CanMutate() = true, want false for unary minus")
+	}
+}
+
+func TestLogicalMutator_Apply_WrongOriginal(t *testing.T) {
+	t.Parallel()
+
+	mutator := &LogicalMutator{}
+	fset := token.NewFileSet()
+
+	src := "package main\nfunc test() { _ = a && b }"
+
+	file, err := parser.ParseFile(fset, "test.go", src, 0)
+	if err != nil {
+		t.Fatalf("Failed to parse file: %v", err)
+	}
+
+	var node ast.Node
+
+	ast.Inspect(file, func(n ast.Node) bool {
+		if be, ok := n.(*ast.BinaryExpr); ok {
+			node = be
+			return false
+		}
+		return true
+	})
+
+	if node == nil {
+		t.Fatal("BinaryExpr not found")
+	}
+
+	mutant := Mutant{
+		Type:     logicalBinaryType,
+		Original: "||",
+		Mutated:  "&&",
+	}
+
+	if result := mutator.Apply(node, mutant); result != false {
+		t.Errorf("Apply() = %v, want false when Original doesn't match node operator", result)
+	}
+}
+
+func TestLogicalMutator_Apply_NonBinaryNode(t *testing.T) {
+	t.Parallel()
+
+	mutator := &LogicalMutator{}
+
+	expr, err := parser.ParseExpr("!a")
+	if err != nil {
+		t.Fatalf("Failed to parse expression: %v", err)
+	}
+
+	mutant := Mutant{
+		Type:     logicalBinaryType,
+		Original: "&&",
+		Mutated:  "||",
+	}
+
+	if result := mutator.Apply(expr, mutant); result != false {
+		t.Errorf("Apply() = %v, want false for non-BinaryExpr node with logicalBinaryType", result)
+	}
+}
+
 func TestLogicalMutator_Apply(t *testing.T) {
 	mutator := &LogicalMutator{}
 	fset := token.NewFileSet()
