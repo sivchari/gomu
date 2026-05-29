@@ -37,10 +37,12 @@ func TestGitIntegration_GetAllGoFiles(t *testing.T) {
 		"main_test.go",  // Should be excluded
 		"utils_test.go", // Should be excluded
 		"subdir/module.go",
-		"subdir/module_test.go", // Should be excluded
-		"vendor/external.go",    // Should be excluded
-		".hidden/file.go",       // Should be excluded
-		"README.md",             // Should be excluded
+		"subdir/module_test.go",     // Should be excluded
+		"vendor/external.go",        // Should be excluded
+		"testdata/fixture.go",       // Should be excluded
+		"subdir/testdata/nested.go", // Should be excluded (nested testdata)
+		".hidden/file.go",           // Should be excluded
+		"README.md",                 // Should be excluded
 	}
 
 	for _, file := range files {

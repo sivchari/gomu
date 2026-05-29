@@ -71,15 +71,8 @@ func (a *Analyzer) shouldSkipDirectory(rootPath, path string) bool {
 		}
 	}
 
-	// Skip standard excluded directories
-	excludeDirs := []string{"vendor", "testdata"}
-	for _, exclude := range excludeDirs {
-		if strings.Contains(path, exclude) {
-			return true
-		}
-	}
-
-	return false
+	// Skip standard excluded directories (vendor, testdata)
+	return IsExcludedPath(path)
 }
 
 // shouldIgnoreFile checks if a file should be ignored.

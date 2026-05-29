@@ -1,5 +1,4 @@
 cmd/
 internal/mutation/typecheck.go
 internal/mutation/errorhandling.go
-internal/execution/testdata/
 
