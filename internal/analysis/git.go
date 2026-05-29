@@ -72,6 +72,11 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 
 	for _, file := range files {
 		if IsGoSourceFile(file) {
+			// Skip standard excluded directories (vendor, testdata)
+			if IsExcludedPath(file) {
+				continue
+			}
+
 			// Check if file should be ignored by .gomuignore
 			if g.ignoreParser != nil && g.ignoreParser.ShouldIgnore(file) {
 				continue
@@ -113,10 +118,9 @@ func (g *GitIntegration) GetAllGoFiles() ([]string, error) {
 			return err
 		}
 
-		// Skip hidden directories and vendor
+		// Skip hidden directories and standard excluded directories (vendor, testdata)
 		if info.IsDir() {
-			name := info.Name()
-			if strings.HasPrefix(name, ".") || name == "vendor" {
+			if strings.HasPrefix(info.Name(), ".") || IsExcludedPath(GetRelativePath(g.workDir, path)) {
 				return filepath.SkipDir
 			}
 
