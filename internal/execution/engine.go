@@ -157,7 +157,7 @@ func (e *Engine) runTestWithOverlay(mutCtx *MutationContext, mutant mutation.Mut
 	// Get the directory containing the original file for running tests
 	testDir := filepath.Dir(mutCtx.OriginalPath)
 
-	cmd := exec.CommandContext(ctx, "go", "test", "-overlay="+mutCtx.OverlayPath, "./...")
+	cmd := exec.CommandContext(ctx, "go", "test", "-overlay="+mutCtx.OverlayPath, ".")
 	cmd.Dir = testDir
 
 	output, err := cmd.CombinedOutput()
