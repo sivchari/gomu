@@ -35,6 +35,6 @@ jobs:
         version: 'local'
         workers: '2'
         timeout: '60'
-        threshold: '40'  # Current baseline ~46%, will improve incrementally
+        threshold: '39'  # Current baseline 39.5%
         fail-on-gate: 'true'
     

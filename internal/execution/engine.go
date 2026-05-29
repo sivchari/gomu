@@ -125,15 +125,13 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant, timeout int) mutation
 }
 
 // checkCompilationWithOverlay verifies that the mutated code compiles using overlay.
+// No timeout is applied because compilation always terminates.
 func (e *Engine) checkCompilationWithOverlay(mutCtx *MutationContext) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
 	// Get the directory containing the original file for compilation
 	compileDir := filepath.Dir(mutCtx.OriginalPath)
 
 	// Build the entire package with overlay to properly resolve dependencies
-	cmd := exec.CommandContext(ctx, "go", "build", "-overlay="+mutCtx.OverlayPath, ".")
+	cmd := exec.Command("go", "build", "-overlay="+mutCtx.OverlayPath, ".")
 	cmd.Dir = compileDir
 
 	output, err := cmd.CombinedOutput()
