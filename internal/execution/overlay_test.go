@@ -32,6 +32,36 @@ var returnSrc string
 //go:embed testdata/return_false.go
 var returnFalseSrc string
 
+//go:embed testdata/arithmetic.go
+var arithmeticSrc string
+
+//go:embed testdata/arithmetic_sub.go
+var arithmeticSubSrc string
+
+//go:embed testdata/bitwise.go
+var bitwiseSrc string
+
+//go:embed testdata/bitwise_or.go
+var bitwiseOrSrc string
+
+//go:embed testdata/conditional.go
+var conditionalSrc string
+
+//go:embed testdata/conditional_neq.go
+var conditionalNeqSrc string
+
+//go:embed testdata/logical.go
+var logicalSrc string
+
+//go:embed testdata/logical_or.go
+var logicalOrSrc string
+
+//go:embed testdata/logical_not.go
+var logicalNotSrc string
+
+//go:embed testdata/logical_not_removed.go
+var logicalNotRemovedSrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -658,6 +688,46 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   "true",
 			mutated:    "false",
 			want:       returnFalseSrc,
+		},
+		{
+			name:       "arithmetic add replaced with sub",
+			src:        arithmeticSrc,
+			mutantType: "arithmetic_binary",
+			original:   "+",
+			mutated:    "-",
+			want:       arithmeticSubSrc,
+		},
+		{
+			name:       "bitwise and replaced with or",
+			src:        bitwiseSrc,
+			mutantType: "bitwise_binary",
+			original:   "&",
+			mutated:    "|",
+			want:       bitwiseOrSrc,
+		},
+		{
+			name:       "conditional eq replaced with neq",
+			src:        conditionalSrc,
+			mutantType: "conditional_binary",
+			original:   "==",
+			mutated:    "!=",
+			want:       conditionalNeqSrc,
+		},
+		{
+			name:       "logical and replaced with or",
+			src:        logicalSrc,
+			mutantType: "logical_binary",
+			original:   "&&",
+			mutated:    "||",
+			want:       logicalOrSrc,
+		},
+		{
+			name:       "logical not removed",
+			src:        logicalNotSrc,
+			mutantType: "logical_not_removal",
+			original:   "!",
+			mutated:    "",
+			want:       logicalNotRemovedSrc,
 		},
 	}
 
