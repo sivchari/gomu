@@ -45,6 +45,7 @@ func (m *ErrorHandlingMutator) Mutate(node ast.Node, fset *token.FileSet) []Muta
 		return nil
 	}
 
+	pos := fset.Position(stmt.Pos())
 	mutants := make([]Mutant, 0, len(stmt.Results))
 
 	for _, expr := range stmt.Results {
@@ -52,8 +53,6 @@ func (m *ErrorHandlingMutator) Mutate(node ast.Node, fset *token.FileSet) []Muta
 		if !ok || ident.Name != errIdentName {
 			continue
 		}
-
-		pos := fset.Position(ident.Pos())
 
 		mutants = append(mutants, Mutant{
 			Line:        pos.Line,

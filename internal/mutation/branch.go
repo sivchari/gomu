@@ -39,7 +39,7 @@ func (m *BranchMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
 		return nil
 	}
 
-	pos := fset.Position(stmt.Cond.Pos())
+	pos := fset.Position(stmt.Pos())
 	original := exprToString(stmt.Cond)
 
 	return []Mutant{
