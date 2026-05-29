@@ -689,9 +689,11 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 
 			// Find the target mutant
 			var target *mutation.Mutant
+
 			for i := range mutants {
 				if mutants[i].Type == tt.mutantType && mutants[i].Original == tt.original && mutants[i].Mutated == tt.mutated {
 					target = &mutants[i]
+
 					break
 				}
 			}

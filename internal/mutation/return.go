@@ -59,6 +59,7 @@ func (m *ReturnMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
 	}
 
 	pos := fset.Position(stmt.Pos())
+
 	var mutants []Mutant
 
 	for _, expr := range stmt.Results {
