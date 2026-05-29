@@ -45,7 +45,7 @@ func (m *ErrorHandlingMutator) Mutate(node ast.Node, fset *token.FileSet) []Muta
 		return nil
 	}
 
-	var mutants []Mutant
+	mutants := make([]Mutant, 0, len(stmt.Results))
 
 	for _, expr := range stmt.Results {
 		ident, ok := expr.(*ast.Ident)
