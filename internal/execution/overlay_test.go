@@ -80,6 +80,12 @@ var breakContinueSrc string
 //go:embed testdata/breakcontinue_continue.go
 var breakContinueContinueSrc string
 
+//go:embed testdata/boundary.go
+var boundarySrc string
+
+//go:embed testdata/boundary_inc.go
+var boundaryIncSrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -770,6 +776,14 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   "break",
 			mutated:    "continue",
 			want:       breakContinueContinueSrc,
+		},
+		{
+			name:       "integer literal incremented to boundary",
+			src:        boundarySrc,
+			mutantType: "boundary_value",
+			original:   "10",
+			mutated:    "11",
+			want:       boundaryIncSrc,
 		},
 	}
 
