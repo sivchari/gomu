@@ -173,6 +173,9 @@ testdata/
 ### Remove Self-Assignments Mutations
 - Replace compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`, `&^=`) with simple assignment (`=`)
 
+### Break and Continue Mutations
+- Swap `break` and `continue` statements (label-less only)
+
 ## CI/CD Integration
 
 ### GitHub Actions
