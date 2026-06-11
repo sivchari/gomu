@@ -86,6 +86,12 @@ var boundarySrc string
 //go:embed testdata/boundary_inc.go
 var boundaryIncSrc string
 
+//go:embed testdata/stringliteral.go
+var stringLiteralSrc string
+
+//go:embed testdata/stringliteral_empty.go
+var stringLiteralEmptySrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -784,6 +790,14 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   "10",
 			mutated:    "11",
 			want:       boundaryIncSrc,
+		},
+		{
+			name:       "non-empty string replaced with empty string",
+			src:        stringLiteralSrc,
+			mutantType: "string_literal",
+			original:   `"hello"`,
+			mutated:    `""`,
+			want:       stringLiteralEmptySrc,
 		},
 	}
 

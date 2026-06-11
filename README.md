@@ -175,8 +175,14 @@ testdata/
 
 ### Break and Continue Mutations
 - Swap `break` and `continue` statements (label-less only)
+
 ### Boundary Value Mutations
 - Replace integer literals `N` with `N+1` and `N-1` (surfaces weak off-by-one / boundary tests)
+
+### String Literal Mutations
+- Replace non-empty string literals with `""`
+- Replace empty string literals with a non-empty placeholder
+- Import paths are never mutated
 
 ## CI/CD Integration
 
