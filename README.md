@@ -167,6 +167,9 @@ testdata/
 - Replace `>>` with `<<`
 - Replace `<<` with `>>`
 
+### Invert Negatives Mutations
+- Replace unary `-x` with unary `+x`
+
 ## CI/CD Integration
 
 ### GitHub Actions

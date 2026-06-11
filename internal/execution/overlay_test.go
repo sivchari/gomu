@@ -62,6 +62,12 @@ var logicalNotSrc string
 //go:embed testdata/logical_not_removed.go
 var logicalNotRemovedSrc string
 
+//go:embed testdata/invertnegatives.go
+var invertNegativesSrc string
+
+//go:embed testdata/invertnegatives_plus.go
+var invertNegativesPlusSrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -728,6 +734,14 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   "!",
 			mutated:    "",
 			want:       logicalNotRemovedSrc,
+		},
+		{
+			name:       "unary minus inverted to plus",
+			src:        invertNegativesSrc,
+			mutantType: "invert_negatives",
+			original:   "-",
+			mutated:    "+",
+			want:       invertNegativesPlusSrc,
 		},
 	}
 
