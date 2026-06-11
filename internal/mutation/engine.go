@@ -120,6 +120,12 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 			return false
 		}
 
+		// Import paths are string literals but must never be mutated; skip
+		// the whole import spec subtree.
+		if _, ok := node.(*ast.ImportSpec); ok {
+			return false
+		}
+
 		for _, mutator := range e.mutators {
 			if mutator.CanMutate(node) {
 				mutants := mutator.Mutate(node, e.analyzer.GetFileSet())

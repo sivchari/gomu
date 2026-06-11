@@ -16,5 +16,6 @@ func getAllMutators() []Mutator {
 		&LogicalMutator{},
 		&RemoveSelfAssignmentsMutator{},
 		&ReturnMutator{},
+		&StringLiteralMutator{},
 	}
 }
