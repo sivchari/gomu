@@ -10,6 +10,7 @@ func getAllMutators() []Mutator {
 		&BranchMutator{},
 		&ConditionalMutator{},
 		&ErrorHandlingMutator{},
+		&InvertNegativesMutator{},
 		&LogicalMutator{},
 		&ReturnMutator{},
 	}
