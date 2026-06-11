@@ -68,6 +68,12 @@ var invertNegativesSrc string
 //go:embed testdata/invertnegatives_plus.go
 var invertNegativesPlusSrc string
 
+//go:embed testdata/selfassign.go
+var selfAssignSrc string
+
+//go:embed testdata/selfassign_simple.go
+var selfAssignSimpleSrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -742,6 +748,14 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   "-",
 			mutated:    "+",
 			want:       invertNegativesPlusSrc,
+		},
+		{
+			name:       "compound assignment replaced with simple assignment",
+			src:        selfAssignSrc,
+			mutantType: "remove_self_assignments",
+			original:   "+=",
+			mutated:    "=",
+			want:       selfAssignSimpleSrc,
 		},
 	}
 

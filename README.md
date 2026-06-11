@@ -170,6 +170,9 @@ testdata/
 ### Invert Negatives Mutations
 - Replace unary `-x` with unary `+x`
 
+### Remove Self-Assignments Mutations
+- Replace compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`, `&^=`) with simple assignment (`=`)
+
 ## CI/CD Integration
 
 ### GitHub Actions

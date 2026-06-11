@@ -12,6 +12,7 @@ func getAllMutators() []Mutator {
 		&ErrorHandlingMutator{},
 		&InvertNegativesMutator{},
 		&LogicalMutator{},
+		&RemoveSelfAssignmentsMutator{},
 		&ReturnMutator{},
 	}
 }
