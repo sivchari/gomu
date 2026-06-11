@@ -74,6 +74,12 @@ var selfAssignSrc string
 //go:embed testdata/selfassign_simple.go
 var selfAssignSimpleSrc string
 
+//go:embed testdata/breakcontinue.go
+var breakContinueSrc string
+
+//go:embed testdata/breakcontinue_continue.go
+var breakContinueContinueSrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -756,6 +762,14 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   "+=",
 			mutated:    "=",
 			want:       selfAssignSimpleSrc,
+		},
+		{
+			name:       "break replaced with continue",
+			src:        breakContinueSrc,
+			mutantType: "break_continue",
+			original:   "break",
+			mutated:    "continue",
+			want:       breakContinueContinueSrc,
 		},
 	}
 

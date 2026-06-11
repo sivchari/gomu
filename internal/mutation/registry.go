@@ -8,6 +8,7 @@ func getAllMutators() []Mutator {
 		&ArithmeticMutator{},
 		&BitwiseMutator{},
 		&BranchMutator{},
+		&BreakContinueMutator{},
 		&ConditionalMutator{},
 		&ErrorHandlingMutator{},
 		&InvertNegativesMutator{},
