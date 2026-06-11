@@ -74,8 +74,8 @@ func TestNew(t *testing.T) {
 		t.Fatal("Expected engine to be non-nil")
 	}
 
-	if len(engine.mutators) != 12 {
-		t.Errorf("Expected 12 mutators, got %d", len(engine.mutators))
+	if len(engine.mutators) != 13 {
+		t.Errorf("Expected 13 mutators, got %d", len(engine.mutators))
 	}
 
 	// Check mutator types
@@ -85,7 +85,7 @@ func TestNew(t *testing.T) {
 		mutatorNames[mutator.Name()] = true
 	}
 
-	expectedMutators := []string{"arithmetic", "boundary_value", "branch", "break_continue", "conditional", "error_handling", "invert_negatives", "logical", "remove_self_assignments", "return", "string_literal"}
+	expectedMutators := []string{"arithmetic", "boundary_value", "branch", "break_continue", "conditional", "error_handling", "invert_negatives", "logical", "loop_condition", "remove_self_assignments", "return", "string_literal"}
 
 	for _, expected := range expectedMutators {
 		if !mutatorNames[expected] {
@@ -101,8 +101,8 @@ func TestNew_CustomMutators(t *testing.T) {
 		t.Fatalf("Failed to create mutation engine: %v", err)
 	}
 
-	if len(engine.mutators) != 12 {
-		t.Errorf("Expected 12 mutators (all types enabled by default), got %d", len(engine.mutators))
+	if len(engine.mutators) != 13 {
+		t.Errorf("Expected 13 mutators (all types enabled by default), got %d", len(engine.mutators))
 	}
 }
 
@@ -114,8 +114,8 @@ func TestNew_InvalidMutator(t *testing.T) {
 	}
 
 	// Should ignore invalid mutator
-	if len(engine.mutators) != 12 {
-		t.Errorf("Expected 12 mutators (all types enabled by default), got %d", len(engine.mutators))
+	if len(engine.mutators) != 13 {
+		t.Errorf("Expected 13 mutators (all types enabled by default), got %d", len(engine.mutators))
 	}
 }
 
