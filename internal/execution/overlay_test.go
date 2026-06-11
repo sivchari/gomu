@@ -92,6 +92,12 @@ var stringLiteralSrc string
 //go:embed testdata/stringliteral_empty.go
 var stringLiteralEmptySrc string
 
+//go:embed testdata/loopcondition.go
+var loopConditionSrc string
+
+//go:embed testdata/loopcondition_false.go
+var loopConditionFalseSrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -798,6 +804,14 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   `"hello"`,
 			mutated:    `""`,
 			want:       stringLiteralEmptySrc,
+		},
+		{
+			name:       "loop condition replaced with false",
+			src:        loopConditionSrc,
+			mutantType: "loop_condition",
+			original:   "i < n",
+			mutated:    "false",
+			want:       loopConditionFalseSrc,
 		},
 	}
 

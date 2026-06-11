@@ -184,6 +184,9 @@ testdata/
 - Replace empty string literals with a non-empty placeholder
 - Import paths are never mutated
 
+### Loop Condition Mutations
+- Replace `for` loop conditions with `true` and `false`
+
 ## CI/CD Integration
 
 ### GitHub Actions
