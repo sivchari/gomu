@@ -187,6 +187,9 @@ testdata/
 ### Loop Condition Mutations
 - Replace `for` loop conditions with `true` and `false`
 
+### Empty Block Mutations
+- Remove all statements inside a block (e.g. `{ ... }` becomes `{}`)
+
 ## CI/CD Integration
 
 ### GitHub Actions

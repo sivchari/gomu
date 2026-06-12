@@ -98,6 +98,12 @@ var loopConditionSrc string
 //go:embed testdata/loopcondition_false.go
 var loopConditionFalseSrc string
 
+//go:embed testdata/emptyblock.go
+var emptyBlockSrc string
+
+//go:embed testdata/emptyblock_empty.go
+var emptyBlockEmptySrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -812,6 +818,14 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   "i < n",
 			mutated:    "false",
 			want:       loopConditionFalseSrc,
+		},
+		{
+			name:       "block body emptied",
+			src:        emptyBlockSrc,
+			mutantType: "empty_block",
+			original:   "{...}",
+			mutated:    "{}",
+			want:       emptyBlockEmptySrc,
 		},
 	}
 
