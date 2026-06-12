@@ -6,6 +6,7 @@ package mutation
 func getAllMutators() []Mutator {
 	return []Mutator{
 		&ArithmeticMutator{},
+		&AssignmentRemovalMutator{},
 		&BitwiseMutator{},
 		&BoundaryValueMutator{},
 		&BranchMutator{},

@@ -190,6 +190,9 @@ testdata/
 ### Empty Block Mutations
 - Remove all statements inside a block (e.g. `{ ... }` becomes `{}`)
 
+### Assignment Removal Mutations
+- Remove assignment statements (`=`, `+=`, ...; short variable declarations `:=` are not targeted)
+
 ## CI/CD Integration
 
 ### GitHub Actions

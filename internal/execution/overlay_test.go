@@ -104,6 +104,12 @@ var emptyBlockSrc string
 //go:embed testdata/emptyblock_empty.go
 var emptyBlockEmptySrc string
 
+//go:embed testdata/assignremoval.go
+var assignRemovalSrc string
+
+//go:embed testdata/assignremoval_removed.go
+var assignRemovalRemovedSrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -826,6 +832,14 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   "{...}",
 			mutated:    "{}",
 			want:       emptyBlockEmptySrc,
+		},
+		{
+			name:       "assignment statement removed",
+			src:        assignRemovalSrc,
+			mutantType: "assignment_removal",
+			original:   "total",
+			mutated:    "<removed>",
+			want:       assignRemovalRemovedSrc,
 		},
 	}
 
