@@ -20,6 +20,7 @@ func getAllMutators() []Mutator {
 		&LoopConditionMutator{},
 		&RemoveSelfAssignmentsMutator{},
 		&ReturnMutator{},
+		&StatementRemovalMutator{},
 		&StringLiteralMutator{},
 	}
 }
