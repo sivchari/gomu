@@ -196,6 +196,9 @@ testdata/
 ### Expression Removal Mutations
 - Remove expression statements (e.g. function calls evaluated for their side effects)
 
+### Statement Removal Mutations
+- Remove increment/decrement (`i++`, `i--`), `defer`, `go`, and channel send (`ch <- v`) statements
+
 ## CI/CD Integration
 
 ### GitHub Actions
