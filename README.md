@@ -193,6 +193,9 @@ testdata/
 ### Assignment Removal Mutations
 - Remove assignment statements (`=`, `+=`, ...; short variable declarations `:=` are not targeted)
 
+### Expression Removal Mutations
+- Remove expression statements (e.g. function calls evaluated for their side effects)
+
 ## CI/CD Integration
 
 ### GitHub Actions

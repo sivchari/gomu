@@ -14,6 +14,7 @@ func getAllMutators() []Mutator {
 		&ConditionalMutator{},
 		&EmptyBlockMutator{},
 		&ErrorHandlingMutator{},
+		&ExpressionRemovalMutator{},
 		&InvertNegativesMutator{},
 		&LogicalMutator{},
 		&LoopConditionMutator{},

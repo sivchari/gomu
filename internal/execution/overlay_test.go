@@ -110,6 +110,12 @@ var assignRemovalSrc string
 //go:embed testdata/assignremoval_removed.go
 var assignRemovalRemovedSrc string
 
+//go:embed testdata/exprremoval.go
+var exprRemovalSrc string
+
+//go:embed testdata/exprremoval_removed.go
+var exprRemovalRemovedSrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -840,6 +846,14 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   "total",
 			mutated:    "<removed>",
 			want:       assignRemovalRemovedSrc,
+		},
+		{
+			name:       "expression statement removed",
+			src:        exprRemovalSrc,
+			mutantType: "expression_removal",
+			original:   "ping()",
+			mutated:    "<removed>",
+			want:       exprRemovalRemovedSrc,
 		},
 	}
 
