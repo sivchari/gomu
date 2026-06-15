@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.2.2](https://github.com/sivchari/gomu/compare/v0.2.1...v0.2.2) - 2026-06-15
+
+- feat: add invert negatives mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/78
+- feat: add remove self-assignments mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/79
+- feat: add break and continue mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/80
+- feat: add boundary value mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/81
+- feat: add string literal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/82
+- feat: add loop condition mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/83
+- feat: add empty block mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/84
+- feat: add assignment removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/85
+- feat: add expression removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/86
+- feat: add statement removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/87
+
 ## [v0.2.1](https://github.com/sivchari/gomu/compare/v0.2.0...v0.2.1) - 2026-05-29
 - fix: scope test execution to same package by @sivchari in https://github.com/sivchari/gomu/pull/71
 - fix: distinguish compilation timeout from compilation error by @sivchari in https://github.com/sivchari/gomu/pull/73
