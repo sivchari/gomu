@@ -21,6 +21,11 @@ func (m *BitwiseMutator) Name() string {
 	return bitwiseMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *BitwiseMutator) Description() string {
+	return "Replace bitwise operators (&, |, ^, &^, <<, >>)"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *BitwiseMutator) CanMutate(node ast.Node) bool {
 	switch n := node.(type) {

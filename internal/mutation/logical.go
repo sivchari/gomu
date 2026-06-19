@@ -21,6 +21,11 @@ func (m *LogicalMutator) Name() string {
 	return logicalMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *LogicalMutator) Description() string {
+	return "Replace logical operators (&&, ||) and remove negation (!)"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *LogicalMutator) CanMutate(node ast.Node) bool {
 	if n, ok := node.(*ast.BinaryExpr); ok {

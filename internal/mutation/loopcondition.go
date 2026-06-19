@@ -22,6 +22,11 @@ func (m *LoopConditionMutator) Name() string {
 	return loopConditionMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *LoopConditionMutator) Description() string {
+	return "Force for-loop conditions to true or false"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *LoopConditionMutator) CanMutate(node ast.Node) bool {
 	stmt, ok := node.(*ast.ForStmt)

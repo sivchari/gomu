@@ -25,6 +25,11 @@ func (m *AssignmentRemovalMutator) Name() string {
 	return assignmentRemovalMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *AssignmentRemovalMutator) Description() string {
+	return "Remove assignment statements"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *AssignmentRemovalMutator) CanMutate(node ast.Node) bool {
 	stmt, ok := node.(*ast.AssignStmt)

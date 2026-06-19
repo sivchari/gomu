@@ -29,6 +29,11 @@ func (m *StatementRemovalMutator) Name() string {
 	return statementRemovalMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *StatementRemovalMutator) Description() string {
+	return "Remove statements (inc/dec, defer, go, channel send)"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *StatementRemovalMutator) CanMutate(node ast.Node) bool {
 	return isRemovableStatement(node)

@@ -70,6 +70,7 @@ const (
 // Mutator interface for different types of mutations.
 type Mutator interface {
 	Name() string
+	Description() string
 	CanMutate(node ast.Node) bool
 	Mutate(node ast.Node, fset *token.FileSet) []Mutant
 	Apply(node ast.Node, mutant Mutant) bool
@@ -157,4 +158,11 @@ func (e *Engine) GetFileSet() *token.FileSet {
 // GetMutators returns all mutators in the engine.
 func (e *Engine) GetMutators() []Mutator {
 	return e.mutators
+}
+
+// SupportedMutators returns every registered mutator without requiring a full
+// engine (no analyzer is constructed), making it suitable for listing the
+// available mutators.
+func SupportedMutators() []Mutator {
+	return getAllMutators()
 }

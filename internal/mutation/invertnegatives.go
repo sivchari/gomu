@@ -20,6 +20,11 @@ func (m *InvertNegativesMutator) Name() string {
 	return invertNegativesMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *InvertNegativesMutator) Description() string {
+	return "Replace unary minus with unary plus"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *InvertNegativesMutator) CanMutate(node ast.Node) bool {
 	if n, ok := node.(*ast.UnaryExpr); ok {

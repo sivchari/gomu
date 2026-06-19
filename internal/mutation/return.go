@@ -23,6 +23,11 @@ func (m *ReturnMutator) Name() string {
 	return returnMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *ReturnMutator) Description() string {
+	return "Replace return values (flip bools, zero out literals)"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *ReturnMutator) CanMutate(node ast.Node) bool {
 	stmt, ok := node.(*ast.ReturnStmt)

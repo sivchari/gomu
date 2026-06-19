@@ -20,6 +20,11 @@ func (m *BreakContinueMutator) Name() string {
 	return breakContinueMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *BreakContinueMutator) Description() string {
+	return "Swap break and continue statements"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *BreakContinueMutator) CanMutate(node ast.Node) bool {
 	stmt, ok := node.(*ast.BranchStmt)

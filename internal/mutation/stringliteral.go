@@ -29,6 +29,11 @@ func (m *StringLiteralMutator) Name() string {
 	return stringLiteralMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *StringLiteralMutator) Description() string {
+	return "Swap string literals between empty and non-empty"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *StringLiteralMutator) CanMutate(node ast.Node) bool {
 	lit, ok := node.(*ast.BasicLit)

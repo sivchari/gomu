@@ -23,6 +23,11 @@ func (m *ExpressionRemovalMutator) Name() string {
 	return expressionRemovalMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *ExpressionRemovalMutator) Description() string {
+	return "Remove expression statements"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *ExpressionRemovalMutator) CanMutate(node ast.Node) bool {
 	_, ok := node.(*ast.ExprStmt)

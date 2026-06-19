@@ -27,6 +27,11 @@ func (m *BoundaryValueMutator) Name() string {
 	return boundaryValueMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *BoundaryValueMutator) Description() string {
+	return "Shift integer literals to boundary values (N-1, N+1)"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *BoundaryValueMutator) CanMutate(node ast.Node) bool {
 	lit, ok := node.(*ast.BasicLit)

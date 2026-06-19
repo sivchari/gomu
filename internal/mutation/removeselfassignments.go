@@ -21,6 +21,11 @@ func (m *RemoveSelfAssignmentsMutator) Name() string {
 	return removeSelfAssignmentsMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *RemoveSelfAssignmentsMutator) Description() string {
+	return "Replace compound assignment (e.g. +=) with plain ="
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *RemoveSelfAssignmentsMutator) CanMutate(node ast.Node) bool {
 	if n, ok := node.(*ast.AssignStmt); ok {

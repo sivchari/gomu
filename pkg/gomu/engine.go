@@ -44,6 +44,26 @@ type RunOptions struct {
 	CIMode      bool
 }
 
+// MutatorInfo describes a single supported mutator for catalog/listing purposes.
+type MutatorInfo struct {
+	Name        string
+	Description string
+}
+
+// SupportedMutators returns the catalog of mutators gomu can apply. It does not
+// run any mutation and constructs no analyzer, so it is cheap to call for
+// listing purposes.
+func SupportedMutators() []MutatorInfo {
+	mutators := mutation.SupportedMutators()
+	infos := make([]MutatorInfo, len(mutators))
+
+	for i, m := range mutators {
+		infos[i] = MutatorInfo{Name: m.Name(), Description: m.Description()}
+	}
+
+	return infos
+}
+
 // NewEngine creates a new mutation testing engine.
 func NewEngine(opts *RunOptions) (*Engine, error) {
 	// Create analyzer without ignore parser - it will be set later in Run
