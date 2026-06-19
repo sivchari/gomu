@@ -23,6 +23,11 @@ func (m *EmptyBlockMutator) Name() string {
 	return emptyBlockMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *EmptyBlockMutator) Description() string {
+	return "Remove all statements from a block body"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *EmptyBlockMutator) CanMutate(node ast.Node) bool {
 	block, ok := node.(*ast.BlockStmt)

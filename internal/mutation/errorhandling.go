@@ -22,6 +22,11 @@ func (m *ErrorHandlingMutator) Name() string {
 	return errorHandlingMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *ErrorHandlingMutator) Description() string {
+	return "Replace a returned err with nil"
+}
+
 // CanMutate returns true if the node is a return statement containing an err identifier.
 func (m *ErrorHandlingMutator) CanMutate(node ast.Node) bool {
 	stmt, ok := node.(*ast.ReturnStmt)

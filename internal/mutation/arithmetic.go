@@ -23,6 +23,11 @@ func (m *ArithmeticMutator) Name() string {
 	return arithmeticMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *ArithmeticMutator) Description() string {
+	return "Replace arithmetic operators (+, -, *, /, %)"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *ArithmeticMutator) CanMutate(node ast.Node) bool {
 	switch n := node.(type) {

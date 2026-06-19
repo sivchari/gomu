@@ -3,7 +3,9 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"text/tabwriter"
 
 	"github.com/sivchari/gomu/pkg/gomu"
 	"github.com/spf13/cobra"
@@ -57,6 +59,7 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 
 	// Run command flags
+	runCmd.Flags().BoolP("list", "l", false, "list supported mutators and exit")
 	runCmd.Flags().Bool("ci-mode", false, "enable CI mode with quality gates and reporting")
 	runCmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold")
 	runCmd.Flags().String("output", "console", "output format (console, json, html, text)")
@@ -68,6 +71,12 @@ func init() {
 }
 
 func runMutationTesting(cmd *cobra.Command, args []string) error {
+	// --list is informational only: print the supported mutators and exit
+	// without discovering files or running any mutation.
+	if list, _ := cmd.Flags().GetBool("list"); list {
+		return listMutators(cmd.OutOrStdout())
+	}
+
 	path := "."
 	if len(args) > 0 {
 		path = args[0]
@@ -121,6 +130,25 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 
 	if err := engine.Run(cmd.Context(), path, opts); err != nil {
 		return fmt.Errorf("mutation testing failed: %w", err)
+	}
+
+	return nil
+}
+
+// listMutators writes the catalog of supported mutators, one per line, with
+// names and descriptions aligned into columns.
+func listMutators(w io.Writer) error {
+	mutators := gomu.SupportedMutators()
+
+	fmt.Fprintf(w, "Supported mutators (%d):\n", len(mutators))
+
+	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
+	for _, m := range mutators {
+		fmt.Fprintf(tw, "  %s\t%s\n", m.Name, m.Description)
+	}
+
+	if err := tw.Flush(); err != nil {
+		return fmt.Errorf("failed to write mutator list: %w", err)
 	}
 
 	return nil

@@ -22,6 +22,11 @@ func (m *BranchMutator) Name() string {
 	return branchMutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *BranchMutator) Description() string {
+	return "Force if-statement conditions to true or false"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *BranchMutator) CanMutate(node ast.Node) bool {
 	stmt, ok := node.(*ast.IfStmt)
