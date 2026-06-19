@@ -4,9 +4,11 @@ package gomu
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"text/tabwriter"
 	"time"
 
 	"github.com/sivchari/gomu/internal/analysis"
@@ -42,6 +44,7 @@ type RunOptions struct {
 	FailOnGate  bool
 	Verbose     bool
 	CIMode      bool
+	DryRun      bool // Discover mutants per file without executing any mutation
 }
 
 // MutatorInfo describes a single supported mutator for catalog/listing purposes.
@@ -285,6 +288,12 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		return err
 	}
 
+	// Dry run stops after discovery: report the mutants that would be generated
+	// per file without applying any mutation, running tests, or reporting.
+	if opts.DryRun {
+		return e.dryRun(os.Stdout, files)
+	}
+
 	if len(files) == 0 {
 		if opts.Verbose {
 			log.Println("No files need processing - all files are up to date")
@@ -405,6 +414,55 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 	}
 
 	return allResults, totalMutants, processedFiles
+}
+
+// dryRun reports the mutants that would be generated for each file without
+// applying any mutation, running any tests, or producing reports.
+func (e *Engine) dryRun(w io.Writer, files []string) error {
+	if len(files) == 0 {
+		fmt.Fprintln(w, "Dry run: no files to analyze")
+
+		return nil
+	}
+
+	fmt.Fprintf(w, "Dry run: analyzing %d file(s) (no mutations will be executed)\n", len(files))
+
+	totalMutants := 0
+	filesWithMutants := 0
+
+	for _, file := range files {
+		mutants, err := e.mutator.GenerateMutants(file)
+		if err != nil {
+			fmt.Fprintf(w, "\n%s (error: %v)\n", file, err)
+
+			continue
+		}
+
+		if len(mutants) == 0 {
+			continue
+		}
+
+		filesWithMutants++
+		totalMutants += len(mutants)
+
+		writeDryRunFile(w, file, mutants)
+	}
+
+	fmt.Fprintf(w, "\nTotal: %d mutant(s) across %d file(s)\n", totalMutants, filesWithMutants)
+
+	return nil
+}
+
+// writeDryRunFile renders a file's discovered mutants as an aligned table.
+func writeDryRunFile(w io.Writer, file string, mutants []mutation.Mutant) {
+	fmt.Fprintf(w, "\n%s (%d mutants)\n", file, len(mutants))
+
+	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
+	for _, m := range mutants {
+		fmt.Fprintf(tw, "  L%d:%d\t%s\t%s\n", m.Line, m.Column, m.Type, m.Description)
+	}
+
+	tw.Flush() //nolint:errcheck // writing to caller-provided writer
 }
 
 // cleanupAndSave handles cleanup and saving operations.

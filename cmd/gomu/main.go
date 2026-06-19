@@ -60,6 +60,7 @@ func init() {
 
 	// Run command flags
 	runCmd.Flags().BoolP("list", "l", false, "list supported mutators and exit")
+	runCmd.Flags().Bool("dry-run", false, "show which mutations would run per file, without executing them")
 	runCmd.Flags().Bool("ci-mode", false, "enable CI mode with quality gates and reporting")
 	runCmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold")
 	runCmd.Flags().String("output", "console", "output format (console, json, html, text)")
@@ -83,6 +84,7 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 	}
 
 	// Read CLI flags
+	dryRun, _ := cmd.Flags().GetBool("dry-run")
 	ciMode, _ := cmd.Flags().GetBool("ci-mode")
 	workers, _ := cmd.Flags().GetInt("workers")
 	timeout, _ := cmd.Flags().GetInt("timeout")
@@ -121,6 +123,7 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		FailOnGate:  failOnGate,
 		Verbose:     verbose,
 		CIMode:      ciMode,
+		DryRun:      dryRun,
 	}
 
 	engine, err := gomu.NewEngine(opts)
