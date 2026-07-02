@@ -427,13 +427,22 @@ func (e *Engine) dryRun(w io.Writer, files []string) error {
 
 	fmt.Fprintf(w, "Dry run: analyzing %d file(s) (no mutations will be executed)\n", len(files))
 
+	// Discovered files are absolute (derived from the resolved target path);
+	// display them relative to the working directory.
+	wd, wdErr := os.Getwd()
+	if wdErr != nil {
+		wd = ""
+	}
+
 	totalMutants := 0
 	filesWithMutants := 0
 
 	for _, file := range files {
 		mutants, err := e.mutator.GenerateMutants(file)
+		displayPath := analysis.GetRelativePath(wd, file)
+
 		if err != nil {
-			fmt.Fprintf(w, "\n%s (error: %v)\n", file, err)
+			fmt.Fprintf(w, "\n%s (error: %v)\n", displayPath, err)
 
 			continue
 		}
@@ -445,7 +454,7 @@ func (e *Engine) dryRun(w io.Writer, files []string) error {
 		filesWithMutants++
 		totalMutants += len(mutants)
 
-		writeDryRunFile(w, file, mutants)
+		writeDryRunFile(w, displayPath, mutants)
 	}
 
 	fmt.Fprintf(w, "\nTotal: %d mutant(s) across %d file(s)\n", totalMutants, filesWithMutants)
