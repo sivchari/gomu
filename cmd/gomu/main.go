@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/sivchari/gomu/pkg/gomu"
@@ -75,6 +76,8 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 	// --list is informational only: print the supported mutators and exit
 	// without discovering files or running any mutation.
 	if list, _ := cmd.Flags().GetBool("list"); list {
+		warnIgnoredFlags(cmd)
+
 		return listMutators(cmd.OutOrStdout())
 	}
 
@@ -136,6 +139,23 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// warnIgnoredFlags warns on stderr about flags the user explicitly set that
+// --list ignores, since --list exits before those flags take effect.
+func warnIgnoredFlags(cmd *cobra.Command) {
+	ignorable := []string{"dry-run", "ci-mode", "threshold", "output", "fail-on-gate", "workers", "timeout", "incremental", "base-branch"}
+
+	var ignored []string
+	for _, name := range ignorable {
+		if cmd.Flags().Changed(name) {
+			ignored = append(ignored, "--"+name)
+		}
+	}
+
+	if len(ignored) > 0 {
+		fmt.Fprintf(cmd.ErrOrStderr(), "Warning: --list ignores %s\n", strings.Join(ignored, ", "))
+	}
 }
 
 // listMutators writes the catalog of supported mutators, one per line, with

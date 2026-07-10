@@ -291,7 +291,7 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 	// Dry run stops after discovery: report the mutants that would be generated
 	// per file without applying any mutation, running tests, or reporting.
 	if opts.DryRun {
-		return e.dryRun(os.Stdout, files)
+		return e.dryRun(os.Stdout, files, opts)
 	}
 
 	if len(files) == 0 {
@@ -418,9 +418,13 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 
 // dryRun reports the mutants that would be generated for each file without
 // applying any mutation, running any tests, or producing reports.
-func (e *Engine) dryRun(w io.Writer, files []string) error {
+func (e *Engine) dryRun(w io.Writer, files []string, opts *RunOptions) error {
 	if len(files) == 0 {
-		fmt.Fprintln(w, "Dry run: no files to analyze")
+		if opts.Incremental {
+			fmt.Fprintf(w, "Dry run: no files to analyze (no changes since %s; use --incremental=false to preview all files)\n", opts.BaseBranch)
+		} else {
+			fmt.Fprintln(w, "Dry run: no files to analyze")
+		}
 
 		return nil
 	}
@@ -454,7 +458,9 @@ func (e *Engine) dryRun(w io.Writer, files []string) error {
 		filesWithMutants++
 		totalMutants += len(mutants)
 
-		writeDryRunFile(w, displayPath, mutants)
+		if err := writeDryRunFile(w, displayPath, mutants); err != nil {
+			return err
+		}
 	}
 
 	fmt.Fprintf(w, "\nTotal: %d mutant(s) across %d file(s)\n", totalMutants, filesWithMutants)
@@ -463,7 +469,7 @@ func (e *Engine) dryRun(w io.Writer, files []string) error {
 }
 
 // writeDryRunFile renders a file's discovered mutants as an aligned table.
-func writeDryRunFile(w io.Writer, file string, mutants []mutation.Mutant) {
+func writeDryRunFile(w io.Writer, file string, mutants []mutation.Mutant) error {
 	fmt.Fprintf(w, "\n%s (%d mutants)\n", file, len(mutants))
 
 	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
@@ -471,7 +477,11 @@ func writeDryRunFile(w io.Writer, file string, mutants []mutation.Mutant) {
 		fmt.Fprintf(tw, "  L%d:%d\t%s\t%s\n", m.Line, m.Column, m.Type, m.Description)
 	}
 
-	tw.Flush() //nolint:errcheck // writing to caller-provided writer
+	if err := tw.Flush(); err != nil {
+		return fmt.Errorf("failed to write mutant table: %w", err)
+	}
+
+	return nil
 }
 
 // cleanupAndSave handles cleanup and saving operations.
