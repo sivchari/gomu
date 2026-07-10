@@ -19,7 +19,9 @@ func TestWriteDryRunFile(t *testing.T) {
 		{Line: 20, Column: 3, Type: "conditional_binary", Description: "Replace < with <="},
 	}
 
-	writeDryRunFile(&buf, "foo.go", mutants)
+	if err := writeDryRunFile(&buf, "foo.go", mutants); err != nil {
+		t.Fatalf("writeDryRunFile: %v", err)
+	}
 
 	out := buf.String()
 	for _, want := range []string{
@@ -39,14 +41,41 @@ func TestDryRunNoFiles(t *testing.T) {
 		t.Fatalf("NewEngine: %v", err)
 	}
 
-	var buf bytes.Buffer
-	if err := engine.dryRun(&buf, nil); err != nil {
-		t.Fatalf("dryRun: %v", err)
-	}
+	t.Run("incremental", func(t *testing.T) {
+		var buf bytes.Buffer
 
-	if !strings.Contains(buf.String(), "no files to analyze") {
-		t.Errorf("unexpected output for empty file list: %q", buf.String())
-	}
+		opts := &RunOptions{Incremental: true, BaseBranch: "main"}
+		if err := engine.dryRun(&buf, nil, opts); err != nil {
+			t.Fatalf("dryRun: %v", err)
+		}
+
+		out := buf.String()
+		for _, want := range []string{"no files to analyze", "main", "--incremental=false"} {
+			if !strings.Contains(out, want) {
+				t.Errorf("output missing %q: %q", want, out)
+			}
+		}
+	})
+
+	t.Run("non-incremental", func(t *testing.T) {
+		var buf bytes.Buffer
+
+		opts := &RunOptions{Incremental: false}
+		if err := engine.dryRun(&buf, nil, opts); err != nil {
+			t.Fatalf("dryRun: %v", err)
+		}
+
+		out := buf.String()
+		if !strings.Contains(out, "no files to analyze") {
+			t.Errorf("unexpected output for empty file list: %q", out)
+		}
+
+		for _, unwanted := range []string{"main", "--incremental=false"} {
+			if strings.Contains(out, unwanted) {
+				t.Errorf("output should not contain %q: %q", unwanted, out)
+			}
+		}
+	})
 }
 
 func TestDryRunGeneratesMutants(t *testing.T) {
@@ -67,7 +96,7 @@ func Add(a, b int) int {
 	}
 
 	var buf bytes.Buffer
-	if err := engine.dryRun(&buf, []string{file}); err != nil {
+	if err := engine.dryRun(&buf, []string{file}, &RunOptions{}); err != nil {
 		t.Fatalf("dryRun: %v", err)
 	}
 
