@@ -147,6 +147,7 @@ func warnIgnoredFlags(cmd *cobra.Command) {
 	ignorable := []string{"dry-run", "ci-mode", "threshold", "output", "fail-on-gate", "workers", "timeout", "incremental", "base-branch"}
 
 	var ignored []string
+
 	for _, name := range ignorable {
 		if cmd.Flags().Changed(name) {
 			ignored = append(ignored, "--"+name)
