@@ -49,9 +49,9 @@ func NewOverlayMutator() (*OverlayMutator, error) {
 
 // PrepareMutation prepares the mutation execution by creating mutated file and overlay.json.
 func (om *OverlayMutator) PrepareMutation(mutant mutation.Mutant) (*MutationContext, error) {
-	// Create unique directory for this mutant
-	mutantDir := filepath.Join(om.baseDir, fmt.Sprintf("mutant_%s", mutant.ID))
-	if err := os.MkdirAll(mutantDir, 0750); err != nil {
+	// Use filesystem-generated uniqueness; report IDs are not filesystem locks.
+	mutantDir, err := os.MkdirTemp(om.baseDir, "mutant-*")
+	if err != nil {
 		return nil, fmt.Errorf("failed to create mutant directory: %w", err)
 	}
 

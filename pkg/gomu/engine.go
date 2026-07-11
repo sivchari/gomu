@@ -302,7 +302,10 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		return nil
 	}
 
-	allResults, totalMutants, processedFiles := e.processFiles(files, opts)
+	allResults, totalMutants, processedFiles, err := e.processFiles(ctx, files, opts)
+	if err != nil {
+		return err
+	}
 
 	if err := e.cleanupAndSave(opts); err != nil {
 		return err
@@ -326,7 +329,11 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 }
 
 // processFiles processes all files for mutation testing.
-func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Result, int, int) {
+func (e *Engine) processFiles(
+	ctx context.Context,
+	files []string,
+	opts *RunOptions,
+) ([]mutation.Result, int, int, error) {
 	var (
 		allResults     []mutation.Result
 		totalMutants   int
@@ -374,8 +381,12 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 			log.Printf("Generated %d mutants for %s", len(mutants), file)
 		}
 
-		results, err := e.executor.RunMutationsWithOptions(mutants, opts.Workers, opts.Timeout)
+		results, err := e.executor.RunMutationsWithContext(ctx, mutants, opts.Workers, opts.Timeout)
 		if err != nil {
+			if ctx.Err() != nil {
+				return nil, totalMutants, processedFiles, fmt.Errorf("mutation run canceled: %w", ctx.Err())
+			}
+
 			fmt.Printf("(execution error: %v)\n", err)
 
 			if opts.Verbose {
@@ -413,7 +424,7 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 		processedFiles++
 	}
 
-	return allResults, totalMutants, processedFiles
+	return allResults, totalMutants, processedFiles, nil
 }
 
 // dryRun reports the mutants that would be generated for each file without

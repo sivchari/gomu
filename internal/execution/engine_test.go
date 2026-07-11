@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -421,7 +422,7 @@ func TestCheckCompilationWithOverlay(t *testing.T) {
 		}
 		defer engine.overlay.CleanupMutation(ctx)
 
-		err = engine.checkCompilationWithOverlay(ctx)
+		err = engine.checkCompilationWithOverlay(context.Background(), ctx)
 		if err != nil {
 			t.Errorf("unexpected compilation error: %v", err)
 		}
