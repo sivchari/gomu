@@ -2,12 +2,16 @@
 package execution
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,8 +19,11 @@ import (
 )
 
 const maxCommandOutputBytes = 1 << 20
+const defaultMaxWorkers = 4
+const defaultChildMaxRSSMiB = 2048
 
 var outputTruncatedMarker = []byte("\n[gomu: command output truncated]\n")
+var errChildMemoryLimit = errors.New("child process exceeded memory limit")
 
 // Engine handles test execution using overlay-based mutation.
 type Engine struct {
@@ -66,6 +73,10 @@ func (e *Engine) RunMutationsWithContext(
 
 	if workers < 1 {
 		workers = 1
+	}
+
+	if workers > configuredMaxWorkers() {
+		workers = configuredMaxWorkers()
 	}
 
 	seen := make(map[string]struct{}, len(mutants))
@@ -172,7 +183,7 @@ func (e *Engine) runSingleMutationWithContext(
 
 	// 2. Check if the mutated code compiles using overlay
 	if err := e.checkCompilationWithOverlay(mutationCtx, mutCtx); err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
+		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, errChildMemoryLimit) {
 			result.Status = mutation.StatusTimedOut
 			result.Error = "Mutation execution timed out during compilation"
 
@@ -221,7 +232,7 @@ func (e *Engine) runTestWithOverlay(
 	output, err := runBoundedCommand(ctx, testDir, "go", "test", "-overlay="+mutCtx.OverlayPath, ".")
 
 	// Analyze test results
-	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) || errors.Is(err, errChildMemoryLimit) {
 		result.Status = mutation.StatusTimedOut
 		result.Error = "Test execution timed out"
 
@@ -290,6 +301,13 @@ func runBoundedCommand(ctx context.Context, dir, name string, args ...string) (s
 	}
 
 	done := make(chan error, 1)
+	stopMonitor := make(chan struct{})
+	memoryLimit := childMaxRSSBytes()
+	memoryExceeded := make(chan struct{}, 1)
+
+	go monitorProcessGroup(cmd.Process.Pid, memoryLimit, stopMonitor, memoryExceeded)
+
+	defer close(stopMonitor)
 
 	go func() { done <- cmd.Wait() }()
 
@@ -301,7 +319,80 @@ func runBoundedCommand(ctx context.Context, dir, name string, args ...string) (s
 		<-done
 
 		return output.String(), fmt.Errorf("command canceled: %w", ctx.Err())
+	case <-memoryExceeded:
+		killProcessGroup(cmd)
+		<-done
+
+		return output.String(), errChildMemoryLimit
 	}
+}
+
+func configuredMaxWorkers() int {
+	value, err := strconv.Atoi(os.Getenv("GOMU_MAX_WORKERS"))
+	if err == nil && value > 0 {
+		return value
+	}
+
+	return defaultMaxWorkers
+}
+
+func childMaxRSSBytes() int64 {
+	value, err := strconv.ParseInt(os.Getenv("GOMU_CHILD_MAX_RSS_MIB"), 10, 64)
+	if err == nil && value > 0 {
+		return value * 1024 * 1024
+	}
+
+	return defaultChildMaxRSSMiB * 1024 * 1024
+}
+
+func monitorProcessGroup(pid int, limit int64, stop <-chan struct{}, exceeded chan<- struct{}) {
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-stop:
+			return
+		case <-ticker.C:
+			rss, err := processGroupRSS(pid)
+			if err == nil && rss > limit {
+				exceeded <- struct{}{}
+
+				return
+			}
+		}
+	}
+}
+
+func processGroupRSS(pgid int) (int64, error) {
+	output, err := exec.Command("ps", "-axo", "pgid=,rss=").Output()
+	if err != nil {
+		return 0, fmt.Errorf("read process RSS: %w", err)
+	}
+
+	var total int64
+
+	scanner := bufio.NewScanner(strings.NewReader(string(output)))
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+
+		if len(fields) != 2 {
+			continue
+		}
+
+		group, groupErr := strconv.Atoi(fields[0])
+
+		rss, rssErr := strconv.ParseInt(fields[1], 10, 64)
+		if groupErr == nil && rssErr == nil && group == pgid {
+			total += rss * 1024
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return 0, fmt.Errorf("scan process RSS: %w", err)
+	}
+
+	return total, nil
 }
 
 func childMemoryLimit() string {

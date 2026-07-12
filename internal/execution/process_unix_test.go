@@ -85,6 +85,42 @@ func TestRunBoundedCommandSetsChildMemoryLimit(t *testing.T) {
 	}
 }
 
+func TestResourceLimitsAreConfigurable(t *testing.T) {
+	t.Setenv("GOMU_MAX_WORKERS", "")
+
+	if got := configuredMaxWorkers(); got != defaultMaxWorkers {
+		t.Fatalf("default max workers = %d, want %d", got, defaultMaxWorkers)
+	}
+
+	t.Setenv("GOMU_MAX_WORKERS", "12")
+
+	if got := configuredMaxWorkers(); got != 12 {
+		t.Fatalf("configured max workers = %d, want 12", got)
+	}
+
+	t.Setenv("GOMU_CHILD_MAX_RSS_MIB", "768")
+
+	if got := childMaxRSSBytes(); got != 768*1024*1024 {
+		t.Fatalf("configured RSS limit = %d, want %d", got, 768*1024*1024)
+	}
+}
+
+func TestProcessGroupRSS(t *testing.T) {
+	group, err := syscall.Getpgid(os.Getpid())
+	if err != nil {
+		t.Fatalf("get process group: %v", err)
+	}
+
+	rss, err := processGroupRSS(group)
+	if err != nil {
+		t.Fatalf("process group RSS: %v", err)
+	}
+
+	if rss <= 0 {
+		t.Fatalf("process group RSS = %d, want positive", rss)
+	}
+}
+
 func processExists(pid int) bool {
 	err := syscall.Kill(pid, 0)
 
