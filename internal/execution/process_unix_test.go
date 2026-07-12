@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
@@ -118,6 +119,27 @@ func TestProcessGroupRSS(t *testing.T) {
 
 	if rss <= 0 {
 		t.Fatalf("process group RSS = %d, want positive", rss)
+	}
+}
+
+func TestRunBoundedCommandStopsOnRSSLimit(t *testing.T) {
+	if os.Getenv("GOMU_RESOURCE_LIMIT_HELPER") == "1" {
+		buffer := make([]byte, 32*1024*1024)
+		buffer[0] = 1
+
+		time.Sleep(2 * time.Second)
+
+		runtime.KeepAlive(buffer)
+
+		return
+	}
+
+	t.Setenv("GOMU_CHILD_MAX_RSS_MIB", "1")
+	t.Setenv("GOMU_RESOURCE_LIMIT_HELPER", "1")
+
+	_, err := runBoundedCommand(context.Background(), "", os.Args[0], "-test.run=TestRunBoundedCommandStopsOnRSSLimit")
+	if !errors.Is(err, errChildMemoryLimit) {
+		t.Fatalf("runBoundedCommand error = %v, want RSS limit error", err)
 	}
 }
 
