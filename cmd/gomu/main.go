@@ -35,10 +35,17 @@ Features:
 	RunE: runMutationTesting,
 }
 
-var runCmd = &cobra.Command{
-	Use:   "run [path] [-- test flags]",
-	Short: "Run mutation testing on the specified path",
-	Long: `Run mutation testing on the specified path or current directory.
+var runCmd = newRunCommand()
+
+// newRunCommand builds the "run" subcommand. It is a constructor, rather than
+// a package-level literal, so tests can create isolated instances instead of
+// reusing the shared runCmd - cobra/pflag retain parse state such as
+// ArgsLenAtDash across repeated Execute calls on the same command.
+func newRunCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "run [path] [-- test flags]",
+		Short: "Run mutation testing on the specified path",
+		Long: `Run mutation testing on the specified path or current directory.
 
 Flags placed after -- are forwarded to "go test" verbatim (and, for the
 flags go build also understands such as -tags or -race, to the compile
@@ -47,8 +54,23 @@ check that precedes it):
   gomu run ./pkg -- -short
   gomu run ./pkg -- -run '^TestUnit'
   gomu run ./pkg -- -tags=integration`,
-	Args: validateRunArgs,
-	RunE: runMutationTesting,
+		Args: validateRunArgs,
+		RunE: runMutationTesting,
+	}
+
+	cmd.Flags().BoolP("list", "l", false, "list supported mutators and exit")
+	cmd.Flags().Bool("dry-run", false, "show which mutations would run per file, without executing them")
+	cmd.Flags().Bool("ci-mode", false, "enable CI mode with quality gates and reporting")
+	cmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold")
+	cmd.Flags().String("output", "console", "output format (console, json, html, text)")
+	cmd.Flags().Bool("fail-on-gate", true, "fail build when quality gate is not met")
+	cmd.Flags().Int("workers", 4, "number of parallel workers")
+	cmd.Flags().Int("timeout", 30, "test timeout in seconds")
+	cmd.Flags().Bool("incremental", true, "enable incremental analysis")
+	cmd.Flags().String("base-branch", "main", "base branch for incremental analysis")
+	cmd.Flags().Bool("include-generated", false, "include files marked with the standard Go generated-code comment as mutation targets")
+
+	return cmd
 }
 
 var versionCmd = &cobra.Command{
@@ -66,19 +88,6 @@ func init() {
 
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(versionCmd)
-
-	// Run command flags
-	runCmd.Flags().BoolP("list", "l", false, "list supported mutators and exit")
-	runCmd.Flags().Bool("dry-run", false, "show which mutations would run per file, without executing them")
-	runCmd.Flags().Bool("ci-mode", false, "enable CI mode with quality gates and reporting")
-	runCmd.Flags().Float64("threshold", 80.0, "minimum mutation score threshold")
-	runCmd.Flags().String("output", "console", "output format (console, json, html, text)")
-	runCmd.Flags().Bool("fail-on-gate", true, "fail build when quality gate is not met")
-	runCmd.Flags().Int("workers", 4, "number of parallel workers")
-	runCmd.Flags().Int("timeout", 30, "test timeout in seconds")
-	runCmd.Flags().Bool("incremental", true, "enable incremental analysis")
-	runCmd.Flags().String("base-branch", "main", "base branch for incremental analysis")
-	runCmd.Flags().Bool("include-generated", false, "include files marked with the standard Go generated-code comment as mutation targets")
 }
 
 // validateRunArgs allows at most one positional argument before "--"; any
