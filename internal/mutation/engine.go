@@ -107,11 +107,9 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 		return nil, fmt.Errorf("failed to parse file: %w", err)
 	}
 
-	// Create type checker if type info is available
-	var typeChecker *TypeChecker
-	if fileInfo.TypeInfo != nil {
-		typeChecker = NewTypeChecker(fileInfo.TypeInfo)
-	}
+	// NewTypeChecker tolerates a nil TypeInfo: some mutation types (e.g. errorNilifyType)
+	// still validate via a name-based fallback even without type information.
+	typeChecker := NewTypeChecker(fileInfo.TypeInfo)
 
 	var allMutants []Mutant
 
@@ -137,7 +135,7 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 					mutants[i].ID = fmt.Sprintf("%s_%d", filePath, len(allMutants)+i)
 
 					// Only add mutant if it passes type check
-					if typeChecker == nil || typeChecker.IsValidMutation(node, mutants[i]) {
+					if typeChecker.IsValidMutation(node, mutants[i]) {
 						allMutants = append(allMutants, mutants[i])
 					}
 				}
