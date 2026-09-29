@@ -122,6 +122,12 @@ var stmtRemovalSrc string
 //go:embed testdata/stmtremoval_removed.go
 var stmtRemovalRemovedSrc string
 
+//go:embed testdata/switch.go
+var switchSrc string
+
+//go:embed testdata/switch_default_removed.go
+var switchDefaultRemovedSrc string
+
 func TestNewOverlayMutator(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -868,6 +874,14 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 			original:   "*counter++",
 			mutated:    "<removed>",
 			want:       stmtRemovalRemovedSrc,
+		},
+		{
+			name:       "switch case body emptied",
+			src:        switchSrc,
+			mutantType: "switch_case_body_removal",
+			original:   "default",
+			mutated:    "<removed>",
+			want:       switchDefaultRemovedSrc,
 		},
 	}
 

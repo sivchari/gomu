@@ -53,7 +53,8 @@ func (tc *TypeChecker) IsValidMutation(node ast.Node, mutant Mutant) bool {
 		logicalNotRemovalType,
 		returnBoolLiteralType,
 		returnZeroValueType,
-		branchConditionType:
+		branchConditionType,
+		switchCaseBodyRemovalType:
 		return true
 
 	default:
