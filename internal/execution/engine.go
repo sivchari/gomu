@@ -15,7 +15,8 @@ import (
 
 // Engine handles test execution using overlay-based mutation.
 type Engine struct {
-	overlay *OverlayMutator
+	overlay  *OverlayMutator
+	testArgs []string
 }
 
 // New creates a new execution engine.
@@ -28,6 +29,13 @@ func New() (*Engine, error) {
 	return &Engine{
 		overlay: overlay,
 	}, nil
+}
+
+// SetTestArgs sets the flags forwarded to "go test" (and, for the flags that
+// go build also understands, the compile check that precedes it). Call it
+// before RunMutations or RunMutationsWithOptions.
+func (e *Engine) SetTestArgs(args []string) {
+	e.testArgs = args
 }
 
 // Close cleans up the execution engine.
@@ -131,7 +139,10 @@ func (e *Engine) checkCompilationWithOverlay(mutCtx *MutationContext) error {
 	compileDir := filepath.Dir(mutCtx.OriginalPath)
 
 	// Build the entire package with overlay to properly resolve dependencies
-	cmd := exec.Command("go", "build", "-overlay="+mutCtx.OverlayPath, ".")
+	args := append([]string{"build", "-overlay=" + mutCtx.OverlayPath}, splitBuildFlags(e.testArgs)...)
+	args = append(args, ".")
+
+	cmd := exec.Command("go", args...)
 	cmd.Dir = compileDir
 
 	output, err := cmd.CombinedOutput()
@@ -155,7 +166,10 @@ func (e *Engine) runTestWithOverlay(mutCtx *MutationContext, mutant mutation.Mut
 	// Get the directory containing the original file for running tests
 	testDir := filepath.Dir(mutCtx.OriginalPath)
 
-	cmd := exec.CommandContext(ctx, "go", "test", "-overlay="+mutCtx.OverlayPath, ".")
+	args := append([]string{"test", "-overlay=" + mutCtx.OverlayPath}, e.testArgs...)
+	args = append(args, ".")
+
+	cmd := exec.CommandContext(ctx, "go", args...)
 	cmd.Dir = testDir
 
 	output, err := cmd.CombinedOutput()
