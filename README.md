@@ -99,6 +99,7 @@ gomu run --threshold 85.0 --workers 8
 | `--base-branch` | `main` | Base branch for incremental analysis |
 | `--output` | `console` | Output format (console, json, html, text) |
 | `--fail-on-gate` | `true` | Fail build when quality gate is not met |
+| `--include-generated` | `false` | Include files marked with the standard Go generated-code comment (`// Code generated ... DO NOT EDIT.`) as mutation targets |
 | `-v, --verbose` | `false` | Verbose output |
 
 ### Examples

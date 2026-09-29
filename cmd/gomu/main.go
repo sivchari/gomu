@@ -70,6 +70,7 @@ func init() {
 	runCmd.Flags().Int("timeout", 30, "test timeout in seconds")
 	runCmd.Flags().Bool("incremental", true, "enable incremental analysis")
 	runCmd.Flags().String("base-branch", "main", "base branch for incremental analysis")
+	runCmd.Flags().Bool("include-generated", false, "include files marked with the standard Go generated-code comment as mutation targets")
 }
 
 func runMutationTesting(cmd *cobra.Command, args []string) error {
@@ -96,6 +97,7 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 	baseBranch, _ := cmd.Flags().GetString("base-branch")
 	threshold, _ := cmd.Flags().GetFloat64("threshold")
 	failOnGate, _ := cmd.Flags().GetBool("fail-on-gate")
+	includeGenerated, _ := cmd.Flags().GetBool("include-generated")
 
 	if verbose {
 		fmt.Printf("Running mutation testing with the following settings:\n")
@@ -117,16 +119,17 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 
 	// Create run options from CLI flags
 	opts := &gomu.RunOptions{
-		Workers:     workers,
-		Timeout:     timeout,
-		Output:      output,
-		Incremental: incremental,
-		BaseBranch:  baseBranch,
-		Threshold:   threshold,
-		FailOnGate:  failOnGate,
-		Verbose:     verbose,
-		CIMode:      ciMode,
-		DryRun:      dryRun,
+		Workers:          workers,
+		Timeout:          timeout,
+		Output:           output,
+		Incremental:      incremental,
+		BaseBranch:       baseBranch,
+		Threshold:        threshold,
+		FailOnGate:       failOnGate,
+		Verbose:          verbose,
+		CIMode:           ciMode,
+		DryRun:           dryRun,
+		IncludeGenerated: includeGenerated,
 	}
 
 	engine, err := gomu.NewEngine(opts)
@@ -144,7 +147,7 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 // warnIgnoredFlags warns on stderr about flags the user explicitly set that
 // --list ignores, since --list exits before those flags take effect.
 func warnIgnoredFlags(cmd *cobra.Command) {
-	ignorable := []string{"dry-run", "ci-mode", "threshold", "output", "fail-on-gate", "workers", "timeout", "incremental", "base-branch"}
+	ignorable := []string{"dry-run", "ci-mode", "threshold", "output", "fail-on-gate", "workers", "timeout", "incremental", "base-branch", "include-generated"}
 
 	var ignored []string
 
