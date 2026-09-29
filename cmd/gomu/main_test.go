@@ -149,16 +149,17 @@ func TestRunArgsValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 
-			// --list must precede "--" so it still parses as a flag rather
-			// than being swallowed into the forwarded test args; the run
-			// path never actually executes because --list short-circuits it.
-			argsWithList := append([]string{"run", "--list"}, tt.args[1:]...)
+			// A fresh command per subtest, rather than the shared rootCmd/runCmd,
+			// avoids pflag's ArgsLenAtDash staying stale across repeated Execute
+			// calls when a later case's args contain no "--" of their own.
+			// --list (placed before any "--") short-circuits real execution so
+			// a valid-looking case never actually runs mutation testing.
+			cmd := newRunCommand()
+			cmd.SetArgs(append([]string{"--list"}, tt.args[1:]...))
+			cmd.SetOut(&stdout)
+			cmd.SetErr(&stderr)
 
-			rootCmd.SetArgs(argsWithList)
-			rootCmd.SetOut(&stdout)
-			rootCmd.SetErr(&stderr)
-
-			err := rootCmd.Execute()
+			err := cmd.Execute()
 			if tt.wantErr && err == nil {
 				t.Error("expected error but got none")
 			}
@@ -166,17 +167,6 @@ func TestRunArgsValidation(t *testing.T) {
 			if !tt.wantErr && err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
-
-			// Reset the list flag's value (not just Changed), since --list
-			// was set explicitly above and would otherwise leak into later
-			// tests that don't pass --list.
-			if err := runCmd.Flags().Set("list", "false"); err != nil {
-				t.Fatalf("reset list flag: %v", err)
-			}
-
-			runCmd.Flags().Visit(func(f *pflag.Flag) {
-				f.Changed = false
-			})
 		})
 	}
 }
@@ -184,11 +174,12 @@ func TestRunArgsValidation(t *testing.T) {
 func TestRunRejectsConflictingTestArgs(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 
-	rootCmd.SetArgs([]string{"run", "--", "-overlay=foo.json"})
-	rootCmd.SetOut(&stdout)
-	rootCmd.SetErr(&stderr)
+	cmd := newRunCommand()
+	cmd.SetArgs([]string{"--", "-overlay=foo.json"})
+	cmd.SetOut(&stdout)
+	cmd.SetErr(&stderr)
 
-	err := rootCmd.Execute()
+	err := cmd.Execute()
 	if err == nil {
 		t.Fatal("expected an actionable error rejecting -overlay, got none")
 	}
