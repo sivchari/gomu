@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/sivchari/gomu/pkg/gomu"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
@@ -33,6 +35,166 @@ func TestListMutators(t *testing.T) {
 		if !strings.Contains(out, m.Description) {
 			t.Errorf("output missing description %q:\n%s", m.Description, out)
 		}
+	}
+}
+
+func TestSplitPathAndTestArgs(t *testing.T) {
+	tests := []struct {
+		name         string
+		args         []string
+		wantPath     string
+		wantTestArgs []string
+	}{
+		{
+			name:         "no path no dash",
+			args:         []string{"run"},
+			wantPath:     ".",
+			wantTestArgs: nil,
+		},
+		{
+			name:         "path no dash",
+			args:         []string{"run", "./pkg"},
+			wantPath:     "./pkg",
+			wantTestArgs: nil,
+		},
+		{
+			name:         "dash without path",
+			args:         []string{"run", "--", "-short"},
+			wantPath:     ".",
+			wantTestArgs: []string{"-short"},
+		},
+		{
+			name:         "path and dash",
+			args:         []string{"run", "./pkg", "--", "-short"},
+			wantPath:     "./pkg",
+			wantTestArgs: []string{"-short"},
+		},
+		{
+			name:         "multiple flags after dash preserve boundaries",
+			args:         []string{"run", "./pkg", "--", "-short", "-race", "-run", "^TestUnit"},
+			wantPath:     "./pkg",
+			wantTestArgs: []string{"-short", "-race", "-run", "^TestUnit"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := &cobra.Command{
+				Use:  "run",
+				Args: validateRunArgs,
+				RunE: func(_ *cobra.Command, _ []string) error { return nil },
+			}
+			cmd.Flags().BoolP("list", "l", false, "")
+
+			cmd.SetArgs(tt.args[1:])
+
+			var gotPath string
+
+			var gotTestArgs []string
+
+			cmd.RunE = func(cmd *cobra.Command, args []string) error {
+				gotPath, gotTestArgs = splitPathAndTestArgs(cmd, args)
+
+				return nil
+			}
+			if err := cmd.Execute(); err != nil {
+				t.Fatalf("Execute: %v", err)
+			}
+
+			if gotPath != tt.wantPath {
+				t.Errorf("path = %q, want %q", gotPath, tt.wantPath)
+			}
+
+			if !reflect.DeepEqual(gotTestArgs, tt.wantTestArgs) {
+				t.Errorf("testArgs = %v, want %v", gotTestArgs, tt.wantTestArgs)
+			}
+		})
+	}
+}
+
+func TestRunArgsValidation(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    []string
+		wantErr bool
+	}{
+		{
+			name:    "no args",
+			args:    []string{"run"},
+			wantErr: false,
+		},
+		{
+			name:    "one path arg",
+			args:    []string{"run", "./pkg"},
+			wantErr: false,
+		},
+		{
+			name:    "two path args without dash still errors",
+			args:    []string{"run", "a", "b"},
+			wantErr: true,
+		},
+		{
+			name:    "dash with no path is allowed",
+			args:    []string{"run", "--", "-short"},
+			wantErr: false,
+		},
+		{
+			name:    "path and dash is allowed",
+			args:    []string{"run", "./pkg", "--", "-short"},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+
+			// --list must precede "--" so it still parses as a flag rather
+			// than being swallowed into the forwarded test args; the run
+			// path never actually executes because --list short-circuits it.
+			argsWithList := append([]string{"run", "--list"}, tt.args[1:]...)
+
+			rootCmd.SetArgs(argsWithList)
+			rootCmd.SetOut(&stdout)
+			rootCmd.SetErr(&stderr)
+
+			err := rootCmd.Execute()
+			if tt.wantErr && err == nil {
+				t.Error("expected error but got none")
+			}
+
+			if !tt.wantErr && err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+
+			// Reset the list flag's value (not just Changed), since --list
+			// was set explicitly above and would otherwise leak into later
+			// tests that don't pass --list.
+			if err := runCmd.Flags().Set("list", "false"); err != nil {
+				t.Fatalf("reset list flag: %v", err)
+			}
+
+			runCmd.Flags().Visit(func(f *pflag.Flag) {
+				f.Changed = false
+			})
+		})
+	}
+}
+
+func TestRunRejectsConflictingTestArgs(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	rootCmd.SetArgs([]string{"run", "--", "-overlay=foo.json"})
+	rootCmd.SetOut(&stdout)
+	rootCmd.SetErr(&stderr)
+
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatal("expected an actionable error rejecting -overlay, got none")
+	}
+
+	if !strings.Contains(err.Error(), "-overlay=foo.json") {
+		t.Errorf("expected error to name the offending flag, got: %v", err)
 	}
 }
 

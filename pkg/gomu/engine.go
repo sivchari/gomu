@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -44,11 +45,45 @@ type RunOptions struct {
 	FailOnGate  bool
 	Verbose     bool
 	CIMode      bool
-	DryRun      bool // Discover mutants per file without executing any mutation
+	DryRun      bool     // Discover mutants per file without executing any mutation
+	TestArgs    []string // Flags forwarded to go test (and, where applicable, go build)
 
 	// IncludeGenerated makes files carrying the standard Go generated-code
 	// marker eligible as mutation targets. They are excluded by default.
 	IncludeGenerated bool
+}
+
+// rejectedTestFlags maps a go test flag name (without leading dashes) that
+// TestArgs must not contain to the reason it conflicts with gomu's mutation
+// overlay execution.
+var rejectedTestFlags = map[string]string{
+	"overlay": "gomu manages the overlay for mutation testing",
+	"c":       "it would compile a test binary instead of running tests",
+	"o":       "it would compile a test binary instead of running tests",
+	"args":    "it would break gomu's positional package argument",
+}
+
+// ValidateTestArgs rejects TestArgs entries that conflict with gomu's
+// mutation overlay execution (-overlay, -c, -o, -args, in -flag/--flag/-flag=value
+// form). It is called by Engine.Run before any mutation runs, so both CLI and
+// library callers get the same actionable error.
+func ValidateTestArgs(testArgs []string) error {
+	for _, arg := range testArgs {
+		name := strings.TrimLeft(arg, "-")
+		if name == arg {
+			continue // not a flag
+		}
+
+		if idx := strings.Index(name, "="); idx >= 0 {
+			name = name[:idx]
+		}
+
+		if reason, rejected := rejectedTestFlags[name]; rejected {
+			return fmt.Errorf("test arg %q is not allowed: %s", arg, reason)
+		}
+	}
+
+	return nil
 }
 
 // MutatorInfo describes a single supported mutator for catalog/listing purposes.
@@ -87,6 +122,10 @@ func NewEngine(opts *RunOptions) (*Engine, error) {
 	executor, err := execution.New()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create executor: %w", err)
+	}
+
+	if opts != nil {
+		executor.SetTestArgs(opts.TestArgs)
 	}
 
 	historyFile := ".gomu_history.json"
@@ -252,6 +291,11 @@ func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions, ig
 // Run executes mutation testing on the specified path.
 func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 	opts = e.setDefaultOptions(opts)
+
+	if err := ValidateTestArgs(opts.TestArgs); err != nil {
+		return err
+	}
+
 	start := time.Now()
 
 	e.logStartupInfo(path, opts)

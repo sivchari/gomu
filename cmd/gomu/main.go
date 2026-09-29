@@ -36,11 +36,19 @@ Features:
 }
 
 var runCmd = &cobra.Command{
-	Use:   "run [path]",
+	Use:   "run [path] [-- test flags]",
 	Short: "Run mutation testing on the specified path",
-	Long:  "Run mutation testing on the specified path or current directory",
-	Args:  cobra.MaximumNArgs(1),
-	RunE:  runMutationTesting,
+	Long: `Run mutation testing on the specified path or current directory.
+
+Flags placed after -- are forwarded to "go test" verbatim (and, for the
+flags go build also understands such as -tags or -race, to the compile
+check that precedes it):
+
+  gomu run ./pkg -- -short
+  gomu run ./pkg -- -run '^TestUnit'
+  gomu run ./pkg -- -tags=integration`,
+	Args: validateRunArgs,
+	RunE: runMutationTesting,
 }
 
 var versionCmd = &cobra.Command{
@@ -73,6 +81,43 @@ func init() {
 	runCmd.Flags().Bool("include-generated", false, "include files marked with the standard Go generated-code comment as mutation targets")
 }
 
+// validateRunArgs allows at most one positional argument before "--"; any
+// number of arguments after "--" are forwarded to go test, not counted here.
+func validateRunArgs(cmd *cobra.Command, args []string) error {
+	n := len(args)
+	if dashAt := cmd.ArgsLenAtDash(); dashAt >= 0 {
+		n = dashAt
+	}
+
+	if n > 1 {
+		return fmt.Errorf("accepts at most 1 arg(s) before --, received %d", n)
+	}
+
+	return nil
+}
+
+// splitPathAndTestArgs separates the optional path argument from the go test
+// flags forwarded after "--", using cmd.ArgsLenAtDash() to find the split
+// point Cobra recorded while parsing.
+func splitPathAndTestArgs(cmd *cobra.Command, args []string) (path string, testArgs []string) {
+	path = "."
+
+	dashAt := cmd.ArgsLenAtDash()
+	if dashAt < 0 {
+		if len(args) > 0 {
+			path = args[0]
+		}
+
+		return path, nil
+	}
+
+	if dashAt > 0 {
+		path = args[0]
+	}
+
+	return path, args[dashAt:]
+}
+
 func runMutationTesting(cmd *cobra.Command, args []string) error {
 	// --list is informational only: print the supported mutators and exit
 	// without discovering files or running any mutation.
@@ -82,10 +127,7 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		return listMutators(cmd.OutOrStdout())
 	}
 
-	path := "."
-	if len(args) > 0 {
-		path = args[0]
-	}
+	path, testArgs := splitPathAndTestArgs(cmd, args)
 
 	// Read CLI flags
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
@@ -130,6 +172,7 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		CIMode:           ciMode,
 		DryRun:           dryRun,
 		IncludeGenerated: includeGenerated,
+		TestArgs:         testArgs,
 	}
 
 	engine, err := gomu.NewEngine(opts)

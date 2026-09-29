@@ -124,6 +124,34 @@ gomu run ./internal/mypackage -v
 gomu run --incremental=false
 ```
 
+### Forwarding flags to go test
+
+Flags placed after `--` are forwarded to `go test` verbatim, and the subset of them that
+`go build` also understands (such as `-tags` or `-race`) are forwarded to the compile check
+that precedes it, so the build stays consistent across the whole run:
+
+```bash
+# Run only tests not guarded by testing.Short()
+gomu run ./pkg -- -short
+
+# Run only tests matching a pattern
+gomu run ./pkg -- -run '^TestUnit'
+
+# Build and test with a tag
+gomu run ./pkg -- -tags=integration
+```
+
+Mutant discovery parses every `*.go` file in a package regardless of build tags; `-tags`
+only affects compilation and test execution, not which mutants are found.
+
+The following flags conflict with gomu's mutation overlay execution and are rejected before
+any mutation runs: `-overlay` (gomu manages the overlay), `-c` and `-o` (would compile instead
+of running tests), and `-args` (would break gomu's positional package argument). `-exec` is
+allowed.
+
+gomu's own `--timeout` (a per-mutant execution timeout) still applies on top of any `-timeout`
+forwarded after `--`.
+
 ## .gomuignore
 
 Create a `.gomuignore` file in your project root to exclude files and directories from mutation testing. The syntax is similar to `.gitignore`:

@@ -545,6 +545,66 @@ func TestEngineCreationEdgeCases(t *testing.T) {
 	}
 }
 
+func TestSetTestArgsForwardedToTestAndBuild(t *testing.T) {
+	tempDir := createShortGuardedTestProject(t)
+
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("failed to create engine: %v", err)
+	}
+	defer engine.Close()
+
+	engine.SetTestArgs([]string{"-short"})
+
+	mutant := mutation.Mutant{
+		ID:       "test-short",
+		Type:     "arithmetic_binary",
+		FilePath: filepath.Join(tempDir, "valid.go"),
+		Line:     4,
+		Column:   9,
+		Original: "+",
+		Mutated:  "-",
+	}
+
+	result := engine.runSingleMutation(mutant, 30)
+
+	// Without -short, TestSlowIntegration always fails, forcing StatusKilled
+	// regardless of the arithmetic mutation. Forwarding -short must skip it so
+	// the mutation's actual effect (killed by TestAdd) is what is observed.
+	if result.Status != mutation.StatusKilled {
+		t.Errorf("expected status %v, got %v\nOutput: %s", mutation.StatusKilled, result.Status, result.Output)
+	}
+
+	if strings.Contains(result.Output, "TestSlowIntegration") {
+		t.Errorf("expected -short to skip TestSlowIntegration, output: %s", result.Output)
+	}
+}
+
+func TestNoTestArgsProducesUnchangedArgv(t *testing.T) {
+	tempDir := createTempTestProject(t)
+
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("failed to create engine: %v", err)
+	}
+	defer engine.Close()
+
+	mutant := mutation.Mutant{
+		ID:       "test-no-args",
+		Type:     "arithmetic_binary",
+		FilePath: filepath.Join(tempDir, "valid.go"),
+		Line:     4,
+		Column:   9,
+		Original: "+",
+		Mutated:  "-",
+	}
+
+	result := engine.runSingleMutation(mutant, 30)
+	if result.Status != mutation.StatusKilled {
+		t.Errorf("expected status %v, got %v\nOutput: %s", mutation.StatusKilled, result.Status, result.Output)
+	}
+}
+
 // Helper function to create a temporary test project.
 func createTempTestProject(t *testing.T) string {
 	tempDir := t.TempDir()
@@ -588,6 +648,33 @@ func TestAdd(t *testing.T) {
 	err = os.WriteFile(filepath.Join(tempDir, "valid_test.go"), []byte(testFile), 0644)
 	if err != nil {
 		t.Fatalf("failed to create valid_test.go: %v", err)
+	}
+
+	return tempDir
+}
+
+// createShortGuardedTestProject creates a temporary test project identical to
+// createTempTestProject, plus a TestSlowIntegration test that fails unless
+// testing.Short() is true, mirroring the "-short" acceptance scenario.
+func createShortGuardedTestProject(t *testing.T) string {
+	tempDir := createTempTestProject(t)
+
+	slowTestFile := `package main
+
+import "testing"
+
+func TestSlowIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("integration test")
+	}
+
+	t.Fatal("slow integration test always fails without -short")
+}
+`
+
+	err := os.WriteFile(filepath.Join(tempDir, "slow_test.go"), []byte(slowTestFile), 0644)
+	if err != nil {
+		t.Fatalf("failed to create slow_test.go: %v", err)
 	}
 
 	return tempDir
