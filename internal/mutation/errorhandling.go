@@ -118,7 +118,7 @@ func isNilifyCandidate(expr ast.Expr) bool {
 	}
 
 	switch ident.Name {
-	case nilIdentName, "_", "true", "false", "iota":
+	case nilIdentName, "_", boolTrue, boolFalse, "iota":
 		return false
 	default:
 		return true

@@ -143,8 +143,8 @@ func TestErrorHandlingMutator_Mutate(t *testing.T) {
 		t.Errorf("Original = %q, want %q", m.Original, "err")
 	}
 
-	if m.Mutated != "nil" {
-		t.Errorf("Mutated = %q, want %q", m.Mutated, "nil")
+	if m.Mutated != nilIdentName {
+		t.Errorf("Mutated = %q, want %q", m.Mutated, nilIdentName)
 	}
 
 	if m.Line <= 0 {
