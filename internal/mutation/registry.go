@@ -22,5 +22,6 @@ func getAllMutators() []Mutator {
 		&ReturnMutator{},
 		&StatementRemovalMutator{},
 		&StringLiteralMutator{},
+		&SwitchMutator{},
 	}
 }

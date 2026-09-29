@@ -228,6 +228,13 @@ testdata/
 ### Statement Removal Mutations
 - Remove increment/decrement (`i++`, `i--`), `defer`, `go`, and channel send (`ch <- v`) statements
 
+### Switch Mutations
+- Remove all statements from a non-empty `case`/`default` clause body (e.g. `switch err { case nil: default: return err }` becomes `switch err { case nil: default: }`)
+- Covers tagged and tagless expression switches; empty clauses produce no mutant
+- Clause deletion and forced case selection are out of scope
+- Type-switch clauses are mutated the same way, but a clause that was the only user of the switch variable becomes a compile error and is reported `NOT_VIABLE`
+- The switch tag expression is never re-evaluated
+
 ## CI/CD Integration
 
 ### GitHub Actions

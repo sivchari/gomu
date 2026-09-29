@@ -87,6 +87,7 @@ The registry is automatically generated from existing mutator files:
 - **ArithmeticMutator** - Mutates `+`, `-`, `*`, `/`, `%`, `++`, `--`
 - **ConditionalMutator** - Mutates `==`, `!=`, `<`, `<=`, `>`, `>=`  
 - **LogicalMutator** - Mutates `&&`, `||`, `!`
+- **SwitchMutator** - Empties non-empty `case`/`default` clause bodies (type-switch clauses that leave the switch variable unused are reported `NOT_VIABLE`; no clause deletion or forced case selection)
 
 ## Architecture
 
