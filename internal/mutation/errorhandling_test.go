@@ -43,9 +43,9 @@ func TestErrorHandlingMutator_CanMutate(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "return x and y without err",
+			name:     "return x and y are eligible candidates regardless of name",
 			src:      "package main\nfunc f() (int, int) { x, y := 1, 2; return x, y }",
-			expected: false,
+			expected: true,
 		},
 	}
 
@@ -223,5 +223,92 @@ func TestErrorHandlingMutator_Apply_NonReturnStmt(t *testing.T) {
 
 	if mutator.Apply(expr, mutant) {
 		t.Error("Apply() = true, want false for non-ReturnStmt node")
+	}
+}
+
+func TestErrorHandlingMutator_MutateAndApply_NonErrName(t *testing.T) {
+	t.Parallel()
+
+	mutator := &ErrorHandlingMutator{}
+	fset := token.NewFileSet()
+
+	src := "package main\nfunc f() error { acquireErr := error(nil); return acquireErr }"
+
+	file, err := parser.ParseFile(fset, "test.go", src, 0)
+	if err != nil {
+		t.Fatalf("Failed to parse file: %v", err)
+	}
+
+	var retStmt *ast.ReturnStmt
+
+	ast.Inspect(file, func(n ast.Node) bool {
+		if rs, ok := n.(*ast.ReturnStmt); ok {
+			retStmt = rs
+
+			return false
+		}
+
+		return true
+	})
+
+	if retStmt == nil {
+		t.Fatal("ReturnStmt not found")
+	}
+
+	mutants := mutator.Mutate(retStmt, fset)
+
+	if len(mutants) != 1 {
+		t.Fatalf("Expected 1 mutant, got %d", len(mutants))
+	}
+
+	if mutants[0].Original != "acquireErr" {
+		t.Errorf("Original = %q, want %q", mutants[0].Original, "acquireErr")
+	}
+
+	if !mutator.Apply(retStmt, mutants[0]) {
+		t.Error("Apply() = false, want true")
+	}
+
+	ident, ok := retStmt.Results[0].(*ast.Ident)
+	if !ok {
+		t.Fatal("Expected *ast.Ident in return results[0] after Apply")
+	}
+
+	if ident.Name != "nil" {
+		t.Errorf("ident.Name = %q, want %q", ident.Name, "nil")
+	}
+}
+
+func TestErrorHandlingMutator_Mutate_SkipsNonErrorLiterals(t *testing.T) {
+	t.Parallel()
+
+	mutator := &ErrorHandlingMutator{}
+	fset := token.NewFileSet()
+
+	src := "package main\nfunc f() error { return nil }"
+
+	file, err := parser.ParseFile(fset, "test.go", src, 0)
+	if err != nil {
+		t.Fatalf("Failed to parse file: %v", err)
+	}
+
+	var retStmt *ast.ReturnStmt
+
+	ast.Inspect(file, func(n ast.Node) bool {
+		if rs, ok := n.(*ast.ReturnStmt); ok {
+			retStmt = rs
+
+			return false
+		}
+
+		return true
+	})
+
+	if retStmt == nil {
+		t.Fatal("ReturnStmt not found")
+	}
+
+	if mutants := mutator.Mutate(retStmt, fset); len(mutants) != 0 {
+		t.Errorf("Expected 0 mutants for return nil, got %d", len(mutants))
 	}
 }

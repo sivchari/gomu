@@ -258,6 +258,183 @@ func foo() bool {
 	}
 }
 
+func TestTypeChecker_IsValidErrorNilifyMutation(t *testing.T) {
+	tests := []struct {
+		name     string
+		code     string
+		original string
+		expected bool
+	}{
+		{
+			name: "error typed err",
+			code: `package test
+func foo() error {
+	err := error(nil)
+	return err
+}`,
+			original: "err",
+			expected: true,
+		},
+		{
+			name: "error typed renamed identifier",
+			code: `package test
+func foo() error {
+	acquireErr := error(nil)
+	return acquireErr
+}`,
+			original: "acquireErr",
+			expected: true,
+		},
+		{
+			name: "error typed identifier named failure",
+			code: `package test
+func foo() error {
+	failure := error(nil)
+	return failure
+}`,
+			original: "failure",
+			expected: true,
+		},
+		{
+			name: "named error result",
+			code: `package test
+func foo() (err error) {
+	return err
+}`,
+			original: "err",
+			expected: true,
+		},
+		{
+			name: "non-error variable named err",
+			code: `package test
+func foo() int {
+	err := 42
+	return err
+}`,
+			original: "err",
+			expected: false,
+		},
+		{
+			name: "multi-result return, error operand",
+			code: `package test
+func foo() (int, error) {
+	value := 1
+	someErr := error(nil)
+	return value, someErr
+}`,
+			original: "someErr",
+			expected: true,
+		},
+		{
+			name: "multi-result return, non-error operand",
+			code: `package test
+func foo() (int, error) {
+	value := 1
+	someErr := error(nil)
+	return value, someErr
+}`,
+			original: "value",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fset := token.NewFileSet()
+
+			f, err := parser.ParseFile(fset, "test.go", tt.code, 0)
+			if err != nil {
+				t.Fatalf("failed to parse code: %v", err)
+			}
+
+			info := &types.Info{
+				Types: make(map[ast.Expr]types.TypeAndValue),
+				Uses:  make(map[*ast.Ident]types.Object),
+				Defs:  make(map[*ast.Ident]types.Object),
+			}
+
+			config := &types.Config{
+				Error: func(_ error) {},
+			}
+
+			_, err = config.Check("test", fset, []*ast.File{f}, info)
+			if err != nil {
+				t.Fatalf("failed to type check: %v", err)
+			}
+
+			tc := NewTypeChecker(info)
+
+			var retStmt *ast.ReturnStmt
+
+			ast.Inspect(f, func(n ast.Node) bool {
+				rs, ok := n.(*ast.ReturnStmt)
+				if !ok {
+					return true
+				}
+
+				retStmt = rs
+
+				return false
+			})
+
+			if retStmt == nil {
+				t.Fatal("no return statement found")
+			}
+
+			mutant := Mutant{Type: errorNilifyType, Original: tt.original, Mutated: nilIdentName}
+
+			result := tc.IsValidMutation(retStmt, mutant)
+			if result != tt.expected {
+				t.Errorf("IsValidMutation() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestTypeChecker_IsValidErrorNilifyMutation_NilTypeInfo(t *testing.T) {
+	tc := NewTypeChecker(nil)
+
+	findReturnStmt := func(t *testing.T, src string) *ast.ReturnStmt {
+		t.Helper()
+
+		fset := token.NewFileSet()
+
+		f, err := parser.ParseFile(fset, "test.go", src, 0)
+		if err != nil {
+			t.Fatalf("failed to parse code: %v", err)
+		}
+
+		var retStmt *ast.ReturnStmt
+
+		ast.Inspect(f, func(n ast.Node) bool {
+			rs, ok := n.(*ast.ReturnStmt)
+			if !ok {
+				return true
+			}
+
+			retStmt = rs
+
+			return false
+		})
+
+		if retStmt == nil {
+			t.Fatal("no return statement found")
+		}
+
+		return retStmt
+	}
+
+	acquireErrStmt := findReturnStmt(t, "package main\nfunc f() error { acquireErr := error(nil); return acquireErr }")
+	if tc.IsValidMutation(acquireErrStmt, Mutant{Type: errorNilifyType, Original: "acquireErr", Mutated: nilIdentName}) {
+		t.Error("expected non-err-named identifier to be rejected without type info")
+	}
+
+	errStmt := findReturnStmt(t, "package main\nfunc f() error { err := error(nil); return err }")
+	if !tc.IsValidMutation(errStmt, Mutant{Type: errorNilifyType, Original: errIdentName, Mutated: nilIdentName}) {
+		t.Error("expected err-named identifier to remain valid without type info")
+	}
+}
+
 func TestFilterMutants(t *testing.T) {
 	code := `package test
 func foo() {
