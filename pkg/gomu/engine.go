@@ -45,6 +45,10 @@ type RunOptions struct {
 	Verbose     bool
 	CIMode      bool
 	DryRun      bool // Discover mutants per file without executing any mutation
+
+	// IncludeGenerated makes files carrying the standard Go generated-code
+	// marker eligible as mutation targets. They are excluded by default.
+	IncludeGenerated bool
 }
 
 // MutatorInfo describes a single supported mutator for catalog/listing purposes.
@@ -70,7 +74,7 @@ func SupportedMutators() []MutatorInfo {
 // NewEngine creates a new mutation testing engine.
 func NewEngine(opts *RunOptions) (*Engine, error) {
 	// Create analyzer without ignore parser - it will be set later in Run
-	analyzer, err := analysis.New()
+	analyzer, err := analysis.New(analysis.WithIncludeGenerated(opts != nil && opts.IncludeGenerated))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create analyzer: %w", err)
 	}
@@ -220,6 +224,8 @@ func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions, ig
 		e.incrementalAnalyzer.SetIgnoreParser(ignoreParser)
 	}
 
+	e.incrementalAnalyzer.SetIncludeGenerated(opts.IncludeGenerated)
+
 	// Perform incremental analysis
 	analysisResults, err := e.incrementalAnalyzer.AnalyzeFiles()
 	if err != nil {
@@ -274,7 +280,7 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		}
 
 		// Create new analyzer with ignore parser
-		analyzer, err := analysis.New(analysis.WithIgnoreParser(parser))
+		analyzer, err := analysis.New(analysis.WithIgnoreParser(parser), analysis.WithIncludeGenerated(opts.IncludeGenerated))
 		if err != nil {
 			return fmt.Errorf("failed to create analyzer with ignore parser: %w", err)
 		}

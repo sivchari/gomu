@@ -11,8 +11,9 @@ import (
 
 // GitIntegration provides Git integration functionality.
 type GitIntegration struct {
-	workDir      string
-	ignoreParser IgnoreParser
+	workDir          string
+	ignoreParser     IgnoreParser
+	includeGenerated bool
 }
 
 // NewGitIntegration creates a new Git integration.
@@ -25,6 +26,13 @@ func NewGitIntegration(workDir string) *GitIntegration {
 // SetIgnoreParser sets the ignore parser for the Git integration.
 func (g *GitIntegration) SetIgnoreParser(parser IgnoreParser) {
 	g.ignoreParser = parser
+}
+
+// SetIncludeGenerated controls whether files carrying the standard Go
+// generated-code marker are eligible as mutation targets. It is false by
+// default.
+func (g *GitIntegration) SetIncludeGenerated(include bool) {
+	g.includeGenerated = include
 }
 
 // IsGitRepository checks if the current directory is a Git repository.
@@ -84,6 +92,11 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 
 			// Convert to absolute path
 			absPath := filepath.Join(g.workDir, file)
+
+			if !g.includeGenerated && IsGeneratedFile(absPath) {
+				continue
+			}
+
 			goFiles = append(goFiles, absPath)
 		}
 	}
@@ -143,6 +156,10 @@ func (g *GitIntegration) GetAllGoFiles() ([]string, error) {
 				if g.ignoreParser.ShouldIgnore(relPath) {
 					return nil
 				}
+			}
+
+			if !g.includeGenerated && IsGeneratedFile(path) {
+				return nil
 			}
 
 			goFiles = append(goFiles, path)

@@ -41,6 +41,7 @@ func TestRunListWarnsIgnoredFlags(t *testing.T) {
 		name        string
 		args        []string
 		wantWarning bool
+		wantFlag    string
 	}{
 		{
 			name:        "list alone produces no warning",
@@ -51,6 +52,13 @@ func TestRunListWarnsIgnoredFlags(t *testing.T) {
 			name:        "list with output warns about ignored flag",
 			args:        []string{"run", "--list", "--output", "json"},
 			wantWarning: true,
+			wantFlag:    "--output",
+		},
+		{
+			name:        "list with include-generated warns about ignored flag",
+			args:        []string{"run", "--list", "--include-generated"},
+			wantWarning: true,
+			wantFlag:    "--include-generated",
 		},
 	}
 
@@ -69,8 +77,8 @@ func TestRunListWarnsIgnoredFlags(t *testing.T) {
 			errOut := stderr.String()
 
 			if tt.wantWarning {
-				if !strings.Contains(errOut, "--output") {
-					t.Errorf("expected warning mentioning --output, got: %q", errOut)
+				if !strings.Contains(errOut, tt.wantFlag) {
+					t.Errorf("expected warning mentioning %s, got: %q", tt.wantFlag, errOut)
 				}
 			} else if errOut != "" {
 				t.Errorf("expected no warning, got: %q", errOut)
@@ -80,6 +88,10 @@ func TestRunListWarnsIgnoredFlags(t *testing.T) {
 			// package-level var shared across tests.
 			if err := runCmd.Flags().Set("output", "console"); err != nil {
 				t.Fatalf("reset output flag: %v", err)
+			}
+
+			if err := runCmd.Flags().Set("include-generated", "false"); err != nil {
+				t.Fatalf("reset include-generated flag: %v", err)
 			}
 
 			runCmd.Flags().Visit(func(f *pflag.Flag) {

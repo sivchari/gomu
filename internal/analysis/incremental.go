@@ -20,13 +20,14 @@ type HistoryEntry struct {
 
 // IncrementalAnalyzer provides incremental analysis functionality.
 type IncrementalAnalyzer struct {
-	hasher       *FileHasher
-	git          *GitIntegration
-	history      HistoryStore
-	workDir      string
-	baseBranch   string
-	ignoreParser IgnoreParser
-	incremental  bool
+	hasher           *FileHasher
+	git              *GitIntegration
+	history          HistoryStore
+	workDir          string
+	baseBranch       string
+	ignoreParser     IgnoreParser
+	incremental      bool
+	includeGenerated bool
 }
 
 // IgnoreParser defines the interface for ignore file parsing.
@@ -63,6 +64,14 @@ func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore, increment
 func (a *IncrementalAnalyzer) SetIgnoreParser(parser IgnoreParser) {
 	a.ignoreParser = parser
 	a.git.SetIgnoreParser(parser)
+}
+
+// SetIncludeGenerated controls whether files carrying the standard Go
+// generated-code marker are eligible as mutation targets. It is false by
+// default.
+func (a *IncrementalAnalyzer) SetIncludeGenerated(include bool) {
+	a.includeGenerated = include
+	a.git.SetIncludeGenerated(include)
 }
 
 // FileAnalysisResult represents the result of file analysis.
