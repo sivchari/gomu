@@ -13,8 +13,9 @@ import (
 
 // TestMutatorContract verifies, for every mutator and every node of every
 // testdata/*/input.go corpus file, the properties shared by all Mutator
-// implementations: a node it does not claim via CanMutate produces no
-// mutants and is never applied, and every mutant it does produce is applied
+// implementations: CanMutate and Mutate agree on whether a node is
+// mutable, a mutant of the mutator's own making is rejected by any node
+// that did not produce it, and every mutant a node does produce is applied
 // by exactly one of Apply / ApplyWithCursor.
 func TestMutatorContract(t *testing.T) {
 	t.Parallel()
@@ -28,8 +29,10 @@ func TestMutatorContract(t *testing.T) {
 		t.Run(m.Name(), func(t *testing.T) {
 			t.Parallel()
 
+			representative := collectRepresentativeMutants(t, m, inputs)
+
 			for _, input := range inputs {
-				checkMutatorContract(t, m, input)
+				checkMutatorContract(t, m, input, representative)
 			}
 		})
 	}
@@ -63,9 +66,46 @@ func readTestdataInputs() ([][]byte, error) {
 	return inputs, nil
 }
 
+// collectRepresentativeMutants returns one real mutant per distinct Type m
+// produces across inputs. These are later replayed against nodes m did not
+// generate them from, to check that Apply / ApplyWithCursor reject a
+// mutant of the mutator's own making just as they reject a zero Mutant;
+// the deleted per-mutator "foreign node" tests checked the same property.
+func collectRepresentativeMutants(t *testing.T, m Mutator, inputs [][]byte) []Mutant {
+	t.Helper()
+
+	seen := make(map[string]bool)
+
+	var representative []Mutant
+
+	for _, src := range inputs {
+		fset, file := parseInput(t, src)
+
+		ast.Inspect(file, func(n ast.Node) bool {
+			if n == nil {
+				return false
+			}
+
+			if m.CanMutate(n) {
+				for _, mutant := range m.Mutate(n, fset) {
+					if !seen[mutant.Type] {
+						seen[mutant.Type] = true
+
+						representative = append(representative, mutant)
+					}
+				}
+			}
+
+			return true
+		})
+	}
+
+	return representative
+}
+
 // checkMutatorContract walks every node of src and checks m's contract
 // against it.
-func checkMutatorContract(t *testing.T, m Mutator, src []byte) {
+func checkMutatorContract(t *testing.T, m Mutator, src []byte, representative []Mutant) {
 	t.Helper()
 
 	fset, file := parseInput(t, src)
@@ -75,7 +115,7 @@ func checkMutatorContract(t *testing.T, m Mutator, src []byte) {
 			return false
 		}
 
-		checkNodeContract(t, m, src, n, fset)
+		checkNodeContract(t, m, src, n, fset, representative)
 
 		return true
 	})
@@ -84,24 +124,10 @@ func checkMutatorContract(t *testing.T, m Mutator, src []byte) {
 // checkNodeContract checks m's contract against a single node n, re-parsing
 // src for each mutant so an earlier in-place Apply cannot corrupt a later
 // check.
-func checkNodeContract(t *testing.T, m Mutator, src []byte, n ast.Node, fset *token.FileSet) {
+func checkNodeContract(t *testing.T, m Mutator, src []byte, n ast.Node, fset *token.FileSet, representative []Mutant) {
 	t.Helper()
 
-	if m.Apply(n, Mutant{}) {
-		t.Errorf("%T: Apply(n, Mutant{}) = true, want false", n)
-	}
-
-	if ca, ok := m.(CursorApplier); ok {
-		called := false
-
-		if ca.ApplyWithCursor(n, func(ast.Node) { called = true }, Mutant{}) {
-			t.Errorf("%T: ApplyWithCursor(n, Mutant{}) = true, want false", n)
-		}
-
-		if called {
-			t.Errorf("%T: ApplyWithCursor(n, Mutant{}) called replace, want no call", n)
-		}
-	}
+	checkRejects(t, m, n, Mutant{})
 
 	if !m.CanMutate(n) {
 		mutants := m.Mutate(n, fset)
@@ -109,13 +135,46 @@ func checkNodeContract(t *testing.T, m Mutator, src []byte, n ast.Node, fset *to
 			t.Errorf("%T: CanMutate false but Mutate returned %d mutants", n, len(mutants))
 		}
 
+		if !mutatorsWithUnvalidatedApply[m.Name()] {
+			for _, mutant := range representative {
+				checkRejects(t, m, n, mutant)
+			}
+		}
+
 		return
+	}
+
+	mutants := m.Mutate(n, fset)
+	if len(mutants) == 0 {
+		t.Errorf("%T: CanMutate true but Mutate returned no mutants", n)
 	}
 
 	span := nodeSpan{start: fset.Position(n.Pos()), end: fset.Position(n.End())}
 
-	for _, mutant := range m.Mutate(n, fset) {
+	for _, mutant := range mutants {
 		checkAppliesExactlyOnce(t, m, src, span, n, mutant)
+	}
+}
+
+// checkRejects verifies m ignores mutant on n through both Apply and (when
+// implemented) ApplyWithCursor, calling neither's replace callback.
+func checkRejects(t *testing.T, m Mutator, n ast.Node, mutant Mutant) {
+	t.Helper()
+
+	if m.Apply(n, mutant) {
+		t.Errorf("%T: Apply(n, %+v) = true, want false", n, mutant)
+	}
+
+	if ca, ok := m.(CursorApplier); ok {
+		called := false
+
+		if ca.ApplyWithCursor(n, func(ast.Node) { called = true }, mutant) {
+			t.Errorf("%T: ApplyWithCursor(n, %+v) = true, want false", n, mutant)
+		}
+
+		if called {
+			t.Errorf("%T: ApplyWithCursor(n, %+v) called replace, want no call", n, mutant)
+		}
 	}
 }
 
@@ -131,6 +190,18 @@ var mutatorsWithKnownOverGeneration = map[string]bool{
 	returnMutatorName:  true,
 	logicalMutatorName: true,
 	branchMutatorName:  true,
+}
+
+// mutatorsWithUnvalidatedApply lists mutators whose Apply mutates a node
+// once mutant.Original matches a string it computes from the node, without
+// checking that the node is one it would itself claim via CanMutate:
+// ReturnMutator.applyBoolIdent renames any *ast.Ident whose name equals
+// mutant.Original (not just true/false idents), and BranchMutator.Apply
+// overwrites any *ast.IfStmt's Cond without comparing it to
+// mutant.Original at all. Pre-existing production bugs, not covered here.
+var mutatorsWithUnvalidatedApply = map[string]bool{
+	returnMutatorName: true,
+	branchMutatorName: true,
 }
 
 // nodeSpan identifies an AST node by its source extent, independent of any
