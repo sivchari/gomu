@@ -1,0 +1,8 @@
+package sample
+
+func invertNegatives(x, a, b int) int {
+	_ = -x
+	_ = -1
+
+	return a - b
+}

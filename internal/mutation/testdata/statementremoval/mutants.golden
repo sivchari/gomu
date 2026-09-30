@@ -1,0 +1,14 @@
+01	5:50	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	6:2	arithmetic_incdec	"++" -> "--"	Replace ++ with --
+03	6:2	statement_removal	"*counter++" -> "<removed>"	Remove statement
+04	8:2	statement_removal	"defer f()" -> "<removed>"	Remove statement
+05	9:2	statement_removal	"go f()" -> "<removed>"	Remove statement
+06	10:2	statement_removal	"ch <- 1" -> "<removed>"	Remove statement
+07	10:8	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
+08	10:8	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
+09	12:7	boundary_value	"0" -> "1"	Replace integer literal 0 with 1
+10	13:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+11	13:6	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
+12	13:6	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
+13	14:2	expression_removal	"f()" -> "<removed>"	Remove expression statement
+14	16:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement

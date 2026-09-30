@@ -1,0 +1,12 @@
+01	3:28	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	4:2	branch_condition	"n > 0" -> "false"	Replace branch condition "n > 0" with false
+03	4:2	branch_condition	"n > 0" -> "true"	Replace branch condition "n > 0" with true
+04	4:5	conditional_binary	">" -> "!="	Replace > with !=
+05	4:5	conditional_binary	">" -> "<"	Replace > with <
+06	4:5	conditional_binary	">" -> "<="	Replace > with <=
+07	4:5	conditional_binary	">" -> "=="	Replace > with ==
+08	4:5	conditional_binary	">" -> ">="	Replace > with >=
+09	4:9	boundary_value	"0" -> "1"	Replace integer literal 0 with 1
+10	4:11	empty_block	"{...}" -> "{}"	Remove all statements in block
+11	5:3	arithmetic_incdec	"++" -> "--"	Replace ++ with --
+12	5:3	statement_removal	"n++" -> "<removed>"	Remove statement

@@ -1,0 +1,5 @@
+package example
+
+func check(err error, force bool) bool {
+
+}

@@ -1,0 +1,54 @@
+01	3:54	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	4:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+03	4:6	arithmetic_binary	"+" -> "*"	Replace + with *
+04	4:6	arithmetic_binary	"+" -> "-"	Replace + with -
+05	4:6	arithmetic_binary	"+" -> "/"	Replace + with /
+06	5:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+07	5:6	arithmetic_binary	"-" -> "*"	Replace - with *
+08	5:6	arithmetic_binary	"-" -> "+"	Replace - with +
+09	5:6	arithmetic_binary	"-" -> "/"	Replace - with /
+10	6:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+11	6:6	arithmetic_binary	"*" -> "%"	Replace * with %
+12	6:6	arithmetic_binary	"*" -> "+"	Replace * with +
+13	6:6	arithmetic_binary	"*" -> "-"	Replace * with -
+14	6:6	arithmetic_binary	"*" -> "/"	Replace * with /
+15	7:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+16	7:6	arithmetic_binary	"/" -> "%"	Replace / with %
+17	7:6	arithmetic_binary	"/" -> "*"	Replace / with *
+18	7:6	arithmetic_binary	"/" -> "+"	Replace / with +
+19	7:6	arithmetic_binary	"/" -> "-"	Replace / with -
+20	8:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+21	8:6	arithmetic_binary	"%" -> "*"	Replace % with *
+22	8:6	arithmetic_binary	"%" -> "+"	Replace % with +
+23	8:6	arithmetic_binary	"%" -> "-"	Replace % with -
+24	8:6	arithmetic_binary	"%" -> "/"	Replace % with /
+25	9:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+26	9:6	arithmetic_binary	"*" -> "%"	Replace * with %
+27	9:6	arithmetic_binary	"*" -> "+"	Replace * with +
+28	9:6	arithmetic_binary	"*" -> "-"	Replace * with -
+29	9:6	arithmetic_binary	"*" -> "/"	Replace * with /
+30	10:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+31	11:2	arithmetic_assign	"+=" -> "*="	Replace += with *=
+32	11:2	arithmetic_assign	"+=" -> "-="	Replace += with -=
+33	11:2	arithmetic_assign	"+=" -> "/="	Replace += with /=
+34	11:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+35	11:2	remove_self_assignments	"+=" -> "="	Replace += with =
+36	12:2	arithmetic_assign	"-=" -> "*="	Replace -= with *=
+37	12:2	arithmetic_assign	"-=" -> "+="	Replace -= with +=
+38	12:2	arithmetic_assign	"-=" -> "/="	Replace -= with /=
+39	12:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+40	12:2	remove_self_assignments	"-=" -> "="	Replace -= with =
+41	13:2	arithmetic_assign	"*=" -> "+="	Replace *= with +=
+42	13:2	arithmetic_assign	"*=" -> "-="	Replace *= with -=
+43	13:2	arithmetic_assign	"*=" -> "/="	Replace *= with /=
+44	13:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+45	13:2	remove_self_assignments	"*=" -> "="	Replace *= with =
+46	14:2	arithmetic_assign	"/=" -> "*="	Replace /= with *=
+47	14:2	arithmetic_assign	"/=" -> "+="	Replace /= with +=
+48	14:2	arithmetic_assign	"/=" -> "-="	Replace /= with -=
+49	14:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+50	14:2	remove_self_assignments	"/=" -> "="	Replace /= with =
+51	15:2	arithmetic_incdec	"++" -> "--"	Replace ++ with --
+52	15:2	statement_removal	"a++" -> "<removed>"	Remove statement
+53	16:2	arithmetic_incdec	"--" -> "++"	Replace -- with ++
+54	16:2	statement_removal	"a--" -> "<removed>"	Remove statement

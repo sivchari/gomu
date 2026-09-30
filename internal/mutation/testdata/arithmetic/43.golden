@@ -1,0 +1,17 @@
+package sample
+
+func arithmetic(a, b int, f, g float64, s, t string) {
+	_ = a + b
+	_ = a - b
+	_ = a * b
+	_ = a / b
+	_ = a % b
+	_ = f * g
+	_ = s + t
+	a += b
+	a -= b
+	a /= b
+	a /= b
+	a++
+	a--
+}

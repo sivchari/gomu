@@ -1,0 +1,5 @@
+package sample
+
+func arithmetic(a, b int, f, g float64, s, t string) {
+
+}

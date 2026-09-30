@@ -1,0 +1,9 @@
+package example
+
+func process(err error) error {
+	if true {
+		return err
+	}
+
+	return nil
+}

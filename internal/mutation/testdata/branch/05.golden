@@ -1,0 +1,9 @@
+package sample
+
+func f() int {
+	return 1
+}
+
+func branch(n int, x bool) {
+
+}

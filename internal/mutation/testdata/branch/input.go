@@ -1,0 +1,19 @@
+package sample
+
+func f() int {
+	return 1
+}
+
+func branch(n int, x bool) {
+	if n == 0 {
+	}
+
+	if x {
+	}
+
+	if true {
+	}
+
+	if a := f(); a > 0 {
+	}
+}

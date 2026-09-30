@@ -1,0 +1,13 @@
+01	3:29	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	6:2	error_nilify	"err" -> "nil"	Replace return err with return nil
+03	6:2	return_bool_literal	"err" -> "true"	Replace return err with return true
+04	6:2	return_zero_value	"0" -> "0"	Replace return 0 with return 0
+05	6:9	boundary_value	"0" -> "1"	Replace integer literal 0 with 1
+06	9:27	empty_block	"{...}" -> "{}"	Remove all statements in block
+07	12:2	error_nilify	"acquireErr" -> "nil"	Replace return acquireErr with return nil
+08	15:28	empty_block	"{...}" -> "{}"	Remove all statements in block
+09	16:10	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
+10	16:10	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
+11	16:13	boundary_value	"2" -> "1"	Replace integer literal 2 with 1
+12	16:13	boundary_value	"2" -> "3"	Replace integer literal 2 with 3
+13	21:37	empty_block	"{...}" -> "{}"	Remove all statements in block

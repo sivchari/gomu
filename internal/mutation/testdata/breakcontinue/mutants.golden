@@ -1,0 +1,8 @@
+01	3:39	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	5:15	empty_block	"{...}" -> "{}"	Remove all statements in block
+03	6:16	empty_block	"{...}" -> "{}"	Remove all statements in block
+04	7:4	branch_condition	"ok" -> "false"	Replace branch condition "ok" with false
+05	7:4	branch_condition	"ok" -> "true"	Replace branch condition "ok" with true
+06	7:10	empty_block	"{...}" -> "{}"	Remove all statements in block
+07	8:5	break_continue	"break" -> "continue"	Replace break with continue
+08	11:4	break_continue	"continue" -> "break"	Replace continue with break

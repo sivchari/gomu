@@ -1,0 +1,8 @@
+package sample
+
+func breakContinue(ok bool, xs []int) {
+outer:
+	for range xs {
+
+	}
+}

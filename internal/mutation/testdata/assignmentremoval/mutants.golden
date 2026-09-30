@@ -1,0 +1,15 @@
+01	3:26	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	6:2	assignment_removal	"total" -> "<removed>"	Remove assignment statement
+03	6:10	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
+04	6:10	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
+05	7:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+06	8:7	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
+07	8:7	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
+08	9:2	arithmetic_assign	"+=" -> "*="	Replace += with *=
+09	9:2	arithmetic_assign	"+=" -> "-="	Replace += with -=
+10	9:2	arithmetic_assign	"+=" -> "/="	Replace += with /=
+11	9:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+12	9:2	remove_self_assignments	"+=" -> "="	Replace += with =
+13	9:7	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
+14	9:7	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
+15	11:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement

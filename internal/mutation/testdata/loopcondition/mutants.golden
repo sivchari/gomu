@@ -1,0 +1,26 @@
+01	3:37	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	4:7	boundary_value	"0" -> "1"	Replace integer literal 0 with 1
+03	5:2	loop_condition	"i < n" -> "false"	Replace loop condition "i < n" with false
+04	5:2	loop_condition	"i < n" -> "true"	Replace loop condition "i < n" with true
+05	5:6	conditional_binary	"<" -> "!="	Replace < with !=
+06	5:6	conditional_binary	"<" -> "<="	Replace < with <=
+07	5:6	conditional_binary	"<" -> "=="	Replace < with ==
+08	5:6	conditional_binary	"<" -> ">"	Replace < with >
+09	5:6	conditional_binary	"<" -> ">="	Replace < with >=
+10	5:12	empty_block	"{...}" -> "{}"	Remove all statements in block
+11	6:3	arithmetic_incdec	"++" -> "--"	Replace ++ with --
+12	6:3	statement_removal	"i++" -> "<removed>"	Remove statement
+13	9:2	loop_condition	"i < n" -> "false"	Replace loop condition "i < n" with false
+14	9:2	loop_condition	"i < n" -> "true"	Replace loop condition "i < n" with true
+15	9:11	boundary_value	"0" -> "1"	Replace integer literal 0 with 1
+16	9:14	conditional_binary	"<" -> "!="	Replace < with !=
+17	9:14	conditional_binary	"<" -> "<="	Replace < with <=
+18	9:14	conditional_binary	"<" -> "=="	Replace < with ==
+19	9:14	conditional_binary	"<" -> ">"	Replace < with >
+20	9:14	conditional_binary	"<" -> ">="	Replace < with >=
+21	9:21	arithmetic_incdec	"++" -> "--"	Replace ++ with --
+22	9:21	statement_removal	"i++" -> "<removed>"	Remove statement
+23	12:6	empty_block	"{...}" -> "{}"	Remove all statements in block
+24	13:3	break_continue	"break" -> "continue"	Replace break with continue
+25	16:11	empty_block	"{...}" -> "{}"	Remove all statements in block
+26	17:3	break_continue	"break" -> "continue"	Replace break with continue

@@ -1,0 +1,33 @@
+01	3:29	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	4:11	empty_block	"{...}" -> "{}"	Remove all statements in block
+03	5:2	switch_case_body_removal	"case 1, 2" -> "<removed>"	Remove statements in "case 1, 2" case
+04	5:7	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
+05	5:7	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
+06	5:10	boundary_value	"2" -> "1"	Replace integer literal 2 with 1
+07	5:10	boundary_value	"2" -> "3"	Replace integer literal 2 with 3
+08	7:2	switch_case_body_removal	"case 3" -> "<removed>"	Remove statements in "case 3" case
+09	7:7	boundary_value	"3" -> "2"	Replace integer literal 3 with 2
+10	7:7	boundary_value	"3" -> "4"	Replace integer literal 3 with 4
+11	8:3	return_zero_value	"\"small\"" -> "\"\""	Replace return "small" with return ""
+12	8:10	string_literal	"\"small\"" -> "\"\""	Replace string literal "small" with ""
+13	9:2	switch_case_body_removal	"default" -> "<removed>"	Remove statements in "default" case
+14	10:3	return_zero_value	"\"large\"" -> "\"\""	Replace return "large" with return ""
+15	10:10	string_literal	"\"large\"" -> "\"\""	Replace string literal "large" with ""
+16	14:28	empty_block	"{...}" -> "{}"	Remove all statements in block
+17	15:9	empty_block	"{...}" -> "{}"	Remove all statements in block
+18	16:2	switch_case_body_removal	"case x > 0" -> "<removed>"	Remove statements in "case x > 0" case
+19	16:7	conditional_binary	">" -> "!="	Replace > with !=
+20	16:7	conditional_binary	">" -> "<"	Replace > with <
+21	16:7	conditional_binary	">" -> "<="	Replace > with <=
+22	16:7	conditional_binary	">" -> "=="	Replace > with ==
+23	16:7	conditional_binary	">" -> ">="	Replace > with >=
+24	16:11	boundary_value	"0" -> "1"	Replace integer literal 0 with 1
+25	17:3	return_zero_value	"\"positive\"" -> "\"\""	Replace return "positive" with return ""
+26	17:10	string_literal	"\"positive\"" -> "\"\""	Replace string literal "positive" with ""
+27	18:2	switch_case_body_removal	"default" -> "<removed>"	Remove statements in "default" case
+28	19:3	return_zero_value	"\"non-positive\"" -> "\"\""	Replace return "non-positive" with return ""
+29	19:10	string_literal	"\"non-positive\"" -> "\"\""	Replace string literal "non-positive" with ""
+30	23:35	empty_block	"{...}" -> "{}"	Remove all statements in block
+31	24:13	empty_block	"{...}" -> "{}"	Remove all statements in block
+32	26:2	switch_case_body_removal	"default" -> "<removed>"	Remove statements in "default" case
+33	27:3	error_nilify	"err" -> "nil"	Replace return err with return nil

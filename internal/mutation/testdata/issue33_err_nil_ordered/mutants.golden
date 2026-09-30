@@ -1,0 +1,6 @@
+01	3:31	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	4:2	branch_condition	"err != nil" -> "false"	Replace branch condition "err != nil" with false
+03	4:2	branch_condition	"err != nil" -> "true"	Replace branch condition "err != nil" with true
+04	4:5	conditional_binary	"!=" -> "=="	Replace != with ==
+05	4:16	empty_block	"{...}" -> "{}"	Remove all statements in block
+06	5:3	error_nilify	"err" -> "nil"	Replace return err with return nil

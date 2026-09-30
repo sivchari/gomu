@@ -1,0 +1,8 @@
+package sample
+
+func logical(a, b bool) bool {
+	_ = a && b
+	_ = a || b
+
+	return !(a && b)
+}

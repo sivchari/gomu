@@ -1,0 +1,19 @@
+package sample
+
+type shape interface {
+	area() float64
+}
+
+func conditional(a, b int, s, t string, v shape, err error, p *int) bool {
+	_ = a == b
+	_ = a <= b
+	_ = a < b
+	_ = a <= b
+	_ = a > b
+	_ = a >= b
+	_ = s < t
+	_ = v == nil
+	_ = err != nil
+
+	return p == nil
+}

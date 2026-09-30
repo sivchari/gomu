@@ -1,0 +1,17 @@
+package sample
+
+func f() {}
+
+func statementRemoval(counter *int, ch chan int) {
+	*counter++
+
+	defer f()
+
+	ch <- 1
+
+	a := 0
+	a = 1
+	f()
+
+	_ = a
+}

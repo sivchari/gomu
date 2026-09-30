@@ -1,0 +1,29 @@
+package sample
+
+func returnTrue() bool {
+	return true
+}
+
+func returnFalse() bool {
+	return false
+}
+
+func returnInt() int {
+	return 42
+}
+
+func returnFloatVal() float64 {
+	return 1.5
+}
+
+func returnString() string {
+	return ""
+}
+
+func returnIdentNil(x int) (int, error) {
+	return x, nil
+}
+
+func returnTwo() (int, string) {
+	return 0, "a"
+}
