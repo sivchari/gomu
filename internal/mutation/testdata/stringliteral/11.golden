@@ -1,0 +1,16 @@
+package sample
+
+import "fmt"
+
+type config struct {
+	Name string `json:"name"`
+}
+
+func stringLiteral() {
+	_ = "hello"
+	_ = ""
+	_ = `raw string`
+	_ = config{}
+
+	fmt.Println("")
+}

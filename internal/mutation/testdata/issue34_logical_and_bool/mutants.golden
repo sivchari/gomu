@@ -1,0 +1,4 @@
+01	3:40	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	4:12	conditional_binary	"==" -> "!="	Replace == with !=
+03	4:12	logical_binary	"&&" -> "||"	Replace && with ||
+04	4:26	logical_not_removal	"!" -> ""	Remove ! operator

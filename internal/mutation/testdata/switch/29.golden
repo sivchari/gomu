@@ -1,0 +1,31 @@
+package sample
+
+func classify(x int) string {
+	switch x {
+	case 1, 2:
+		fallthrough
+	case 3:
+		return "small"
+	default:
+		return "large"
+	}
+}
+
+func tagless(x int) string {
+	switch {
+	case x > 0:
+		return "positive"
+	default:
+		return ""
+	}
+}
+
+func withNilCase(err error) error {
+	switch err {
+	case nil:
+	default:
+		return err
+	}
+
+	return nil
+}

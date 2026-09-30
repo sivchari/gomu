@@ -1,0 +1,23 @@
+01	3:14	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	4:2	return_zero_value	"1" -> "0"	Replace return 1 with return 0
+03	4:9	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
+04	4:9	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
+05	7:28	empty_block	"{...}" -> "{}"	Remove all statements in block
+06	8:2	branch_condition	"n == 0" -> "false"	Replace branch condition "n == 0" with false
+07	8:2	branch_condition	"n == 0" -> "true"	Replace branch condition "n == 0" with true
+08	8:5	conditional_binary	"==" -> "!="	Replace == with !=
+09	8:5	conditional_binary	"==" -> "<"	Replace == with <
+10	8:5	conditional_binary	"==" -> "<="	Replace == with <=
+11	8:5	conditional_binary	"==" -> ">"	Replace == with >
+12	8:5	conditional_binary	"==" -> ">="	Replace == with >=
+13	8:10	boundary_value	"0" -> "1"	Replace integer literal 0 with 1
+14	11:2	branch_condition	"x" -> "false"	Replace branch condition "x" with false
+15	11:2	branch_condition	"x" -> "true"	Replace branch condition "x" with true
+16	17:2	branch_condition	"a > 0" -> "false"	Replace branch condition "a > 0" with false
+17	17:2	branch_condition	"a > 0" -> "true"	Replace branch condition "a > 0" with true
+18	17:15	conditional_binary	">" -> "!="	Replace > with !=
+19	17:15	conditional_binary	">" -> "<"	Replace > with <
+20	17:15	conditional_binary	">" -> "<="	Replace > with <=
+21	17:15	conditional_binary	">" -> "=="	Replace > with ==
+22	17:15	conditional_binary	">" -> ">="	Replace > with >=
+23	17:19	boundary_value	"0" -> "1"	Replace integer literal 0 with 1

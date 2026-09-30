@@ -1,0 +1,4 @@
+01	9:37	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	10:2	expression_removal	"f()" -> "<removed>"	Remove expression statement
+03	11:2	expression_removal	"<-ch" -> "<removed>"	Remove expression statement
+04	14:2	expression_removal	"w.Method()" -> "<removed>"	Remove expression statement

@@ -1,0 +1,22 @@
+package sample
+
+func loopCondition(n int, xs []int) {
+	i := 0
+	for i > n {
+		i++
+	}
+
+	for i := 0; i < n; i++ {
+	}
+
+	for {
+		break
+	}
+
+	for true {
+		break
+	}
+
+	for range xs {
+	}
+}

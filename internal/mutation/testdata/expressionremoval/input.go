@@ -1,0 +1,15 @@
+package sample
+
+type widget struct{}
+
+func (widget) Method() {}
+
+func f() {}
+
+func expressionRemoval(ch chan int) {
+	f()
+	<-ch
+
+	w := widget{}
+	w.Method()
+}

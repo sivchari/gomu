@@ -1,0 +1,48 @@
+01	7:74	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	8:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+03	8:6	conditional_binary	"==" -> "!="	Replace == with !=
+04	8:6	conditional_binary	"==" -> "<"	Replace == with <
+05	8:6	conditional_binary	"==" -> "<="	Replace == with <=
+06	8:6	conditional_binary	"==" -> ">"	Replace == with >
+07	8:6	conditional_binary	"==" -> ">="	Replace == with >=
+08	9:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+09	9:6	conditional_binary	"!=" -> "<"	Replace != with <
+10	9:6	conditional_binary	"!=" -> "<="	Replace != with <=
+11	9:6	conditional_binary	"!=" -> "=="	Replace != with ==
+12	9:6	conditional_binary	"!=" -> ">"	Replace != with >
+13	9:6	conditional_binary	"!=" -> ">="	Replace != with >=
+14	10:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+15	10:6	conditional_binary	"<" -> "!="	Replace < with !=
+16	10:6	conditional_binary	"<" -> "<="	Replace < with <=
+17	10:6	conditional_binary	"<" -> "=="	Replace < with ==
+18	10:6	conditional_binary	"<" -> ">"	Replace < with >
+19	10:6	conditional_binary	"<" -> ">="	Replace < with >=
+20	11:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+21	11:6	conditional_binary	"<=" -> "!="	Replace <= with !=
+22	11:6	conditional_binary	"<=" -> "<"	Replace <= with <
+23	11:6	conditional_binary	"<=" -> "=="	Replace <= with ==
+24	11:6	conditional_binary	"<=" -> ">"	Replace <= with >
+25	11:6	conditional_binary	"<=" -> ">="	Replace <= with >=
+26	12:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+27	12:6	conditional_binary	">" -> "!="	Replace > with !=
+28	12:6	conditional_binary	">" -> "<"	Replace > with <
+29	12:6	conditional_binary	">" -> "<="	Replace > with <=
+30	12:6	conditional_binary	">" -> "=="	Replace > with ==
+31	12:6	conditional_binary	">" -> ">="	Replace > with >=
+32	13:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+33	13:6	conditional_binary	">=" -> "!="	Replace >= with !=
+34	13:6	conditional_binary	">=" -> "<"	Replace >= with <
+35	13:6	conditional_binary	">=" -> "<="	Replace >= with <=
+36	13:6	conditional_binary	">=" -> "=="	Replace >= with ==
+37	13:6	conditional_binary	">=" -> ">"	Replace >= with >
+38	14:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+39	14:6	conditional_binary	"<" -> "!="	Replace < with !=
+40	14:6	conditional_binary	"<" -> "<="	Replace < with <=
+41	14:6	conditional_binary	"<" -> "=="	Replace < with ==
+42	14:6	conditional_binary	"<" -> ">"	Replace < with >
+43	14:6	conditional_binary	"<" -> ">="	Replace < with >=
+44	15:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+45	15:6	conditional_binary	"==" -> "!="	Replace == with !=
+46	16:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+47	16:6	conditional_binary	"!=" -> "=="	Replace != with ==
+48	18:9	conditional_binary	"==" -> "!="	Replace == with !=

@@ -1,0 +1,5 @@
+package sample
+
+func loopCondition(n int, xs []int) {
+
+}

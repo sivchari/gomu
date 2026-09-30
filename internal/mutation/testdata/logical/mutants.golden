@@ -1,0 +1,9 @@
+01	3:30	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	4:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+03	4:6	logical_binary	"&&" -> "||"	Replace && with ||
+04	5:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+05	5:6	logical_binary	"||" -> "&&"	Replace || with &&
+06	6:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+07	6:6	logical_not_removal	"!" -> ""	Remove ! operator
+08	8:9	logical_not_removal	"!" -> ""	Remove ! operator
+09	8:11	logical_binary	"&&" -> "||"	Replace && with ||

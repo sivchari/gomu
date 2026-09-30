@@ -1,0 +1,11 @@
+package sample
+
+import "fmt"
+
+type config struct {
+	Name string `json:"name"`
+}
+
+func stringLiteral() {
+
+}

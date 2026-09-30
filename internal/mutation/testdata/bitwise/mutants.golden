@@ -1,0 +1,39 @@
+01	3:25	empty_block	"{...}" -> "{}"	Remove all statements in block
+02	4:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+03	4:6	bitwise_binary	"&" -> "&^"	Replace & with &^
+04	4:6	bitwise_binary	"&" -> "^"	Replace & with ^
+05	4:6	bitwise_binary	"&" -> "|"	Replace & with |
+06	5:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+07	5:6	bitwise_binary	"|" -> "&"	Replace | with &
+08	5:6	bitwise_binary	"|" -> "&^"	Replace | with &^
+09	5:6	bitwise_binary	"|" -> "^"	Replace | with ^
+10	6:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+11	6:6	bitwise_binary	"^" -> "&"	Replace ^ with &
+12	6:6	bitwise_binary	"^" -> "&^"	Replace ^ with &^
+13	6:6	bitwise_binary	"^" -> "|"	Replace ^ with |
+14	7:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+15	7:6	bitwise_binary	"&^" -> "&"	Replace &^ with &
+16	7:6	bitwise_binary	"&^" -> "^"	Replace &^ with ^
+17	7:6	bitwise_binary	"&^" -> "|"	Replace &^ with |
+18	8:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+19	8:6	bitwise_binary	"<<" -> ">>"	Replace << with >>
+20	9:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+21	9:6	bitwise_binary	">>" -> "<<"	Replace >> with <<
+22	10:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+23	10:2	bitwise_assign	"&=" -> "^="	Replace &= with ^=
+24	10:2	bitwise_assign	"&=" -> "|="	Replace &= with |=
+25	10:2	remove_self_assignments	"&=" -> "="	Replace &= with =
+26	11:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+27	11:2	bitwise_assign	"|=" -> "&="	Replace |= with &=
+28	11:2	bitwise_assign	"|=" -> "^="	Replace |= with ^=
+29	11:2	remove_self_assignments	"|=" -> "="	Replace |= with =
+30	12:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+31	12:2	bitwise_assign	"^=" -> "&="	Replace ^= with &=
+32	12:2	bitwise_assign	"^=" -> "|="	Replace ^= with |=
+33	12:2	remove_self_assignments	"^=" -> "="	Replace ^= with =
+34	13:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+35	13:2	bitwise_assign	"<<=" -> ">>="	Replace <<= with >>=
+36	13:2	remove_self_assignments	"<<=" -> "="	Replace <<= with =
+37	14:2	assignment_removal	"a" -> "<removed>"	Remove assignment statement
+38	14:2	bitwise_assign	">>=" -> "<<="	Replace >>= with <<=
+39	14:2	remove_self_assignments	">>=" -> "="	Replace >>= with =

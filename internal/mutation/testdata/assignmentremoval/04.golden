@@ -1,0 +1,12 @@
+package sample
+
+func assignmentRemoval() {
+	var total, a, b int
+
+	total = 2
+	a, b = b, a
+	x := 1
+	x += 1
+
+	_, _, _, _ = total, a, b, x
+}

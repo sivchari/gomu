@@ -1,0 +1,21 @@
+package sample
+
+func withErr() (int, error) {
+	var err error
+
+	return 0, err
+}
+
+func withTypedErr() error {
+	acquireErr := error(nil)
+
+	return acquireErr
+}
+
+func withInts() (int, int) {
+
+}
+
+func withNilErr(n int) (int, error) {
+	return n, nil
+}

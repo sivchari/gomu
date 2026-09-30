@@ -1,0 +1,12 @@
+package sample
+
+func emptyBlock(n int) int {
+	if n > 0 {
+		n++
+	}
+
+	{
+	}
+
+	return n
+}
