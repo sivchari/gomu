@@ -89,7 +89,7 @@ For example, to create a "bitwise" mutator:
 
 This will generate:
 - `internal/mutation/bitwise.go` - The mutator implementation
-- `internal/mutation/bitwise_test.go` - Test file with basic test structure
+- `internal/mutation/testdata/bitwise/input.go` - Golden test input to fill in
 
 ### What the Scaffold Generates
 
@@ -97,16 +97,16 @@ The scaffold tool creates:
 
 1. **Mutator Implementation** (`<name>.go`):
    - Basic mutator struct
-   - `Name()` method
+   - `Name()` and `Description()` methods
    - `CanMutate()` method (to be implemented)
    - `Mutate()` method (to be implemented)
    - Helper methods for specific mutation types
 
-2. **Test File** (`<name>_test.go`):
-   - Test for `Name()` method
-   - Test structure for `CanMutate()`
-   - Test structure for `Mutate()`
-   - Example test cases to fill in
+2. **Golden Test Input** (`testdata/<name>/input.go`):
+   - A placeholder file to replace with representative code
+   - Drives `TestMutators/<name>` in `internal/mutation/golden_test.go`
+   - Run `go test ./internal/mutation -run TestMutators/<name> -update` to
+     generate `mutants.golden` and the per-mutant `NN.golden` files
 
 ### Implementing Your Mutator
 
@@ -139,7 +139,11 @@ After scaffolding, you need to:
    }
    ```
 
-4. **Write Tests**: Complete the test cases in the generated test file
+4. **Write the Golden Test**: Put representative code in
+   `testdata/<name>/input.go` (code the mutator should mutate, and similar
+   code it should not), then run
+   `go test ./internal/mutation -run TestMutators/<name> -update` and review
+   the generated `testdata/<name>/*.golden` files
 
 ### Example: Adding a String Mutator
 
@@ -149,10 +153,11 @@ After scaffolding, you need to:
 
 # This creates:
 # - internal/mutation/string.go
-# - internal/mutation/string_test.go
+# - internal/mutation/testdata/string/input.go
 
 # Now implement the mutator logic in string.go
-# Add test cases in string_test.go
+# Add representative code to testdata/string/input.go
+go test ./internal/mutation -run TestMutators/string -update
 # Register in engine.go
 ```
 
