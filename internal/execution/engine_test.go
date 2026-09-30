@@ -116,6 +116,12 @@ func TestRunMutations(t *testing.T) {
 }
 
 func TestRunMutationsWithOptions(t *testing.T) {
+	if testing.Short() {
+		t.Skip("spawns the Go toolchain")
+	}
+
+	t.Parallel()
+
 	tempDir := createTempTestProject(t)
 
 	tests := []struct {
@@ -277,6 +283,12 @@ func TestRunMutationsWithOptions(t *testing.T) {
 }
 
 func TestRunSingleMutation(t *testing.T) {
+	if testing.Short() {
+		t.Skip("spawns the Go toolchain")
+	}
+
+	t.Parallel()
+
 	tempDir := createTempTestProject(t)
 
 	tests := []struct {
@@ -367,6 +379,12 @@ func TestRunSingleMutation(t *testing.T) {
 }
 
 func TestCheckCompilationWithOverlay(t *testing.T) {
+	if testing.Short() {
+		t.Skip("spawns the Go toolchain")
+	}
+
+	t.Parallel()
+
 	tempDir := createTempTestProject(t)
 
 	t.Run("valid overlay compiles successfully", func(t *testing.T) {
@@ -490,6 +508,12 @@ func TestEngineCreationEdgeCases(t *testing.T) {
 }
 
 func TestSetTestArgsForwardedToTestAndBuild(t *testing.T) {
+	if testing.Short() {
+		t.Skip("spawns the Go toolchain")
+	}
+
+	t.Parallel()
+
 	tempDir := createShortGuardedTestProject(t)
 
 	engine, err := New()
@@ -525,6 +549,12 @@ func TestSetTestArgsForwardedToTestAndBuild(t *testing.T) {
 }
 
 func TestNoTestArgsProducesUnchangedArgv(t *testing.T) {
+	if testing.Short() {
+		t.Skip("spawns the Go toolchain")
+	}
+
+	t.Parallel()
+
 	tempDir := createTempTestProject(t)
 
 	engine, err := New()
