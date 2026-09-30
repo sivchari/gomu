@@ -166,6 +166,8 @@ func TestCalculateStatistics_EmptyResults(t *testing.T) {
 }
 
 func TestGenerateJSON(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -215,9 +217,6 @@ func TestGenerateJSON(t *testing.T) {
 		t.Fatalf("Failed to read output file: %v", err)
 	}
 
-	// Cleanup
-	defer os.Remove(standardFile)
-
 	var parsedSummary Summary
 
 	err = json.Unmarshal(data, &parsedSummary)
@@ -235,6 +234,8 @@ func TestGenerateJSON(t *testing.T) {
 }
 
 func TestGenerateText(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	generator, err := New("text")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -304,9 +305,6 @@ func TestGenerateText(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to read output file: %v", err)
 	}
-
-	// Cleanup
-	defer os.Remove(standardFile)
 
 	content := string(data)
 
@@ -430,6 +428,8 @@ func TestFormatTextReport_NoSurvivedMutants(t *testing.T) {
 }
 
 func TestGenerateHTML(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	generator, err := New("html")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -539,9 +539,6 @@ func TestGenerateHTML(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to read output file: %v", err)
 	}
-
-	// Cleanup
-	defer os.Remove(standardFile)
 
 	content := string(data)
 
@@ -666,11 +663,7 @@ func TestGenerateJSON_WriteError(t *testing.T) {
 
 	// Create a read-only directory to force write error
 	tempDir := t.TempDir()
-
-	oldWd, _ := os.Getwd()
-	defer os.Chdir(oldWd)
-
-	os.Chdir(tempDir)
+	t.Chdir(tempDir)
 
 	os.Chmod(tempDir, 0555) // Read-only
 	defer os.Chmod(tempDir, 0755)
@@ -689,6 +682,8 @@ func TestGenerateJSON_WriteError(t *testing.T) {
 }
 
 func TestGenerateText_LargeSummary(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -725,12 +720,11 @@ func TestGenerateText_LargeSummary(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to generate report for large summary: %v", err)
 	}
-
-	// Cleanup
-	defer os.Remove("mutation-report.json")
 }
 
 func TestGenerateHTML_ComplexData(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -784,9 +778,6 @@ func TestGenerateHTML_ComplexData(t *testing.T) {
 	if _, err := os.Stat("mutation-report.html"); os.IsNotExist(err) {
 		t.Error("HTML file was not created")
 	}
-
-	// Cleanup
-	defer os.Remove("mutation-report.html")
 }
 
 func TestFormatTextReport_EdgeCases(t *testing.T) {
@@ -897,6 +888,8 @@ func TestFormatTextReport_EdgeCases(t *testing.T) {
 }
 
 func TestGenerate_Timestamp(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	generator, err := New("json")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -932,9 +925,6 @@ func TestGenerate_Timestamp(t *testing.T) {
 	if summary.Version == "" {
 		t.Error("Version should be set")
 	}
-
-	// Cleanup
-	defer os.Remove("mutation-report.json")
 }
 
 func TestNew_AlwaysSucceeds(t *testing.T) {
