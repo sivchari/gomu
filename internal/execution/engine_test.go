@@ -10,49 +10,21 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	tests := []struct {
-		name    string
-		wantErr bool
-	}{
-		{
-			name:    "valid config creates engine",
-			wantErr: false,
-		},
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			engine, err := New()
+	if engine == nil {
+		t.Fatal("engine should not be nil")
+	}
 
-			if tt.wantErr {
-				if err == nil {
-					t.Error("expected error but got none")
-				}
+	if engine.overlay == nil {
+		t.Error("overlay should not be nil")
+	}
 
-				return
-			}
-
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-
-				return
-			}
-
-			if engine == nil {
-				t.Error("engine should not be nil")
-
-				return
-			}
-
-			if engine.overlay == nil {
-				t.Error("overlay should not be nil")
-			}
-
-			err = engine.Close()
-			if err != nil {
-				t.Errorf("failed to close engine: %v", err)
-			}
-		})
+	if err := engine.Close(); err != nil {
+		t.Errorf("failed to close engine: %v", err)
 	}
 }
 
@@ -428,40 +400,13 @@ func TestCheckCompilationWithOverlay(t *testing.T) {
 	})
 }
 
-func TestIndexedResult(t *testing.T) {
-	tests := []struct {
-		name   string
-		index  int
-		status mutation.Status
-	}{
-		{"zero index with killed status", 0, mutation.StatusKilled},
-		{"positive index with survived status", 5, mutation.StatusSurvived},
-		{"negative index with error status", -1, mutation.StatusError},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := mutation.Result{
-				Status: tt.status,
-			}
-
-			indexed := indexedResult{
-				index:  tt.index,
-				result: result,
-			}
-
-			if indexed.index != tt.index {
-				t.Errorf("expected index %d, got %d", tt.index, indexed.index)
-			}
-
-			if indexed.result.Status != tt.status {
-				t.Errorf("expected status %v, got %v", tt.status, indexed.result.Status)
-			}
-		})
-	}
-}
-
 func TestOverlayParallelExecution(t *testing.T) {
+	if testing.Short() {
+		t.Skip("spawns the Go toolchain")
+	}
+
+	t.Parallel()
+
 	tempDir := createTempTestProject(t)
 
 	engine, err := New()

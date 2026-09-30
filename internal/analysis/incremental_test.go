@@ -340,6 +340,16 @@ func TestIncrementalAnalyzer_findRelatedTestFiles(t *testing.T) {
 	if !foundFiles[testFile2] {
 		t.Error("Expected to find test_utils.go")
 	}
+
+	// A file with no test file counterpart has no related files.
+	lonelyFile := filepath.Join(tmpDir, "lonely.go")
+	if err := os.WriteFile(lonelyFile, []byte("package main"), 0600); err != nil {
+		t.Fatalf("Failed to create file %s: %v", lonelyFile, err)
+	}
+
+	if got := FindRelatedTestFiles(lonelyFile); len(got) != 0 {
+		t.Errorf("Expected 0 related test files, got %d", len(got))
+	}
 }
 
 func TestIncrementalAnalyzer_hasTestFilesChanged(t *testing.T) {
