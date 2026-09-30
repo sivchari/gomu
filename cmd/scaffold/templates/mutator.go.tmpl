@@ -16,6 +16,12 @@ func (m *{{.StructName}}Mutator) Name() string {
 	return {{.LowerName}}MutatorName
 }
 
+// Description returns a human-readable summary of the mutator.
+func (m *{{.StructName}}Mutator) Description() string {
+	// TODO: Describe what this mutator does
+	return "{{.Description}}"
+}
+
 // CanMutate returns true if the node can be mutated by this mutator.
 func (m *{{.StructName}}Mutator) CanMutate(node ast.Node) bool {
 	// TODO: Implement mutation logic
