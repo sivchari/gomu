@@ -195,7 +195,14 @@ func TestInitializeCIComponents(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Setup environment
+			// Clear the CI env vars this test cares about first: t.Setenv
+			// restores whatever ambient value a key had (e.g. GITHUB_REPOSITORY
+			// is always set on real GitHub Actions runners), unlike
+			// os.Unsetenv, so a prior subtest's value could otherwise leak in.
+			for _, k := range []string{"CI_MODE", "GITHUB_PR_NUMBER", "GITHUB_TOKEN", "GITHUB_REPOSITORY"} {
+				t.Setenv(k, "")
+			}
+
 			for k, v := range tt.setupEnv {
 				t.Setenv(k, v)
 			}
