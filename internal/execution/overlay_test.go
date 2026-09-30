@@ -792,45 +792,21 @@ func TestMutateAndApplyIntegration(t *testing.T) {
 	}
 }
 
-// Helper function to create a temporary test project for overlay tests.
-func createOverlayTestProject(t *testing.T) string {
-	tempDir := t.TempDir()
-
-	goMod := "module test\n\ngo 1.21\n"
-
-	err := os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644)
-	if err != nil {
-		t.Fatalf("failed to create go.mod: %v", err)
-	}
-
-	// Calculator file
-	calcFile := `package main
+const overlayCalcFileFixture = `package main
 
 func Add(a, b int) int {
 	return a + b
 }
 `
 
-	err = os.WriteFile(filepath.Join(tempDir, "calc.go"), []byte(calcFile), 0644)
-	if err != nil {
-		t.Fatalf("failed to create calc.go: %v", err)
-	}
-
-	// Compare file
-	compareFile := `package main
+const overlayCompareFileFixture = `package main
 
 func IsGreater(a, b int) bool {
 	return a > b
 }
 `
 
-	err = os.WriteFile(filepath.Join(tempDir, "compare.go"), []byte(compareFile), 0644)
-	if err != nil {
-		t.Fatalf("failed to create compare.go: %v", err)
-	}
-
-	// Test file
-	testFile := `package main
+const overlayMainTestFileFixture = `package main
 
 import "testing"
 
@@ -848,10 +824,11 @@ func TestIsGreater(t *testing.T) {
 }
 `
 
-	err = os.WriteFile(filepath.Join(tempDir, "main_test.go"), []byte(testFile), 0644)
-	if err != nil {
-		t.Fatalf("failed to create main_test.go: %v", err)
-	}
-
-	return tempDir
+// createOverlayTestProject creates a temporary test project for overlay tests.
+func createOverlayTestProject(t *testing.T) string {
+	return newTestModule(t, map[string]string{
+		"calc.go":      overlayCalcFileFixture,
+		"compare.go":   overlayCompareFileFixture,
+		"main_test.go": overlayMainTestFileFixture,
+	})
 }

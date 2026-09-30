@@ -1,7 +1,6 @@
 package execution
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -550,18 +549,7 @@ func TestNoTestArgsProducesUnchangedArgv(t *testing.T) {
 	}
 }
 
-// Helper function to create a temporary test project.
-func createTempTestProject(t *testing.T) string {
-	tempDir := t.TempDir()
-
-	goMod := "module test\n\ngo 1.21\n"
-
-	err := os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644)
-	if err != nil {
-		t.Fatalf("failed to create go.mod: %v", err)
-	}
-
-	validGoFile := `package main
+const validGoFileFixture = `package main
 
 func Add(a, b int) int {
 	return a + b
@@ -573,12 +561,7 @@ func main() {
 }
 `
 
-	err = os.WriteFile(filepath.Join(tempDir, "valid.go"), []byte(validGoFile), 0644)
-	if err != nil {
-		t.Fatalf("failed to create valid.go: %v", err)
-	}
-
-	testFile := `package main
+const validTestFileFixture = `package main
 
 import "testing"
 
@@ -590,21 +573,7 @@ func TestAdd(t *testing.T) {
 }
 `
 
-	err = os.WriteFile(filepath.Join(tempDir, "valid_test.go"), []byte(testFile), 0644)
-	if err != nil {
-		t.Fatalf("failed to create valid_test.go: %v", err)
-	}
-
-	return tempDir
-}
-
-// createShortGuardedTestProject creates a temporary test project identical to
-// createTempTestProject, plus a TestSlowIntegration test that fails unless
-// testing.Short() is true, mirroring the "-short" acceptance scenario.
-func createShortGuardedTestProject(t *testing.T) string {
-	tempDir := createTempTestProject(t)
-
-	slowTestFile := `package main
+const slowTestFileFixture = `package main
 
 import "testing"
 
@@ -617,10 +586,21 @@ func TestSlowIntegration(t *testing.T) {
 }
 `
 
-	err := os.WriteFile(filepath.Join(tempDir, "slow_test.go"), []byte(slowTestFile), 0644)
-	if err != nil {
-		t.Fatalf("failed to create slow_test.go: %v", err)
-	}
+// createTempTestProject creates a temporary test project.
+func createTempTestProject(t *testing.T) string {
+	return newTestModule(t, map[string]string{
+		"valid.go":      validGoFileFixture,
+		"valid_test.go": validTestFileFixture,
+	})
+}
 
-	return tempDir
+// createShortGuardedTestProject creates a temporary test project identical to
+// createTempTestProject, plus a TestSlowIntegration test that fails unless
+// testing.Short() is true, mirroring the "-short" acceptance scenario.
+func createShortGuardedTestProject(t *testing.T) string {
+	return newTestModule(t, map[string]string{
+		"valid.go":      validGoFileFixture,
+		"valid_test.go": validTestFileFixture,
+		"slow_test.go":  slowTestFileFixture,
+	})
 }
