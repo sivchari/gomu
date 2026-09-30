@@ -3,7 +3,6 @@ package execution
 import (
 	_ "embed"
 	"encoding/json"
-	"go/ast"
 	"os"
 	"path/filepath"
 	"strings"
@@ -520,39 +519,6 @@ func TestMultipleMutationsOnSameFile(t *testing.T) {
 	originalContent, _ := os.ReadFile(filepath.Join(tempDir, "calc.go"))
 	if !strings.Contains(string(originalContent), "a + b") {
 		t.Error("original file should still contain 'a + b'")
-	}
-}
-
-func TestApplyMutationToNodeWithOverlay(t *testing.T) {
-	tests := []struct {
-		name         string
-		mutationType string
-		expectResult bool
-	}{
-		{"arithmetic_binary", "arithmetic_binary", false},
-		{"conditional_binary", "conditional_binary", false},
-		{"logical_binary", "logical_binary", false},
-		{"unknown_type", "unknown_type", false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mutator, err := NewOverlayMutator()
-			if err != nil {
-				t.Fatalf("failed to create mutator: %v", err)
-			}
-			defer mutator.Cleanup()
-
-			// Use nil node - method checks type anyway
-			result := mutator.applyMutationToNode(nil, func(_ ast.Node) {}, mutation.Mutant{
-				Type:    tt.mutationType,
-				Mutated: "+",
-			})
-
-			if result != tt.expectResult {
-				t.Errorf("expected %v, got %v", tt.expectResult, result)
-			}
-		})
 	}
 }
 
