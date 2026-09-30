@@ -10,6 +10,10 @@ lint-fix: golangci-lint-fix
 test: ## Run all tests except validation helper (due to known issues)
 	go test ./... -shuffle on -v -race
 
+.PHONY: test-short
+test-short: ## Run tests, skipping the ones that spawn the Go toolchain
+	go test ./... -short -shuffle on -race
+
 .PHONY: golangci-lint
 golangci-lint: ## Run golangci-lint over the codebase.
 	${GOLANGCI_LINT} run ./... --timeout 5m -v ${GOLANGCI_LINT_EXTRA_ARGS}
