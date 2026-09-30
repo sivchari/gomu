@@ -1,0 +1,22 @@
+
+Mutation Testing Report
+=======================
+
+Summary:
+  Files processed: 1/1
+  Total mutants:   1
+  Duration:        123ms
+
+Results:
+  Killed:     0 (0.0%)
+  Survived:   1 (100.0%)
+  Timed out:  0 (0.0%)
+  Errors:     0 (0.0%)
+  Not viable: 0 (0.0%)
+
+Mutation Score: 0.0%
+
+
+Survived Mutants:
+=================
+  /very/long/path/to/some/deeply/nested/source/file/that/might/break/formatting.go:12345:999 - Very long description that goes on and on and on (veryLongOriginalValueThatMightBreakFormatting -> veryLongMutatedValueThatMightBreakFormatting)

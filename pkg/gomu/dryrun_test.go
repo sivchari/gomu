@@ -13,26 +13,46 @@ import (
 )
 
 func TestWriteDryRunFile(t *testing.T) {
-	var buf bytes.Buffer
-
-	mutants := []mutation.Mutant{
-		{Line: 12, Column: 7, Type: "arithmetic_binary", Description: "Replace + with -"},
-		{Line: 20, Column: 3, Type: "conditional_binary", Description: "Replace < with <="},
+	tests := []struct {
+		name    string
+		file    string
+		mutants []mutation.Mutant
+	}{
+		{
+			name: "two_mutants",
+			file: "foo.go",
+			mutants: []mutation.Mutant{
+				{Line: 12, Column: 7, Type: "arithmetic_binary", Description: "Replace + with -"},
+				{Line: 20, Column: 3, Type: "conditional_binary", Description: "Replace < with <="},
+			},
+		},
+		{
+			name:    "empty",
+			file:    "foo.go",
+			mutants: nil,
+		},
+		{
+			// Mixes short and long Type strings so tabwriter padding is locked.
+			name: "alignment",
+			file: "bar.go",
+			mutants: []mutation.Mutant{
+				{Line: 3, Column: 1, Type: "op", Description: "short"},
+				{Line: 120, Column: 45, Type: "arithmetic_binary_assignment_removal", Description: "a much longer description to test column padding"},
+				{Line: 7, Column: 2, Type: "logical", Description: "mid length description"},
+			},
+		},
 	}
 
-	if err := writeDryRunFile(&buf, "foo.go", mutants); err != nil {
-		t.Fatalf("writeDryRunFile: %v", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
 
-	out := buf.String()
-	for _, want := range []string{
-		"foo.go (2 mutants)",
-		"L12:7", "arithmetic_binary", "Replace + with -",
-		"L20:3", "conditional_binary", "Replace < with <=",
-	} {
-		if !strings.Contains(out, want) {
-			t.Errorf("dry-run output missing %q\n%s", want, out)
-		}
+			if err := writeDryRunFile(&buf, tt.file, tt.mutants); err != nil {
+				t.Fatalf("writeDryRunFile: %v", err)
+			}
+
+			assertGolden(t, filepath.Join("testdata", "dryrun", tt.name+".golden"), buf.Bytes())
+		})
 	}
 }
 

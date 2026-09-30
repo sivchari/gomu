@@ -14,6 +14,10 @@ test: ## Run all tests except validation helper (due to known issues)
 test-short: ## Run tests, skipping the ones that spawn the Go toolchain
 	go test ./... -short -shuffle on -race
 
+.PHONY: golden-update
+golden-update: ## Regenerate golden test files under testdata/
+	go test ./internal/mutation ./internal/report ./internal/ci ./pkg/gomu -update
+
 .PHONY: golangci-lint
 golangci-lint: ## Run golangci-lint over the codebase.
 	${GOLANGCI_LINT} run ./... --timeout 5m -v ${GOLANGCI_LINT_EXTRA_ARGS}

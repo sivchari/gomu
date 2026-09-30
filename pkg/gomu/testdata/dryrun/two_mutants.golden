@@ -1,0 +1,4 @@
+
+foo.go (2 mutants)
+  L12:7  arithmetic_binary   Replace + with -
+  L20:3  conditional_binary  Replace < with <=

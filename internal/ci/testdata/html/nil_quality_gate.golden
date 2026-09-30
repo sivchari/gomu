@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mutation Testing Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #f5f5f5; padding: 20px; border-radius: 5px; }
+        .score { font-size: 24px; font-weight: bold; color: #28a745; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Mutation Testing Report</h1>
+        <div class="score">Overall Score: 85.0%</div>
+        <p>Quality Gate: No quality gate configured</p>
+    </div>
+    <h2>Summary</h2>
+    <p>Total Mutants: 100</p>
+    <p>Killed: 85</p>
+    <p>Files Analyzed: 1</p>
+    <h2>File Details</h2>
+    <table>
+        <tr>
+            <th>File</th>
+            <th>Total Mutants</th>
+            <th>Killed</th>
+            <th>Score</th>
+        </tr>
+        <tr>
+            <td>example.go</td>
+            <td>50</td>
+            <td>45</td>
+            <td>90.0%</td>
+        </tr>
+    </table>
+</body>
+</html>

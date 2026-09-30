@@ -1,0 +1,22 @@
+
+Mutation Testing Report
+=======================
+
+Summary:
+  Files processed: 1/1
+  Total mutants:   2
+  Duration:        1.5s
+
+Results:
+  Killed:     0 (0.0%)
+  Survived:   1 (50.0%)
+  Timed out:  0 (0.0%)
+  Errors:     0 (0.0%)
+  Not viable: 0 (0.0%)
+
+Mutation Score: 0.0%
+
+
+Survived Mutants:
+=================
+  test.go:10:5 - Replace + with - (+ -> -)
