@@ -130,7 +130,7 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
 	// Build file details HTML
 	fileDetailsHTML := ""
 
-	for _, file := range summary.Files {
+	for _, file := range sortedFiles(summary.Files) {
 		score := 0.0
 		if file.TotalMutants > 0 {
 			score = float64(file.KilledMutants) / float64(file.TotalMutants) * 100
