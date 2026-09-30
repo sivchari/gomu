@@ -54,6 +54,8 @@ func TestNewEngine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Chdir(t.TempDir())
+
 			engine, err := NewEngine(tt.opts)
 
 			if tt.expectError {
@@ -75,24 +77,19 @@ func TestNewEngine(t *testing.T) {
 			}
 
 			// Verify components are initialized
-			if engine.analyzer == nil {
-				t.Error("analyzer should not be nil")
-			}
-
-			if engine.mutator == nil {
-				t.Error("mutator should not be nil")
-			}
-
-			if engine.executor == nil {
-				t.Error("executor should not be nil")
-			}
-
-			if engine.history == nil {
-				t.Error("history should not be nil")
-			}
-
-			if engine.reporter == nil {
-				t.Error("reporter should not be nil")
+			for _, c := range []struct {
+				name string
+				got  any
+			}{
+				{"analyzer", engine.analyzer},
+				{"mutator", engine.mutator},
+				{"executor", engine.executor},
+				{"history", engine.history},
+				{"reporter", engine.reporter},
+			} {
+				if c.got == nil {
+					t.Errorf("%s should not be nil", c.name)
+				}
 			}
 
 			// Verify CI components when CI mode is enabled
@@ -104,11 +101,6 @@ func TestNewEngine(t *testing.T) {
 				if engine.ciReporter == nil {
 					t.Error("CI reporter should not be nil in CI mode")
 				}
-			}
-
-			// Cleanup
-			if engine.history != nil {
-				os.Remove(".gomu_history.json")
 			}
 		})
 	}
@@ -205,8 +197,7 @@ func TestInitializeCIComponents(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Setup environment
 			for k, v := range tt.setupEnv {
-				os.Setenv(k, v)
-				defer os.Unsetenv(k)
+				t.Setenv(k, v)
 			}
 
 			engine := &Engine{}
@@ -233,8 +224,7 @@ func TestRun(t *testing.T) {
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
 				// Create empty Go module
-				modContent := testModuleContent
-				os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(modContent), 0644)
+				writeFile(t, filepath.Join(tempDir, "go.mod"), testModuleContent)
 
 				return tempDir, func() {}
 			},
@@ -256,8 +246,7 @@ func TestRun(t *testing.T) {
 				tempDir := t.TempDir()
 
 				// Create go.mod
-				modContent := testModuleContent
-				os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(modContent), 0644)
+				writeFile(t, filepath.Join(tempDir, "go.mod"), testModuleContent)
 
 				// Create a simple Go file
 				content := `package main
@@ -270,7 +259,7 @@ func Subtract(a, b int) int {
 	return a - b
 }
 `
-				os.WriteFile(filepath.Join(tempDir, "math.go"), []byte(content), 0644)
+				writeFile(t, filepath.Join(tempDir, "math.go"), content)
 
 				// Create test file
 				testContent := `package main
@@ -283,11 +272,9 @@ func TestAdd(t *testing.T) {
 	}
 }
 `
-				os.WriteFile(filepath.Join(tempDir, "math_test.go"), []byte(testContent), 0644)
+				writeFile(t, filepath.Join(tempDir, "math_test.go"), testContent)
 
-				return tempDir, func() {
-					os.Remove(filepath.Join(tempDir, ".gomu_history.json"))
-				}
+				return tempDir, func() {}
 			},
 			opts: &RunOptions{
 				Workers:     1,
@@ -302,8 +289,7 @@ func TestAdd(t *testing.T) {
 			name: "run with nil options uses defaults",
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
-				modContent := testModuleContent
-				os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(modContent), 0644)
+				writeFile(t, filepath.Join(tempDir, "go.mod"), testModuleContent)
 
 				return tempDir, func() {}
 			},
@@ -314,8 +300,7 @@ func TestAdd(t *testing.T) {
 			name: "run with CI mode enabled",
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
-				modContent := testModuleContent
-				os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(modContent), 0644)
+				writeFile(t, filepath.Join(tempDir, "go.mod"), testModuleContent)
 
 				// Create a file with mutations
 				content := `package main
@@ -327,11 +312,9 @@ func IsPositive(n int) bool {
 	return false
 }
 `
-				os.WriteFile(filepath.Join(tempDir, "check.go"), []byte(content), 0644)
+				writeFile(t, filepath.Join(tempDir, "check.go"), content)
 
-				return tempDir, func() {
-					os.Remove(filepath.Join(tempDir, ".gomu_history.json"))
-				}
+				return tempDir, func() {}
 			},
 			opts: &RunOptions{
 				Workers:    1,
@@ -360,8 +343,7 @@ func IsPositive(n int) bool {
 			name: "context cancellation",
 			setupFunc: func(t *testing.T) (string, func()) {
 				tempDir := t.TempDir()
-				modContent := testModuleContent
-				os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(modContent), 0644)
+				writeFile(t, filepath.Join(tempDir, "go.mod"), testModuleContent)
 
 				return tempDir, func() {}
 			},
@@ -380,6 +362,8 @@ func IsPositive(n int) bool {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Chdir(t.TempDir())
+
 			path, cleanup := tt.setupFunc(t)
 			defer cleanup()
 
@@ -416,6 +400,8 @@ func IsPositive(n int) bool {
 }
 
 func TestProcessCIWorkflow(t *testing.T) {
+	t.Chdir(t.TempDir())
+
 	tests := []struct {
 		name        string
 		setupEngine func() *Engine
@@ -563,11 +549,6 @@ func TestProcessCIWorkflow(t *testing.T) {
 					t.Errorf("unexpected error: %v", err)
 				}
 			}
-
-			// Cleanup generated files
-			os.Remove("mutation-report.json")
-			os.Remove("mutation-report.html")
-			os.Remove("mutation-report.xml")
 		})
 	}
 }
@@ -882,7 +863,7 @@ func Add(a, b int) int {
 	return a + b
 }
 `
-				os.WriteFile(mainFile, []byte(content), 0644)
+				writeFile(t, mainFile, content)
 
 				// Create test file
 				testFile := filepath.Join(tempDir, "calc_test.go")
@@ -896,7 +877,7 @@ func TestAdd(t *testing.T) {
 	}
 }
 `
-				os.WriteFile(testFile, []byte(testContent), 0644)
+				writeFile(t, testFile, testContent)
 
 				return mainFile, tempDir
 			},
@@ -912,7 +893,7 @@ func TestAdd(t *testing.T) {
 
 func Untested() {}
 `
-				os.WriteFile(mainFile, []byte(content), 0644)
+				writeFile(t, mainFile, content)
 
 				return mainFile, tempDir
 			},
