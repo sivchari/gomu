@@ -1,5 +1,30 @@
 # Changelog
 
+## [v0.2.2](https://github.com/sivchari/gomu/compare/v0.2.1...v0.2.2) - 2026-09-30
+
+- feat: add invert negatives mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/78
+- feat: add remove self-assignments mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/79
+- feat: add break and continue mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/80
+- feat: add boundary value mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/81
+- feat: add string literal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/82
+- feat: add loop condition mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/83
+- feat: add empty block mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/84
+- feat: add assignment removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/85
+- feat: add expression removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/86
+- feat: add statement removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/87
+- feat: add `--list` and `--dry-run` flags to `gomu run` by @xen0l in https://github.com/sivchari/gomu/pull/91
+- fix: address PR #91 code review findings for --list/--dry-run by @sivchari in https://github.com/sivchari/gomu/pull/92
+- feat: skip generated Go files by default by @sivchari in https://github.com/sivchari/gomu/pull/101
+- feat: detect error returns by type instead of variable name by @sivchari in https://github.com/sivchari/gomu/pull/102
+- feat: forward go test flags after -- by @sivchari in https://github.com/sivchari/gomu/pull/103
+- feat: add switch case body removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/104
+- test: PR 1 - test hygiene cleanup by @sivchari in https://github.com/sivchari/gomu/pull/105
+- Add golden-driven mutator test and extract ApplyMutantToSource by @sivchari in https://github.com/sivchari/gomu/pull/106
+- test: replace per-mutator table tests with golden and contract tests by @sivchari in https://github.com/sivchari/gomu/pull/107
+- test: golden tests for pure output formatters by @sivchari in https://github.com/sivchari/gomu/pull/108
+- feat: scaffold golden test input instead of a table test file by @sivchari in https://github.com/sivchari/gomu/pull/109
+- fix: ignore only the root gomu binary by @sivchari in https://github.com/sivchari/gomu/pull/110
+
 ## [v0.2.1](https://github.com/sivchari/gomu/compare/v0.2.0...v0.2.1) - 2026-05-29
 - fix: scope test execution to same package by @sivchari in https://github.com/sivchari/gomu/pull/71
 - fix: distinguish compilation timeout from compilation error by @sivchari in https://github.com/sivchari/gomu/pull/73
