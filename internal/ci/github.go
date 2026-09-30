@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -173,11 +175,25 @@ func (g *GitHubIntegration) deleteExistingMutationComments(ctx context.Context) 
 	return nil
 }
 
+// sortedFiles returns files ordered by path so callers get deterministic
+// output instead of Go's randomized map iteration order.
+func sortedFiles(files map[string]*report.FileReport) []*report.FileReport {
+	sorted := make([]*report.FileReport, 0, len(files))
+
+	for _, path := range slices.Sorted(maps.Keys(files)) {
+		sorted = append(sorted, files[path])
+	}
+
+	return sorted
+}
+
 // formatPRComment formats the mutation testing results for PR comment.
 func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResult *QualityGateResult) string {
 	var buf strings.Builder
 
 	buf.WriteString("## 🧬 Mutation Testing Results\n\n")
+
+	files := sortedFiles(summary.Files)
 
 	// Calculate actual totals excluding ignored files (cmd/ directory)
 	actualTotalMutants := 0
@@ -185,7 +201,7 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 
 	// If Files is not empty, calculate from file reports
 	if len(summary.Files) > 0 {
-		for _, fileReport := range summary.Files {
+		for _, fileReport := range files {
 			// Skip files in cmd/ directory (these should be ignored per .gomuignore)
 			if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
 				continue
@@ -241,7 +257,7 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	// File details - only show files with mutations
 	hasFilesWithMutations := false
 
-	for _, fileReport := range summary.Files {
+	for _, fileReport := range files {
 		// Skip files in cmd/ directory
 		if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
 			continue
@@ -260,7 +276,7 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 		buf.WriteString("|------|-------|---------|--------|\n")
 
 		// Sort and filter files
-		for _, fileReport := range summary.Files {
+		for _, fileReport := range files {
 			// Skip files with no mutations (likely ignored by .gomuignore)
 			if fileReport.TotalMutants == 0 {
 				continue
