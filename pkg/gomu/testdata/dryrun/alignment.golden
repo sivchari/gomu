@@ -1,0 +1,5 @@
+
+bar.go (3 mutants)
+  L3:1     op                                    short
+  L120:45  arithmetic_binary_assignment_removal  a much longer description to test column padding
+  L7:2     logical                               mid length description

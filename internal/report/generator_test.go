@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -234,8 +235,6 @@ func TestGenerateJSON(t *testing.T) {
 }
 
 func TestGenerateText(t *testing.T) {
-	t.Chdir(t.TempDir())
-
 	generator, err := New("text")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
@@ -289,44 +288,24 @@ func TestGenerateText(t *testing.T) {
 		Duration: time.Second * 5,
 	}
 
-	err = generator.Generate(summary)
-	if err != nil {
-		t.Fatalf("Failed to generate text report: %v", err)
-	}
+	var got []byte
 
-	// Verify standard output file was created
-	standardFile := "mutation-report.txt"
-	if _, err := os.Stat(standardFile); os.IsNotExist(err) {
-		t.Error("Standard output file was not created")
-	}
+	t.Run("generate", func(t *testing.T) {
+		t.Chdir(t.TempDir())
 
-	// Verify text content
-	data, err := os.ReadFile(standardFile)
-	if err != nil {
-		t.Fatalf("Failed to read output file: %v", err)
-	}
-
-	content := string(data)
-
-	// Check for key elements in the report
-	expectedElements := []string{
-		"Mutation Testing Report",
-		"Files processed: 2/2",
-		"Total mutants:   3",
-		"Duration:        5s",
-		"Killed:     1 (33.3%)",
-		"Survived:   2 (66.7%)",
-		"Mutation Score: 33.3%",
-		"Survived Mutants:",
-		"test.go:15:8 - Replace == with != (== -> !=)",
-		"test.go:20:3 - Replace && with || (&& -> ||)",
-	}
-
-	for _, element := range expectedElements {
-		if !strings.Contains(content, element) {
-			t.Errorf("Expected element '%s' not found in report\nActual content:\n%s", element, content)
+		if err := generator.Generate(summary); err != nil {
+			t.Fatalf("Failed to generate text report: %v", err)
 		}
-	}
+
+		data, err := os.ReadFile("mutation-report.txt")
+		if err != nil {
+			t.Fatalf("Failed to read output file: %v", err)
+		}
+
+		got = data
+	})
+
+	assertGolden(t, filepath.Join("testdata", "text", "generate.golden"), got)
 }
 
 func TestFormatTextReport(t *testing.T) {
@@ -335,95 +314,132 @@ func TestFormatTextReport(t *testing.T) {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
 
-	summary := &Summary{
-		TotalFiles:     1,
-		ProcessedFiles: 1,
-		TotalMutants:   2,
-		Results: []mutation.Result{
-			{
-				Mutant: mutation.Mutant{
-					ID:          "test1",
-					FilePath:    "test.go",
-					Line:        10,
-					Column:      5,
-					Type:        "arithmetic",
-					Original:    "+",
-					Mutated:     "-",
-					Description: "Replace + with -",
+	tests := []struct {
+		name    string
+		summary *Summary
+	}{
+		{
+			name: "survived",
+			summary: &Summary{
+				TotalFiles:     1,
+				ProcessedFiles: 1,
+				TotalMutants:   2,
+				Results: []mutation.Result{
+					{
+						Mutant: mutation.Mutant{
+							ID:          "test1",
+							FilePath:    "test.go",
+							Line:        10,
+							Column:      5,
+							Type:        "arithmetic",
+							Original:    "+",
+							Mutated:     "-",
+							Description: "Replace + with -",
+						},
+						Status: mutation.StatusSurvived,
+					},
 				},
-				Status: mutation.StatusSurvived,
+				Duration: time.Millisecond * 1500,
+				Statistics: Statistics{
+					Killed:   0,
+					Survived: 1,
+					Score:    0.0,
+				},
 			},
 		},
-		Duration: time.Millisecond * 1500,
-		Statistics: Statistics{
-			Killed:   0,
-			Survived: 1,
-			Score:    0.0,
-		},
-	}
-
-	report := generator.formatTextReport(summary)
-
-	// Check basic structure
-	if !strings.Contains(report, "Mutation Testing Report") {
-		t.Error("Report should contain title")
-	}
-
-	if !strings.Contains(report, "Files processed: 1/1") {
-		t.Error("Report should contain file count")
-	}
-
-	if !strings.Contains(report, "Total mutants:   2") {
-		t.Error("Report should contain mutant count")
-	}
-
-	if !strings.Contains(report, "Duration:        1.5s") {
-		t.Error("Report should contain duration")
-	}
-
-	if !strings.Contains(report, "Mutation Score: 0.0%") {
-		t.Error("Report should contain mutation score")
-	}
-
-	// Check survived mutants section
-	if !strings.Contains(report, "Survived Mutants:") {
-		t.Error("Report should contain survived mutants section")
-	}
-
-	if !strings.Contains(report, "test.go:10:5 - Replace + with - (+ -> -)") {
-		t.Error("Report should contain survived mutant details")
-	}
-}
-
-func TestFormatTextReport_NoSurvivedMutants(t *testing.T) {
-	generator, err := New("json")
-	if err != nil {
-		t.Fatalf("Failed to create generator: %v", err)
-	}
-
-	summary := &Summary{
-		TotalFiles:     1,
-		ProcessedFiles: 1,
-		TotalMutants:   1,
-		Results: []mutation.Result{
-			{
-				Mutant: mutation.Mutant{ID: "test1"},
-				Status: mutation.StatusKilled,
+		{
+			name: "no_survived",
+			summary: &Summary{
+				TotalFiles:     1,
+				ProcessedFiles: 1,
+				TotalMutants:   1,
+				Results: []mutation.Result{
+					{
+						Mutant: mutation.Mutant{ID: "test1"},
+						Status: mutation.StatusKilled,
+					},
+				},
+				Duration: time.Second,
+				Statistics: Statistics{
+					Killed:   1,
+					Survived: 0,
+					Score:    100.0,
+				},
 			},
 		},
-		Duration: time.Second,
-		Statistics: Statistics{
-			Killed:   1,
-			Survived: 0,
-			Score:    100.0,
+		{
+			name: "zero_duration",
+			summary: &Summary{
+				TotalFiles:     1,
+				ProcessedFiles: 0,
+				TotalMutants:   0,
+				Results:        []mutation.Result{},
+				Duration:       0,
+				Statistics: Statistics{
+					Killed:   0,
+					Survived: 0,
+					Score:    0,
+				},
+			},
+		},
+		{
+			name: "all_statuses",
+			summary: &Summary{
+				TotalFiles:     1,
+				ProcessedFiles: 1,
+				TotalMutants:   5,
+				Results: []mutation.Result{
+					{Status: mutation.StatusKilled},
+					{Status: mutation.StatusSurvived},
+					{Status: mutation.StatusTimedOut},
+					{Status: mutation.StatusError},
+					{Status: mutation.StatusNotViable},
+				},
+				Duration: time.Hour + time.Minute + time.Second,
+				Statistics: Statistics{
+					Killed:    1,
+					Survived:  1,
+					TimedOut:  1,
+					Errors:    1,
+					NotViable: 1,
+					Score:     25.0,
+				},
+			},
+		},
+		{
+			name: "long_paths",
+			summary: &Summary{
+				TotalFiles:     1,
+				ProcessedFiles: 1,
+				TotalMutants:   1,
+				Results: []mutation.Result{
+					{
+						Mutant: mutation.Mutant{
+							FilePath:    "/very/long/path/to/some/deeply/nested/source/file/that/might/break/formatting.go",
+							Line:        12345,
+							Column:      999,
+							Description: "Very long description that goes on and on and on",
+							Original:    "veryLongOriginalValueThatMightBreakFormatting",
+							Mutated:     "veryLongMutatedValueThatMightBreakFormatting",
+						},
+						Status: mutation.StatusSurvived,
+					},
+				},
+				Duration: time.Millisecond * 123,
+				Statistics: Statistics{
+					Survived: 1,
+					Score:    0,
+				},
+			},
 		},
 	}
 
-	report := generator.formatTextReport(summary)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := generator.formatTextReport(tt.summary)
 
-	// Should not contain survived mutants section
-	if strings.Contains(report, "Survived Mutants:") {
-		t.Error("Report should not contain survived mutants section when there are none")
+			assertGolden(t, filepath.Join("testdata", "text", tt.name+".golden"), []byte(got))
+		})
 	}
 }
 
@@ -684,7 +700,7 @@ func TestGenerateJSON_WriteError(t *testing.T) {
 func TestGenerateText_LargeSummary(t *testing.T) {
 	t.Chdir(t.TempDir())
 
-	generator, err := New("json")
+	generator, err := New("text")
 	if err != nil {
 		t.Fatalf("Failed to create generator: %v", err)
 	}
@@ -777,113 +793,6 @@ func TestGenerateHTML_ComplexData(t *testing.T) {
 	// Verify file was created
 	if _, err := os.Stat("mutation-report.html"); os.IsNotExist(err) {
 		t.Error("HTML file was not created")
-	}
-}
-
-func TestFormatTextReport_EdgeCases(t *testing.T) {
-	generator, err := New("json")
-	if err != nil {
-		t.Fatalf("Failed to create generator: %v", err)
-	}
-
-	tests := []struct {
-		name     string
-		summary  *Summary
-		contains []string
-	}{
-		{
-			name: "zero duration",
-			summary: &Summary{
-				TotalFiles:     1,
-				ProcessedFiles: 0,
-				TotalMutants:   0,
-				Results:        []mutation.Result{},
-				Duration:       0,
-				Statistics: Statistics{
-					Killed:   0,
-					Survived: 0,
-					Score:    0,
-				},
-			},
-			contains: []string{
-				"Duration:        0s",
-				"Files processed: 0/1",
-			},
-		},
-		{
-			name: "all mutation types present",
-			summary: &Summary{
-				TotalFiles:     1,
-				ProcessedFiles: 1,
-				TotalMutants:   5,
-				Results: []mutation.Result{
-					{Status: mutation.StatusKilled},
-					{Status: mutation.StatusSurvived},
-					{Status: mutation.StatusTimedOut},
-					{Status: mutation.StatusError},
-					{Status: mutation.StatusNotViable},
-				},
-				Duration: time.Hour + time.Minute + time.Second,
-				Statistics: Statistics{
-					Killed:    1,
-					Survived:  1,
-					TimedOut:  1,
-					Errors:    1,
-					NotViable: 1,
-					Score:     25.0,
-				},
-			},
-			contains: []string{
-				"Killed:     1 (20.0%)",
-				"Survived:   1 (20.0%)",
-				"Timed out:  1 (20.0%)",
-				"Errors:     1 (20.0%)",
-				"Not viable: 1 (20.0%)",
-				"Mutation Score: 25.0%",
-			},
-		},
-		{
-			name: "long file paths",
-			summary: &Summary{
-				TotalFiles:     1,
-				ProcessedFiles: 1,
-				TotalMutants:   1,
-				Results: []mutation.Result{
-					{
-						Mutant: mutation.Mutant{
-							FilePath:    "/very/long/path/to/some/deeply/nested/source/file/that/might/break/formatting.go",
-							Line:        12345,
-							Column:      999,
-							Description: "Very long description that goes on and on and on",
-							Original:    "veryLongOriginalValueThatMightBreakFormatting",
-							Mutated:     "veryLongMutatedValueThatMightBreakFormatting",
-						},
-						Status: mutation.StatusSurvived,
-					},
-				},
-				Duration: time.Millisecond * 123,
-				Statistics: Statistics{
-					Survived: 1,
-					Score:    0,
-				},
-			},
-			contains: []string{
-				"Survived Mutants:",
-				"/very/long/path/to/some/deeply/nested/source/file/that/might/break/formatting.go:12345:999",
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			report := generator.formatTextReport(tt.summary)
-
-			for _, expected := range tt.contains {
-				if !strings.Contains(report, expected) {
-					t.Errorf("Expected report to contain %q", expected)
-				}
-			}
-		})
 	}
 }
 

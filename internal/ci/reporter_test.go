@@ -150,157 +150,85 @@ func TestReporter_generateJSONReport(t *testing.T) {
 }
 
 func TestReporter_generateHTMLReport(t *testing.T) {
-	tmpDir := t.TempDir()
-	reporter := NewReporter(tmpDir, "html")
-
-	summary := &report.Summary{
-		TotalMutants:  100,
-		KilledMutants: 85,
-		Files: map[string]*report.FileReport{
-			"example.go": {
-				FilePath:      "example.go",
-				TotalMutants:  50,
-				KilledMutants: 45,
-				MutationScore: 90.0,
+	tests := []struct {
+		name          string
+		summary       *report.Summary
+		qualityResult *QualityGateResult
+	}{
+		{
+			name: "passed",
+			summary: &report.Summary{
+				TotalMutants:  100,
+				KilledMutants: 85,
+				Files: map[string]*report.FileReport{
+					"example.go": {
+						FilePath:      "example.go",
+						TotalMutants:  50,
+						KilledMutants: 45,
+						MutationScore: 90.0,
+					},
+				},
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          true,
+				MutationScore: 85.0,
+				Reason:        "Mutation score meets minimum threshold",
 			},
 		},
-	}
-
-	qualityResult := &QualityGateResult{
-		Pass:          true,
-		MutationScore: 85.0,
-		Reason:        "Mutation score meets minimum threshold",
-	}
-
-	err := reporter.generateHTMLReport(summary, qualityResult)
-	if err != nil {
-		t.Fatalf("Failed to generate HTML report: %v", err)
-	}
-
-	// Verify file was created
-	reportPath := filepath.Join(tmpDir, "mutation-report.html")
-
-	content, err := os.ReadFile(reportPath)
-	if err != nil {
-		t.Fatalf("Failed to read HTML report: %v", err)
-	}
-
-	contentStr := string(content)
-
-	// Check HTML structure
-	expectedElements := []string{
-		"<html>",
-		"<head>",
-		"<body>",
-		"Mutation Testing Report",
-		"Overall Score: 85.0%",
-		"Quality Gate: PASSED",
-		"example.go",
-		"90.0%",
-	}
-
-	for _, element := range expectedElements {
-		if !strings.Contains(contentStr, element) {
-			t.Errorf("Expected HTML to contain '%s'", element)
-		}
-	}
-}
-
-func TestReporter_generateHTMLReport_WithFailedQualityGate(t *testing.T) {
-	tmpDir := t.TempDir()
-	reporter := NewReporter(tmpDir, "html")
-
-	summary := &report.Summary{
-		TotalMutants:  100,
-		KilledMutants: 50,
-		Files: map[string]*report.FileReport{
-			"example.go": {
-				FilePath:      "example.go",
+		{
+			name: "failed",
+			summary: &report.Summary{
 				TotalMutants:  100,
 				KilledMutants: 50,
+				Files: map[string]*report.FileReport{
+					"example.go": {
+						FilePath:      "example.go",
+						TotalMutants:  100,
+						KilledMutants: 50,
+						MutationScore: 50.0,
+					},
+				},
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          false,
 				MutationScore: 50.0,
+				Reason:        "Mutation score below minimum threshold",
 			},
+		},
+		{
+			name: "nil_quality_gate",
+			summary: &report.Summary{
+				TotalMutants:  100,
+				KilledMutants: 85,
+				Files: map[string]*report.FileReport{
+					"example.go": {
+						FilePath:      "example.go",
+						TotalMutants:  50,
+						KilledMutants: 45,
+						MutationScore: 90.0,
+					},
+				},
+			},
+			qualityResult: nil,
 		},
 	}
 
-	qualityResult := &QualityGateResult{
-		Pass:          false,
-		MutationScore: 50.0,
-		Reason:        "Mutation score below minimum threshold",
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			reporter := NewReporter(tmpDir, "html")
 
-	err := reporter.generateHTMLReport(summary, qualityResult)
-	if err != nil {
-		t.Fatalf("Failed to generate HTML report: %v", err)
-	}
+			if err := reporter.generateHTMLReport(tt.summary, tt.qualityResult); err != nil {
+				t.Fatalf("Failed to generate HTML report: %v", err)
+			}
 
-	// Verify file was created
-	reportPath := filepath.Join(tmpDir, "mutation-report.html")
+			content, err := os.ReadFile(filepath.Join(tmpDir, "mutation-report.html"))
+			if err != nil {
+				t.Fatalf("Failed to read HTML report: %v", err)
+			}
 
-	content, err := os.ReadFile(reportPath)
-	if err != nil {
-		t.Fatalf("Failed to read HTML report: %v", err)
-	}
-
-	contentStr := string(content)
-
-	// Check HTML structure for failed quality gate
-	expectedElements := []string{
-		"Quality Gate: FAILED - Mutation score below minimum threshold",
-		"50.0%",
-		"#dc3545", // Red color for low score
-	}
-
-	for _, element := range expectedElements {
-		if !strings.Contains(contentStr, element) {
-			t.Errorf("Expected HTML to contain '%s'", element)
-		}
-	}
-}
-
-func TestReporter_generateHTMLReport_WithNilQualityGate(t *testing.T) {
-	tmpDir := t.TempDir()
-	reporter := NewReporter(tmpDir, "html")
-
-	summary := &report.Summary{
-		TotalMutants:  100,
-		KilledMutants: 85,
-		Files: map[string]*report.FileReport{
-			"example.go": {
-				FilePath:      "example.go",
-				TotalMutants:  50,
-				KilledMutants: 45,
-				MutationScore: 90.0,
-			},
-		},
-	}
-
-	// Test with nil quality gate
-	err := reporter.generateHTMLReport(summary, nil)
-	if err != nil {
-		t.Fatalf("Failed to generate HTML report: %v", err)
-	}
-
-	// Verify file was created
-	reportPath := filepath.Join(tmpDir, "mutation-report.html")
-
-	content, err := os.ReadFile(reportPath)
-	if err != nil {
-		t.Fatalf("Failed to read HTML report: %v", err)
-	}
-
-	contentStr := string(content)
-
-	// Check HTML structure for nil quality gate
-	expectedElements := []string{
-		"Overall Score: 85.0%",
-		"Quality Gate: No quality gate configured",
-	}
-
-	for _, element := range expectedElements {
-		if !strings.Contains(contentStr, element) {
-			t.Errorf("Expected HTML to contain '%s'", element)
-		}
+			assertGolden(t, filepath.Join("testdata", "html", tt.name+".golden"), content)
+		})
 	}
 }
 

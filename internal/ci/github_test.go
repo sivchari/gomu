@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -211,85 +212,172 @@ func TestGitHubIntegration_CreatePRComment(t *testing.T) {
 func TestGitHubIntegration_formatPRComment(t *testing.T) {
 	github := NewGitHubIntegration("token", "owner/repo", 123)
 
-	summary := &report.Summary{
-		TotalMutants:  100,
-		KilledMutants: 85,
-		Files: map[string]*report.FileReport{
-			"example.go": {
-				FilePath:      "example.go",
-				TotalMutants:  50,
-				KilledMutants: 45,
-				MutationScore: 90.0,
+	tests := []struct {
+		name          string
+		summary       *report.Summary
+		qualityResult *QualityGateResult
+	}{
+		{
+			name: "passed",
+			summary: &report.Summary{
+				TotalMutants:  100,
+				KilledMutants: 85,
+				Files: map[string]*report.FileReport{
+					"example.go": {
+						FilePath:      "example.go",
+						TotalMutants:  50,
+						KilledMutants: 45,
+						MutationScore: 90.0,
+					},
+					"utils.go": {
+						FilePath:      "utils.go",
+						TotalMutants:  50,
+						KilledMutants: 40,
+						MutationScore: 80.0,
+					},
+				},
 			},
-			"utils.go": {
-				FilePath:      "utils.go",
+			qualityResult: &QualityGateResult{
+				Pass:          true,
+				MutationScore: 85.0,
+				Reason:        "Mutation score meets minimum threshold",
+			},
+		},
+		{
+			name: "failed",
+			summary: &report.Summary{
+				TotalMutants:  100,
+				KilledMutants: 85,
+				Files: map[string]*report.FileReport{
+					"example.go": {
+						FilePath:      "example.go",
+						TotalMutants:  50,
+						KilledMutants: 45,
+						MutationScore: 90.0,
+					},
+					"utils.go": {
+						FilePath:      "utils.go",
+						TotalMutants:  50,
+						KilledMutants: 40,
+						MutationScore: 80.0,
+					},
+				},
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          false,
+				MutationScore: 85.0,
+				Reason:        "Mutation score below threshold",
+			},
+		},
+		{
+			name: "nil_quality_result",
+			summary: &report.Summary{
+				TotalMutants:  100,
+				KilledMutants: 75,
+				Files: map[string]*report.FileReport{
+					"test.go": {
+						FilePath:      "test.go",
+						TotalMutants:  100,
+						KilledMutants: 75,
+						MutationScore: 75.0,
+					},
+				},
+			},
+			qualityResult: nil,
+		},
+		{
+			name: "empty_files",
+			summary: &report.Summary{
+				TotalMutants:  0,
+				KilledMutants: 0,
+				Files:         map[string]*report.FileReport{},
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          false,
+				MutationScore: 0.0,
+				Reason:        "No mutants generated",
+			},
+		},
+		{
+			name: "zero_score",
+			summary: &report.Summary{
+				TotalMutants:  100,
+				KilledMutants: 0,
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          false,
+				MutationScore: 0.0,
+				Reason:        "No mutants killed",
+			},
+		},
+		{
+			name: "perfect_score",
+			summary: &report.Summary{
 				TotalMutants:  50,
-				KilledMutants: 40,
+				KilledMutants: 50,
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          true,
+				MutationScore: 100.0,
+				Reason:        "Perfect score",
+			},
+		},
+		{
+			// A cmd/ file must not count toward totals or appear in the table.
+			name: "cmd_filtered",
+			summary: &report.Summary{
+				TotalMutants:  30,
+				KilledMutants: 25,
+				Files: map[string]*report.FileReport{
+					"internal/foo.go": {
+						FilePath:      "internal/foo.go",
+						TotalMutants:  20,
+						KilledMutants: 15,
+						MutationScore: 75.0,
+					},
+					"cmd/gomu/main.go": {
+						FilePath:      "cmd/gomu/main.go",
+						TotalMutants:  10,
+						KilledMutants: 10,
+						MutationScore: 100.0,
+					},
+				},
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          true,
+				MutationScore: 85.0,
+				Reason:        "Mutation score meets minimum threshold",
+			},
+		},
+		{
+			// A file path over 50 characters must be truncated in the table.
+			name: "long_path_truncated",
+			summary: &report.Summary{
+				TotalMutants:  10,
+				KilledMutants: 8,
+				Files: map[string]*report.FileReport{
+					"internal/execution/very/deeply/nested/package/path/example_file.go": {
+						FilePath:      "internal/execution/very/deeply/nested/package/path/example_file.go",
+						TotalMutants:  10,
+						KilledMutants: 8,
+						MutationScore: 80.0,
+					},
+				},
+			},
+			qualityResult: &QualityGateResult{
+				Pass:          true,
 				MutationScore: 80.0,
+				Reason:        "Mutation score meets minimum threshold",
 			},
 		},
 	}
 
-	qualityResult := &QualityGateResult{
-		Pass:          true,
-		MutationScore: 85.0,
-		Reason:        "Mutation score meets minimum threshold",
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			comment := github.formatPRComment(tt.summary, tt.qualityResult)
 
-	comment := github.formatPRComment(summary, qualityResult)
-
-	// Check that comment contains expected elements
-	expectedElements := []string{
-		"## 🧬 Mutation Testing Results",
-		"✅ **Quality Gate: PASSED**",
-		"**Overall Mutation Score:** 85.0%",
-		"| File | Score | Mutants | Killed |",
-		"example.go",
-		"utils.go",
-		"90.0%",
-		"80.0%",
-	}
-
-	for _, element := range expectedElements {
-		if !strings.Contains(comment, element) {
-			t.Errorf("Expected comment to contain '%s'", element)
-		}
-	}
-
-	// Test failed quality gate
-	qualityResult.Pass = false
-	qualityResult.Reason = "Mutation score below threshold"
-
-	comment = github.formatPRComment(summary, qualityResult)
-
-	if !strings.Contains(comment, "❌ **Quality Gate: FAILED**") {
-		t.Error("Expected failed quality gate indicator")
-	}
-
-	if !strings.Contains(comment, "Mutation score below threshold") {
-		t.Error("Expected failure reason in comment")
-	}
-}
-
-func TestGitHubIntegration_formatPRComment_EmptyFiles(t *testing.T) {
-	github := NewGitHubIntegration("token", "owner/repo", 123)
-
-	summary := &report.Summary{
-		TotalMutants:  0,
-		KilledMutants: 0,
-		Files:         map[string]*report.FileReport{},
-	}
-
-	qualityResult := &QualityGateResult{
-		Pass:          false,
-		MutationScore: 0.0,
-		Reason:        "No mutants generated",
-	}
-
-	comment := github.formatPRComment(summary, qualityResult)
-
-	if !strings.Contains(comment, "No files analyzed") {
-		t.Error("Expected 'No files analyzed' message for empty files")
+			assertGolden(t, filepath.Join("testdata", "pr_comment", tt.name+".golden"), []byte(comment))
+		})
 	}
 }
 
@@ -348,82 +436,6 @@ func TestNewGitHubIntegration(t *testing.T) {
 
 			if github.apiBase != "https://api.github.com" {
 				t.Errorf("Expected API base https://api.github.com, got %s", github.apiBase)
-			}
-		})
-	}
-}
-
-func TestGitHubIntegration_formatPRComment_NilQualityResult(t *testing.T) {
-	github := NewGitHubIntegration("token", "owner/repo", 123)
-
-	summary := &report.Summary{
-		TotalMutants:  100,
-		KilledMutants: 75,
-		Files: map[string]*report.FileReport{
-			"test.go": {
-				FilePath:      "test.go",
-				TotalMutants:  100,
-				KilledMutants: 75,
-				MutationScore: 75.0,
-			},
-		},
-	}
-
-	comment := github.formatPRComment(summary, nil)
-
-	// Should handle nil quality result gracefully
-	if !strings.Contains(comment, "75.0%") {
-		t.Error("Expected calculated mutation score in comment")
-	}
-
-	if !strings.Contains(comment, "## 🧬 Mutation Testing Results") {
-		t.Error("Expected mutation testing results header")
-	}
-}
-
-func TestGitHubIntegration_formatPRComment_EdgeCases(t *testing.T) {
-	github := NewGitHubIntegration("token", "owner/repo", 123)
-
-	tests := []struct {
-		name          string
-		summary       *report.Summary
-		qualityResult *QualityGateResult
-		expectContain string
-	}{
-		{
-			name: "zero mutation score",
-			summary: &report.Summary{
-				TotalMutants:  100,
-				KilledMutants: 0,
-			},
-			qualityResult: &QualityGateResult{
-				Pass:          false,
-				MutationScore: 0.0,
-				Reason:        "No mutants killed",
-			},
-			expectContain: "0.0%",
-		},
-		{
-			name: "perfect mutation score",
-			summary: &report.Summary{
-				TotalMutants:  50,
-				KilledMutants: 50,
-			},
-			qualityResult: &QualityGateResult{
-				Pass:          true,
-				MutationScore: 100.0,
-				Reason:        "Perfect score",
-			},
-			expectContain: "100.0%",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			comment := github.formatPRComment(tt.summary, tt.qualityResult)
-
-			if !strings.Contains(comment, tt.expectContain) {
-				t.Errorf("Expected comment to contain '%s'", tt.expectContain)
 			}
 		})
 	}
