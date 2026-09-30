@@ -22,8 +22,8 @@ import (
 //go:embed templates/mutator.go.tmpl
 var mutatorTemplate string
 
-//go:embed templates/mutator_test.go.tmpl
-var testTemplate string
+//go:embed templates/input.go.tmpl
+var inputTemplate string
 
 type mutatorData struct {
 	LowerName   string
@@ -74,10 +74,18 @@ func main() {
 		return
 	}
 
-	// Generate test file
-	testFile := filepath.Join(mutationDir, name+"_test.go")
-	if err := generateFile(testFile, testTemplate, data); err != nil {
-		fmt.Fprintf(os.Stderr, "Error generating test file: %v\n", err)
+	// Generate golden test input
+	testdataDir := filepath.Join(mutationDir, "testdata", name)
+	if err := os.MkdirAll(testdataDir, 0o750); err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating testdata directory: %v\n", err)
+		exitFunc(1)
+
+		return
+	}
+
+	inputFile := filepath.Join(testdataDir, "input.go")
+	if err := generateFile(inputFile, inputTemplate, data); err != nil {
+		fmt.Fprintf(os.Stderr, "Error generating testdata input file: %v\n", err)
 		exitFunc(1)
 
 		return
@@ -85,7 +93,7 @@ func main() {
 
 	fmt.Printf("Generated %s mutator:\n", name)
 	fmt.Printf("  - %s\n", mutatorFile)
-	fmt.Printf("  - %s\n", testFile)
+	fmt.Printf("  - %s\n", inputFile)
 
 	// Automatically regenerate registry
 	fmt.Printf("\nRegenerating registry...\n")
@@ -93,16 +101,20 @@ func main() {
 	if err := generateRegistry(mutationDir); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: Failed to regenerate registry automatically: %v\n", err)
 		fmt.Printf("\nNext steps:\n")
-		fmt.Printf("  1. Update the TODO items in %s\n", filepath.Base(mutatorFile))
-		fmt.Printf("  2. Update the test cases in %s\n", filepath.Base(testFile))
+		fmt.Printf("  1. Fill in the TODOs in %s\n", filepath.Base(mutatorFile))
+		fmt.Printf("  2. Put representative code in testdata/%s/input.go\n", name)
 		fmt.Printf("  3. Run: make generate-registry\n")
-		fmt.Printf("  4. Run: make test\n")
+		fmt.Printf("  4. Run: go test ./internal/mutation -run TestMutators/%s -update\n", name)
+		fmt.Printf("  5. Review testdata/%s/*.golden\n", name)
+		fmt.Printf("  6. Run: make test\n")
 	} else {
 		fmt.Printf("Registry updated successfully!\n")
 		fmt.Printf("\nNext steps:\n")
-		fmt.Printf("  1. Update the TODO items in %s\n", filepath.Base(mutatorFile))
-		fmt.Printf("  2. Update the test cases in %s\n", filepath.Base(testFile))
-		fmt.Printf("  3. Run: make test\n")
+		fmt.Printf("  1. Fill in the TODOs in %s\n", filepath.Base(mutatorFile))
+		fmt.Printf("  2. Put representative code in testdata/%s/input.go\n", name)
+		fmt.Printf("  3. Run: go test ./internal/mutation -run TestMutators/%s -update\n", name)
+		fmt.Printf("  4. Review testdata/%s/*.golden\n", name)
+		fmt.Printf("  5. Run: make test\n")
 	}
 }
 
