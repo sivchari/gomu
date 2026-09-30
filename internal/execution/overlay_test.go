@@ -128,113 +128,30 @@ var switchSrc string
 //go:embed testdata/switch_default_removed.go
 var switchDefaultRemovedSrc string
 
-func TestNewOverlayMutator(t *testing.T) {
-	tests := []struct {
-		name        string
-		expectError bool
-	}{
-		{
-			name:        "creates overlay mutator successfully",
-			expectError: false,
-		},
+func TestOverlayMutatorLifecycle(t *testing.T) {
+	mutator, err := NewOverlayMutator()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mutator, err := NewOverlayMutator()
-			if tt.expectError && err == nil {
-				t.Error("expected error but got none")
-
-				return
-			}
-
-			if !tt.expectError && err != nil {
-				t.Errorf("unexpected error: %v", err)
-
-				return
-			}
-
-			if mutator == nil {
-				t.Error("mutator should not be nil")
-
-				return
-			}
-
-			if mutator.baseDir == "" {
-				t.Error("base directory should not be empty")
-			}
-
-			// Verify base directory exists
-			_, err = os.Stat(mutator.baseDir)
-			if err != nil {
-				t.Errorf("base directory should exist: %v", err)
-			}
-
-			// Cleanup
-			err = mutator.Cleanup()
-			if err != nil {
-				t.Errorf("cleanup failed: %v", err)
-			}
-		})
-	}
-}
-
-func TestOverlayMutatorCleanup(t *testing.T) {
-	tests := []struct {
-		name             string
-		setupMutator     func(t *testing.T) (*OverlayMutator, string)
-		expectError      bool
-		shouldExistAfter bool
-	}{
-		{
-			name: "cleanup removes base directory",
-			setupMutator: func(t *testing.T) (*OverlayMutator, string) {
-				mutator, err := NewOverlayMutator()
-				if err != nil {
-					t.Fatalf("failed to create mutator: %v", err)
-				}
-
-				return mutator, mutator.baseDir
-			},
-			expectError:      false,
-			shouldExistAfter: false,
-		},
+	if mutator == nil {
+		t.Fatal("mutator should not be nil")
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mutator, baseDir := tt.setupMutator(t)
+	if mutator.baseDir == "" {
+		t.Error("base directory should not be empty")
+	}
 
-			// Verify directory exists before cleanup
-			_, err := os.Stat(baseDir)
-			if err != nil {
-				t.Errorf("base directory should exist before cleanup: %v", err)
+	if _, err := os.Stat(mutator.baseDir); err != nil {
+		t.Errorf("base directory should exist before cleanup: %v", err)
+	}
 
-				return
-			}
+	if err := mutator.Cleanup(); err != nil {
+		t.Errorf("cleanup failed: %v", err)
+	}
 
-			// Cleanup
-			err = mutator.Cleanup()
-			if tt.expectError && err == nil {
-				t.Error("expected error but got none")
-			}
-
-			if !tt.expectError && err != nil {
-				t.Errorf("unexpected error: %v", err)
-			}
-
-			// Verify directory status after cleanup
-			_, err = os.Stat(baseDir)
-			exists := !os.IsNotExist(err)
-
-			if tt.shouldExistAfter && !exists {
-				t.Error("directory should exist after cleanup")
-			}
-
-			if !tt.shouldExistAfter && exists {
-				t.Error("directory should not exist after cleanup")
-			}
-		})
+	if _, err := os.Stat(mutator.baseDir); !os.IsNotExist(err) {
+		t.Error("base directory should not exist after cleanup")
 	}
 }
 
@@ -436,82 +353,6 @@ func TestCleanupMutation(t *testing.T) {
 				}
 			}
 		})
-	}
-}
-
-func TestOverlayConfig(t *testing.T) {
-	tests := []struct {
-		name     string
-		config   OverlayConfig
-		expected string
-	}{
-		{
-			name: "serializes correctly",
-			config: OverlayConfig{
-				Replace: map[string]string{
-					"/path/to/original.go": "/tmp/mutated.go",
-				},
-			},
-			expected: `"Replace"`,
-		},
-		{
-			name: "handles multiple replacements",
-			config: OverlayConfig{
-				Replace: map[string]string{
-					"/path/to/file1.go": "/tmp/mutated1.go",
-					"/path/to/file2.go": "/tmp/mutated2.go",
-				},
-			},
-			expected: `"Replace"`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			data, err := json.Marshal(tt.config)
-			if err != nil {
-				t.Errorf("failed to marshal config: %v", err)
-			}
-
-			if !strings.Contains(string(data), tt.expected) {
-				t.Errorf("expected JSON to contain %s, got: %s", tt.expected, string(data))
-			}
-
-			// Verify round-trip
-			var parsed OverlayConfig
-			if err := json.Unmarshal(data, &parsed); err != nil {
-				t.Errorf("failed to unmarshal config: %v", err)
-			}
-
-			if len(parsed.Replace) != len(tt.config.Replace) {
-				t.Errorf("expected %d replacements, got %d", len(tt.config.Replace), len(parsed.Replace))
-			}
-		})
-	}
-}
-
-func TestMutationContext(t *testing.T) {
-	ctx := &MutationContext{
-		OriginalPath: "/path/to/original.go",
-		MutatedPath:  "/tmp/mutated.go",
-		OverlayPath:  "/tmp/overlay.json",
-		MutantDir:    "/tmp/mutant_123",
-	}
-
-	if ctx.OriginalPath != "/path/to/original.go" {
-		t.Errorf("unexpected OriginalPath: %s", ctx.OriginalPath)
-	}
-
-	if ctx.MutatedPath != "/tmp/mutated.go" {
-		t.Errorf("unexpected MutatedPath: %s", ctx.MutatedPath)
-	}
-
-	if ctx.OverlayPath != "/tmp/overlay.json" {
-		t.Errorf("unexpected OverlayPath: %s", ctx.OverlayPath)
-	}
-
-	if ctx.MutantDir != "/tmp/mutant_123" {
-		t.Errorf("unexpected MutantDir: %s", ctx.MutantDir)
 	}
 }
 

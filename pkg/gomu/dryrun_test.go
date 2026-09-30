@@ -79,36 +79,6 @@ func TestDryRunNoFiles(t *testing.T) {
 	})
 }
 
-func TestDryRunGeneratesMutants(t *testing.T) {
-	tempDir := t.TempDir()
-	writeFile(t, filepath.Join(tempDir, "go.mod"), testModuleContent)
-
-	file := filepath.Join(tempDir, "math.go")
-	writeFile(t, file, `package main
-
-func Add(a, b int) int {
-	return a + b
-}
-`)
-
-	engine, err := NewEngine(nil)
-	if err != nil {
-		t.Fatalf("NewEngine: %v", err)
-	}
-
-	var buf bytes.Buffer
-	if err := engine.dryRun(&buf, []string{file}, &RunOptions{}); err != nil {
-		t.Fatalf("dryRun: %v", err)
-	}
-
-	out := buf.String()
-	for _, want := range []string{"math.go", "Total:", "arithmetic"} {
-		if !strings.Contains(out, want) {
-			t.Errorf("dry-run output missing %q\n%s", want, out)
-		}
-	}
-}
-
 // TestRunDryRunSkipsExecution proves the dry-run path stops before execution and
 // reporting: with JSON output configured, a real run would write
 // mutation-report.json, but a dry run must not.
@@ -210,6 +180,14 @@ func Sub(a, b int) int {
 
 			if strings.Contains(out, "client.go") != tt.wantClient {
 				t.Errorf("client.go presence = %v, want %v; output: %q", strings.Contains(out, "client.go"), tt.wantClient, out)
+			}
+
+			if !strings.Contains(out, "Total:") {
+				t.Errorf("expected dry-run summary line, got: %q", out)
+			}
+
+			if !strings.Contains(out, "arithmetic") {
+				t.Errorf("expected arithmetic mutator name in output, got: %q", out)
 			}
 		})
 	}

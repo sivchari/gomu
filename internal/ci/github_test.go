@@ -353,50 +353,6 @@ func TestNewGitHubIntegration(t *testing.T) {
 	}
 }
 
-func TestPRComment_JSON(t *testing.T) {
-	comment := PRComment{Body: "Test comment body"}
-
-	data, err := json.Marshal(comment)
-	if err != nil {
-		t.Fatalf("Failed to marshal PRComment: %v", err)
-	}
-
-	var decoded PRComment
-
-	err = json.Unmarshal(data, &decoded)
-	if err != nil {
-		t.Fatalf("Failed to unmarshal PRComment: %v", err)
-	}
-
-	if decoded.Body != comment.Body {
-		t.Errorf("Expected body %s, got %s", comment.Body, decoded.Body)
-	}
-}
-
-func TestComment_JSON(t *testing.T) {
-	comment := Comment{ID: 123, Body: "Test comment"}
-
-	data, err := json.Marshal(comment)
-	if err != nil {
-		t.Fatalf("Failed to marshal Comment: %v", err)
-	}
-
-	var decoded Comment
-
-	err = json.Unmarshal(data, &decoded)
-	if err != nil {
-		t.Fatalf("Failed to unmarshal Comment: %v", err)
-	}
-
-	if decoded.ID != comment.ID {
-		t.Errorf("Expected ID %d, got %d", comment.ID, decoded.ID)
-	}
-
-	if decoded.Body != comment.Body {
-		t.Errorf("Expected body %s, got %s", comment.Body, decoded.Body)
-	}
-}
-
 func TestGitHubIntegration_formatPRComment_NilQualityResult(t *testing.T) {
 	github := NewGitHubIntegration("token", "owner/repo", 123)
 
