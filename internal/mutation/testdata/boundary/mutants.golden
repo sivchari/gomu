@@ -5,11 +5,13 @@
 05	5:6	boundary_value	"10" -> "11"	Replace integer literal 10 with 11
 06	5:6	boundary_value	"10" -> "9"	Replace integer literal 10 with 9
 07	6:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
-08	6:6	boundary_value	"0x10" -> "15"	Replace integer literal 0x10 with 15
-09	6:6	boundary_value	"0x10" -> "17"	Replace integer literal 0x10 with 17
+08	6:6	boundary_value	"0x10" -> "0x11"	Replace integer literal 0x10 with 0x11
+09	6:6	boundary_value	"0x10" -> "0xf"	Replace integer literal 0x10 with 0xf
 10	7:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
-11	7:6	boundary_value	"1_000" -> "1001"	Replace integer literal 1_000 with 1001
+11	7:6	boundary_value	"1_000" -> "1_001"	Replace integer literal 1_000 with 1_001
 12	7:6	boundary_value	"1_000" -> "999"	Replace integer literal 1_000 with 999
 13	8:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
 14	8:6	boundary_value	"9223372036854775807" -> "9223372036854775806"	Replace integer literal 9223372036854775807 with 9223372036854775806
-15	9:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+15	8:6	boundary_value	"9223372036854775807" -> "9223372036854775808"	Replace integer literal 9223372036854775807 with 9223372036854775808
+16	9:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+17	9:13	boundary_value	"18446744073709551615" -> "18446744073709551614"	Replace integer literal 18446744073709551615 with 18446744073709551614
