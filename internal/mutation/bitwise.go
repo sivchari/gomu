@@ -104,7 +104,7 @@ func (m *BitwiseMutator) isBitwiseOperator(op token.Token) bool {
 
 func (m *BitwiseMutator) isBitwiseAssignOperator(op token.Token) bool {
 	switch op {
-	case token.AND_ASSIGN, token.OR_ASSIGN, token.XOR_ASSIGN, token.SHL_ASSIGN, token.SHR_ASSIGN:
+	case token.AND_ASSIGN, token.OR_ASSIGN, token.XOR_ASSIGN, token.AND_NOT_ASSIGN, token.SHL_ASSIGN, token.SHR_ASSIGN:
 		return true
 	default:
 		return false
@@ -133,11 +133,13 @@ func (m *BitwiseMutator) getBitwiseMutations(op token.Token) []token.Token {
 func (m *BitwiseMutator) getBitwiseAssignMutations(op token.Token) []token.Token {
 	switch op {
 	case token.AND_ASSIGN: // &=
-		return []token.Token{token.OR_ASSIGN, token.XOR_ASSIGN}
+		return []token.Token{token.OR_ASSIGN, token.XOR_ASSIGN, token.AND_NOT_ASSIGN}
 	case token.OR_ASSIGN: // |=
-		return []token.Token{token.AND_ASSIGN, token.XOR_ASSIGN}
+		return []token.Token{token.AND_ASSIGN, token.XOR_ASSIGN, token.AND_NOT_ASSIGN}
 	case token.XOR_ASSIGN: // ^=
-		return []token.Token{token.AND_ASSIGN, token.OR_ASSIGN}
+		return []token.Token{token.AND_ASSIGN, token.OR_ASSIGN, token.AND_NOT_ASSIGN}
+	case token.AND_NOT_ASSIGN: // &^=
+		return []token.Token{token.AND_ASSIGN, token.OR_ASSIGN, token.XOR_ASSIGN}
 	case token.SHL_ASSIGN: // <<=
 		return []token.Token{token.SHR_ASSIGN}
 	case token.SHR_ASSIGN: // >>=

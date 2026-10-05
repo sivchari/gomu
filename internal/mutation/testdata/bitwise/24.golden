@@ -7,9 +7,10 @@ func bitwise(a, b uint) {
 	_ = a &^ b
 	_ = a << b
 	_ = a >> b
-	a |= b
+	a ^= b
 	a |= b
 	a ^= b
+	a &^= b
 	a <<= b
 	a >>= b
 }

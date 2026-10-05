@@ -9,41 +9,53 @@
 09	5:2	arithmetic_assign	"-=" -> "/="	Replace -= with /=
 10	5:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
 11	5:2	remove_self_assignments	"-=" -> "="	Replace -= with =
-12	6:2	arithmetic_assign	"*=" -> "+="	Replace *= with +=
-13	6:2	arithmetic_assign	"*=" -> "-="	Replace *= with -=
-14	6:2	arithmetic_assign	"*=" -> "/="	Replace *= with /=
-15	6:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
-16	6:2	remove_self_assignments	"*=" -> "="	Replace *= with =
-17	7:2	arithmetic_assign	"/=" -> "*="	Replace /= with *=
-18	7:2	arithmetic_assign	"/=" -> "+="	Replace /= with +=
-19	7:2	arithmetic_assign	"/=" -> "-="	Replace /= with -=
-20	7:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
-21	7:2	remove_self_assignments	"/=" -> "="	Replace /= with =
-22	8:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
-23	8:2	remove_self_assignments	"%=" -> "="	Replace %= with =
-24	9:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
-25	9:2	bitwise_assign	"&=" -> "^="	Replace &= with ^=
-26	9:2	bitwise_assign	"&=" -> "|="	Replace &= with |=
-27	9:2	remove_self_assignments	"&=" -> "="	Replace &= with =
-28	10:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
-29	10:2	bitwise_assign	"|=" -> "&="	Replace |= with &=
-30	10:2	bitwise_assign	"|=" -> "^="	Replace |= with ^=
-31	10:2	remove_self_assignments	"|=" -> "="	Replace |= with =
-32	11:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
-33	11:2	bitwise_assign	"^=" -> "&="	Replace ^= with &=
-34	11:2	bitwise_assign	"^=" -> "|="	Replace ^= with |=
-35	11:2	remove_self_assignments	"^=" -> "="	Replace ^= with =
-36	12:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
-37	12:2	bitwise_assign	"<<=" -> ">>="	Replace <<= with >>=
-38	12:2	remove_self_assignments	"<<=" -> "="	Replace <<= with =
-39	13:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
-40	13:2	bitwise_assign	">>=" -> "<<="	Replace >>= with <<=
-41	13:2	remove_self_assignments	">>=" -> "="	Replace >>= with =
-42	14:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
-43	14:2	remove_self_assignments	"&^=" -> "="	Replace &^= with =
-44	15:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
-45	15:6	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
-46	15:6	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
-47	16:7	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
-48	16:7	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
-49	18:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement
+12	6:2	arithmetic_assign	"*=" -> "%="	Replace *= with %=
+13	6:2	arithmetic_assign	"*=" -> "+="	Replace *= with +=
+14	6:2	arithmetic_assign	"*=" -> "-="	Replace *= with -=
+15	6:2	arithmetic_assign	"*=" -> "/="	Replace *= with /=
+16	6:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+17	6:2	remove_self_assignments	"*=" -> "="	Replace *= with =
+18	7:2	arithmetic_assign	"/=" -> "%="	Replace /= with %=
+19	7:2	arithmetic_assign	"/=" -> "*="	Replace /= with *=
+20	7:2	arithmetic_assign	"/=" -> "+="	Replace /= with +=
+21	7:2	arithmetic_assign	"/=" -> "-="	Replace /= with -=
+22	7:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+23	7:2	remove_self_assignments	"/=" -> "="	Replace /= with =
+24	8:2	arithmetic_assign	"%=" -> "*="	Replace %= with *=
+25	8:2	arithmetic_assign	"%=" -> "+="	Replace %= with +=
+26	8:2	arithmetic_assign	"%=" -> "-="	Replace %= with -=
+27	8:2	arithmetic_assign	"%=" -> "/="	Replace %= with /=
+28	8:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+29	8:2	remove_self_assignments	"%=" -> "="	Replace %= with =
+30	9:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+31	9:2	bitwise_assign	"&=" -> "&^="	Replace &= with &^=
+32	9:2	bitwise_assign	"&=" -> "^="	Replace &= with ^=
+33	9:2	bitwise_assign	"&=" -> "|="	Replace &= with |=
+34	9:2	remove_self_assignments	"&=" -> "="	Replace &= with =
+35	10:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+36	10:2	bitwise_assign	"|=" -> "&="	Replace |= with &=
+37	10:2	bitwise_assign	"|=" -> "&^="	Replace |= with &^=
+38	10:2	bitwise_assign	"|=" -> "^="	Replace |= with ^=
+39	10:2	remove_self_assignments	"|=" -> "="	Replace |= with =
+40	11:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+41	11:2	bitwise_assign	"^=" -> "&="	Replace ^= with &=
+42	11:2	bitwise_assign	"^=" -> "&^="	Replace ^= with &^=
+43	11:2	bitwise_assign	"^=" -> "|="	Replace ^= with |=
+44	11:2	remove_self_assignments	"^=" -> "="	Replace ^= with =
+45	12:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+46	12:2	bitwise_assign	"<<=" -> ">>="	Replace <<= with >>=
+47	12:2	remove_self_assignments	"<<=" -> "="	Replace <<= with =
+48	13:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+49	13:2	bitwise_assign	">>=" -> "<<="	Replace >>= with <<=
+50	13:2	remove_self_assignments	">>=" -> "="	Replace >>= with =
+51	14:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+52	14:2	bitwise_assign	"&^=" -> "&="	Replace &^= with &=
+53	14:2	bitwise_assign	"&^=" -> "^="	Replace &^= with ^=
+54	14:2	bitwise_assign	"&^=" -> "|="	Replace &^= with |=
+55	14:2	remove_self_assignments	"&^=" -> "="	Replace &^= with =
+56	15:2	assignment_removal	"x" -> "<removed>"	Remove assignment statement
+57	15:6	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
+58	15:6	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
+59	16:7	boundary_value	"1" -> "0"	Replace integer literal 1 with 0
+60	16:7	boundary_value	"1" -> "2"	Replace integer literal 1 with 2
+61	18:2	assignment_removal	"_" -> "<removed>"	Remove assignment statement

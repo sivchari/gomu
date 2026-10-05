@@ -65,8 +65,9 @@ func (m *BoundaryValueMutator) Mutate(node ast.Node, fset *token.FileSet) []Muta
 
 	var mutants []Mutant
 
-	// N -> N+1 (skip on overflow).
-	if value != math.MaxUint64 {
+	// N -> N+1. MaxInt64+1 is skipped as well: without type information the
+	// literal is assumed to be an int, where it would not compile.
+	if value != math.MaxUint64 && value != math.MaxInt64 {
 		mutants = append(mutants, m.newMutant(lit.Value, formatIntLit(lit.Value, value+1), pos))
 	}
 

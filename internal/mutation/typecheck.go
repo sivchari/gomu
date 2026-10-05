@@ -291,7 +291,12 @@ func (tc *TypeChecker) isArithmeticOpValidForType(t types.Type, op string) bool 
 			return op == "+"
 		}
 
-		// Numeric types: all arithmetic operators are valid
+		// Float and complex types: % is not defined
+		if info&(types.IsFloat|types.IsComplex) != 0 {
+			return op != "%"
+		}
+
+		// Integer types: all arithmetic operators are valid
 		if info&types.IsNumeric != 0 {
 			return true
 		}
