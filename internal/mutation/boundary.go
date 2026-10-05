@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"math"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -19,6 +20,10 @@ const (
 // Relational operator boundary shifts (e.g. < -> <=) are already covered by
 // the conditional mutator, so this mutator focuses on the literal side of the
 // boundary to avoid generating duplicate mutants.
+//
+// Mutants keep the literal's base prefix and case (0x10 -> 0x11, 0X10 -> 0X11)
+// and digit separators on decimal literals (1_000 -> 1_001); literals up to the
+// uint64 maximum are mutated.
 type BoundaryValueMutator struct {
 }
 
@@ -61,14 +66,14 @@ func (m *BoundaryValueMutator) Mutate(node ast.Node, fset *token.FileSet) []Muta
 	var mutants []Mutant
 
 	// N -> N+1 (skip on overflow).
-	if value != math.MaxInt64 {
-		mutants = append(mutants, m.newMutant(lit.Value, strconv.FormatInt(value+1, 10), pos))
+	if value != math.MaxUint64 {
+		mutants = append(mutants, m.newMutant(lit.Value, formatIntLit(lit.Value, value+1), pos))
 	}
 
 	// N -> N-1 (skip when the result would become a negative literal, which is
 	// not representable as a single integer literal in the AST).
 	if value >= 1 {
-		mutants = append(mutants, m.newMutant(lit.Value, strconv.FormatInt(value-1, 10), pos))
+		mutants = append(mutants, m.newMutant(lit.Value, formatIntLit(lit.Value, value-1), pos))
 	}
 
 	return mutants
@@ -106,13 +111,48 @@ func (m *BoundaryValueMutator) Apply(node ast.Node, mutant Mutant) bool {
 }
 
 // parseIntLit parses a Go integer literal (supporting base prefixes and digit
-// separators) into an int64. It reports false when the literal cannot be
-// represented as an int64.
-func parseIntLit(s string) (int64, bool) {
-	value, err := strconv.ParseInt(s, 0, 64)
+// separators) into a uint64. It reports false when the literal exceeds uint64.
+func parseIntLit(s string) (uint64, bool) {
+	value, err := strconv.ParseUint(s, 0, 64)
 	if err != nil {
 		return 0, false
 	}
 
 	return value, true
+}
+
+// formatIntLit formats n using the base prefix, prefix case and (for decimal
+// literals) digit separators of the original literal.
+func formatIntLit(original string, n uint64) string {
+	if len(original) > 2 && original[0] == '0' {
+		prefix := original[:2]
+
+		switch prefix {
+		case "0x":
+			return prefix + strconv.FormatUint(n, 16)
+		case "0X":
+			return prefix + strings.ToUpper(strconv.FormatUint(n, 16))
+		case "0o", "0O":
+			return prefix + strconv.FormatUint(n, 8)
+		case "0b", "0B":
+			return prefix + strconv.FormatUint(n, 2)
+		}
+	}
+
+	digits := strconv.FormatUint(n, 10)
+	if !strings.Contains(original, "_") {
+		return digits
+	}
+
+	var b strings.Builder
+
+	for i, d := range digits {
+		if i > 0 && (len(digits)-i)%3 == 0 {
+			b.WriteByte('_')
+		}
+
+		b.WriteRune(d)
+	}
+
+	return b.String()
 }
