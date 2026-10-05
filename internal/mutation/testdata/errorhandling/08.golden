@@ -13,7 +13,9 @@ func withTypedErr() error {
 }
 
 func withInts() (int, int) {
+	x, y := 2, 2
 
+	return x, y
 }
 
 func withNilErr(n int) (int, error) {

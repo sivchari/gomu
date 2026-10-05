@@ -25,5 +25,5 @@ func returnIdentNil(x int) (int, error) {
 }
 
 func returnTwo() (int, string) {
-	return 0, "a"
+	return 1, "a"
 }

@@ -9,11 +9,11 @@ func withErr() (int, error) {
 func withTypedErr() error {
 	acquireErr := error(nil)
 
-	return nil
+	return acquireErr
 }
 
 func withInts() (int, int) {
-	x, y := 1, 2
+	x, y := 0, 2
 
 	return x, y
 }
