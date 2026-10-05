@@ -3,13 +3,13 @@ package sample
 func withErr() (int, error) {
 	var err error
 
-	return 1, err
+	return 0, err
 }
 
 func withTypedErr() error {
 	acquireErr := error(nil)
 
-	return acquireErr
+	return nil
 }
 
 func withInts() (int, int) {

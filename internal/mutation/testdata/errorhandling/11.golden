@@ -13,11 +13,11 @@ func withTypedErr() error {
 }
 
 func withInts() (int, int) {
-	x, y := 1, 1
+	x, y := 1, 2
 
 	return x, y
 }
 
 func withNilErr(n int) (int, error) {
-	return n, nil
+
 }

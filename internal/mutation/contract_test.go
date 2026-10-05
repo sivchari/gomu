@@ -179,15 +179,12 @@ func checkRejects(t *testing.T, m Mutator, n ast.Node, mutant Mutant) {
 }
 
 // mutatorsWithKnownOverGeneration lists mutators whose Mutate ignores their
-// own CanMutate filtering for some node shapes: ReturnMutator flips any
-// *ast.Ident result regardless of whether its name is true/false,
-// LogicalMutator's not-removal fires on any *ast.UnaryExpr regardless of
+// own CanMutate filtering for some node shapes: LogicalMutator's not-removal fires on any *ast.UnaryExpr regardless of
 // operator, and BranchMutator regenerates both branch_condition mutants even
 // when the condition is already a bool literal. These are pre-existing
 // production bugs (see research-refactor-golden-tests.md) tracked
 // separately, not covered by this contract.
 var mutatorsWithKnownOverGeneration = map[string]bool{
-	returnMutatorName:  true,
 	logicalMutatorName: true,
 	branchMutatorName:  true,
 }
@@ -195,12 +192,10 @@ var mutatorsWithKnownOverGeneration = map[string]bool{
 // mutatorsWithUnvalidatedApply lists mutators whose Apply mutates a node
 // once mutant.Original matches a string it computes from the node, without
 // checking that the node is one it would itself claim via CanMutate:
-// ReturnMutator.applyBoolIdent renames any *ast.Ident whose name equals
-// mutant.Original (not just true/false idents), and BranchMutator.Apply
-// overwrites any *ast.IfStmt's Cond without comparing it to
-// mutant.Original at all. Pre-existing production bugs, not covered here.
+// BranchMutator.Apply overwrites any *ast.IfStmt's Cond without comparing
+// it to mutant.Original at all. Pre-existing production bug, not covered
+// here.
 var mutatorsWithUnvalidatedApply = map[string]bool{
-	returnMutatorName: true,
 	branchMutatorName: true,
 }
 

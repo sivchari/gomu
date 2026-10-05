@@ -14,6 +14,5 @@
 14	23:41	empty_block	"{...}" -> "{}"	Remove all statements in block
 15	27:32	empty_block	"{...}" -> "{}"	Remove all statements in block
 16	28:2	return_zero_value	"\"a\"" -> "\"\""	Replace return "a" with return ""
-17	28:2	return_zero_value	"0" -> "0"	Replace return 0 with return 0
-18	28:9	boundary_value	"0" -> "1"	Replace integer literal 0 with 1
-19	28:12	string_literal	"\"a\"" -> "\"\""	Replace string literal "a" with ""
+17	28:9	boundary_value	"0" -> "1"	Replace integer literal 0 with 1
+18	28:12	string_literal	"\"a\"" -> "\"\""	Replace string literal "a" with ""
