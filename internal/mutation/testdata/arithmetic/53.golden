@@ -12,6 +12,7 @@ func arithmetic(a, b int, f, g float64, s, t string) {
 	a -= b
 	a *= b
 	a /= b
+	a += b
 	a++
-	a++
+	a--
 }

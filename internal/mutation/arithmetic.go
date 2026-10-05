@@ -53,7 +53,7 @@ func (m *ArithmeticMutator) isArithmeticOp(op token.Token) bool {
 
 func (m *ArithmeticMutator) isArithmeticAssignOp(op token.Token) bool {
 	switch op {
-	case token.ADD_ASSIGN, token.SUB_ASSIGN, token.MUL_ASSIGN, token.QUO_ASSIGN:
+	case token.ADD_ASSIGN, token.SUB_ASSIGN, token.MUL_ASSIGN, token.QUO_ASSIGN, token.REM_ASSIGN:
 		return true
 	default:
 		return false
@@ -170,9 +170,11 @@ func (m *ArithmeticMutator) getAssignMutations(op token.Token) []token.Token {
 	case token.SUB_ASSIGN:
 		return []token.Token{token.ADD_ASSIGN, token.MUL_ASSIGN, token.QUO_ASSIGN}
 	case token.MUL_ASSIGN:
-		return []token.Token{token.ADD_ASSIGN, token.SUB_ASSIGN, token.QUO_ASSIGN}
+		return []token.Token{token.ADD_ASSIGN, token.SUB_ASSIGN, token.QUO_ASSIGN, token.REM_ASSIGN}
 	case token.QUO_ASSIGN:
-		return []token.Token{token.ADD_ASSIGN, token.SUB_ASSIGN, token.MUL_ASSIGN}
+		return []token.Token{token.ADD_ASSIGN, token.SUB_ASSIGN, token.MUL_ASSIGN, token.REM_ASSIGN}
+	case token.REM_ASSIGN:
+		return []token.Token{token.ADD_ASSIGN, token.SUB_ASSIGN, token.MUL_ASSIGN, token.QUO_ASSIGN}
 	default:
 		return nil
 	}

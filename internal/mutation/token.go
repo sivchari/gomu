@@ -80,6 +80,8 @@ func stringToToken(s string) token.Token {
 		return token.OR_ASSIGN
 	case "^=":
 		return token.XOR_ASSIGN
+	case "&^=":
+		return token.AND_NOT_ASSIGN
 	case "<<=":
 		return token.SHL_ASSIGN
 	case ">>=":

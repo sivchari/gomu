@@ -1,0 +1,19 @@
+package sample
+
+func removeSelfAssignments(x, y int) {
+	x += y
+	x -= y
+	x *= y
+	x /= y
+	x %= y
+	x &= y
+	x |= y
+	x ^= y
+	x <<= y
+	x >>= y
+	x &^= y
+	x = 2
+	w := 1
+
+	_ = w
+}
