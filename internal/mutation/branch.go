@@ -40,7 +40,7 @@ func (m *BranchMutator) CanMutate(node ast.Node) bool {
 // Mutate generates mutants for the given node.
 func (m *BranchMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
 	stmt, ok := node.(*ast.IfStmt)
-	if !ok {
+	if !ok || isBoolLiteral(stmt.Cond) {
 		return nil
 	}
 
@@ -74,7 +74,7 @@ func (m *BranchMutator) Apply(node ast.Node, mutant Mutant) bool {
 		return false
 	}
 
-	if mutant.Type != branchConditionType {
+	if mutant.Type != branchConditionType || isBoolLiteral(stmt.Cond) || exprToString(stmt.Cond) != mutant.Original {
 		return false
 	}
 

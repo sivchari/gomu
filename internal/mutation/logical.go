@@ -47,7 +47,7 @@ func (m *LogicalMutator) Mutate(node ast.Node, fset *token.FileSet) []Mutant {
 		return m.mutateBinaryExpr(n, pos)
 	}
 
-	if n, ok := node.(*ast.UnaryExpr); ok {
+	if n, ok := node.(*ast.UnaryExpr); ok && n.Op == token.NOT {
 		return m.mutateUnaryExpr(n, pos)
 	}
 
