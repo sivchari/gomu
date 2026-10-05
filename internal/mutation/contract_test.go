@@ -131,14 +131,12 @@ func checkNodeContract(t *testing.T, m Mutator, src []byte, n ast.Node, fset *to
 
 	if !m.CanMutate(n) {
 		mutants := m.Mutate(n, fset)
-		if len(mutants) != 0 && !mutatorsWithKnownOverGeneration[m.Name()] {
+		if len(mutants) != 0 {
 			t.Errorf("%T: CanMutate false but Mutate returned %d mutants", n, len(mutants))
 		}
 
-		if !mutatorsWithUnvalidatedApply[m.Name()] {
-			for _, mutant := range representative {
-				checkRejects(t, m, n, mutant)
-			}
+		for _, mutant := range representative {
+			checkRejects(t, m, n, mutant)
 		}
 
 		return
@@ -176,27 +174,6 @@ func checkRejects(t *testing.T, m Mutator, n ast.Node, mutant Mutant) {
 			t.Errorf("%T: ApplyWithCursor(n, %+v) called replace, want no call", n, mutant)
 		}
 	}
-}
-
-// mutatorsWithKnownOverGeneration lists mutators whose Mutate ignores their
-// own CanMutate filtering for some node shapes: LogicalMutator's not-removal fires on any *ast.UnaryExpr regardless of
-// operator, and BranchMutator regenerates both branch_condition mutants even
-// when the condition is already a bool literal. These are pre-existing
-// production bugs (see research-refactor-golden-tests.md) tracked
-// separately, not covered by this contract.
-var mutatorsWithKnownOverGeneration = map[string]bool{
-	logicalMutatorName: true,
-	branchMutatorName:  true,
-}
-
-// mutatorsWithUnvalidatedApply lists mutators whose Apply mutates a node
-// once mutant.Original matches a string it computes from the node, without
-// checking that the node is one it would itself claim via CanMutate:
-// BranchMutator.Apply overwrites any *ast.IfStmt's Cond without comparing
-// it to mutant.Original at all. Pre-existing production bug, not covered
-// here.
-var mutatorsWithUnvalidatedApply = map[string]bool{
-	branchMutatorName: true,
 }
 
 // nodeSpan identifies an AST node by its source extent, independent of any
