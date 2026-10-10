@@ -234,6 +234,96 @@ func TestGenerateJSON(t *testing.T) {
 	}
 }
 
+func TestGenerateJSON_KilledMutants(t *testing.T) {
+	tests := []struct {
+		name          string
+		statuses      []mutation.Status
+		initialKilled int
+		wantKilled    int
+	}{
+		{
+			name: "mixed results",
+			statuses: []mutation.Status{
+				mutation.StatusKilled,
+				mutation.StatusKilled,
+				mutation.StatusKilled,
+				mutation.StatusSurvived,
+				mutation.StatusTimedOut,
+				mutation.StatusError,
+				mutation.StatusNotViable,
+			},
+			wantKilled: 3,
+		},
+		{
+			name: "no killed mutants",
+			statuses: []mutation.Status{
+				mutation.StatusSurvived,
+				mutation.StatusTimedOut,
+				mutation.StatusError,
+				mutation.StatusNotViable,
+			},
+			initialKilled: 7,
+		},
+		{
+			name:          "empty results",
+			initialKilled: 7,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Chdir(t.TempDir())
+
+			generator, err := New("json")
+			if err != nil {
+				t.Fatalf("Failed to create generator: %v", err)
+			}
+
+			summary := &Summary{
+				TotalMutants:  len(tt.statuses),
+				KilledMutants: tt.initialKilled,
+			}
+			for _, status := range tt.statuses {
+				summary.Results = append(summary.Results, mutation.Result{Status: status})
+			}
+
+			if err := generator.Generate(summary); err != nil {
+				t.Fatalf("Failed to generate JSON report: %v", err)
+			}
+
+			data, err := os.ReadFile("mutation-report.json")
+			if err != nil {
+				t.Fatalf("Failed to read output file: %v", err)
+			}
+
+			var parsedSummary Summary
+			if err := json.Unmarshal(data, &parsedSummary); err != nil {
+				t.Fatalf("Failed to parse JSON output: %v", err)
+			}
+
+			killedResults := 0
+
+			for _, result := range parsedSummary.Results {
+				if result.Status == mutation.StatusKilled {
+					killedResults++
+				}
+			}
+
+			if parsedSummary.KilledMutants != tt.wantKilled {
+				t.Errorf("Expected killedMutants %d, got %d", tt.wantKilled, parsedSummary.KilledMutants)
+			}
+
+			if parsedSummary.KilledMutants != parsedSummary.Statistics.Killed {
+				t.Errorf("killedMutants %d differs from statistics.killed %d", parsedSummary.KilledMutants, parsedSummary.Statistics.Killed)
+			}
+
+			if parsedSummary.KilledMutants != killedResults {
+				t.Errorf("killedMutants %d differs from KILLED result count %d", parsedSummary.KilledMutants, killedResults)
+			}
+		})
+	}
+}
+
 func TestGenerateText(t *testing.T) {
 	generator, err := New("text")
 	if err != nil {
