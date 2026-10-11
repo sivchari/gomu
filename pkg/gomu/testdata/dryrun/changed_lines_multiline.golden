@@ -1,0 +1,15 @@
+Dry run: analyzing 1 file(s) (no mutations will be executed)
+
+source.go (9 mutants)
+  Changed lines: 10-10
+  L7:25  L7-13   empty_block     Remove all statements in block
+  L8:2   L8-11   branch          Replace branch condition "x > 0" with true
+  L8:2   L8-11   branch          Replace branch condition "x > 0" with false
+  L8:11  L8-11   empty_block     Remove all statements in block
+  L9:10  L9-10   arithmetic      Replace + with -
+  L9:10  L9-10   arithmetic      Replace + with *
+  L9:10  L9-10   arithmetic      Replace + with /
+  L10:4  L10-10  boundary_value  Replace integer literal 2 with 3
+  L10:4  L10-10  boundary_value  Replace integer literal 2 with 1
+
+Total: 9 mutant(s) across 1 file(s)

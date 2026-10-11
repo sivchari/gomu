@@ -309,7 +309,20 @@ func TestChangedLinesUsesBaseSHAAndBuildTags(t *testing.T) {
 }
 
 func TestChangedLinesConservativeOverlap(t *testing.T) {
+	packageDir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	dir := setupChangedLinesRun(t, "return x + 2")
+	// Match Git's physical paths when the temporary directory uses a symlink.
+	dir, err = filepath.EvalSymlinks(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Chdir(dir)
+
 	base := `package example
 
 func Legacy(x int) int {
@@ -334,22 +347,11 @@ func Updated(x int) int {
 
 	opts := &RunOptions{ChangedLines: true, Incremental: true, DryRun: true, BaseBranch: "HEAD~1"}
 
-	out, err := runChangedLinesEngine(t, opts)
+	multilineOut, err := runChangedLinesEngine(t, opts)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for _, want := range []string{"Changed lines: 10-10", "L9-10", "L8-11", "L7-13", "arithmetic", "branch", "empty_block"} {
-		if !strings.Contains(out, want) {
-			t.Errorf("missing %q: %s", want, out)
-		}
-	}
-
-	for _, unwanted := range []string{"L3:", "L4:", "L12:", "conditional"} {
-		if strings.Contains(out, unwanted) {
-			t.Errorf("unchanged node selected (%q): %s", unwanted, out)
-		}
-	}
 	// A comment-only edit inside the if selects its containing nodes, but
 	// does not select the unchanged expression on the following lines.
 	data, err := os.ReadFile(path)
@@ -361,12 +363,16 @@ func Updated(x int) int {
 	runChangedLinesGit(t, dir, "add", "source.go")
 	runChangedLinesGit(t, dir, "commit", "-m", "comment fixture")
 
-	out, err = runChangedLinesEngine(t, opts)
+	commentOut, err := runChangedLinesEngine(t, opts)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !strings.Contains(out, "branch") || !strings.Contains(out, "empty_block") || strings.Contains(out, "arithmetic") {
-		t.Errorf("comment overlap selection: %s", out)
-	}
+	t.Chdir(packageDir)
+	t.Run("multiline", func(t *testing.T) {
+		assertGolden(t, filepath.Join("testdata", "dryrun", "changed_lines_multiline.golden"), []byte(multilineOut))
+	})
+	t.Run("comment", func(t *testing.T) {
+		assertGolden(t, filepath.Join("testdata", "dryrun", "changed_lines_comment.golden"), []byte(commentOut))
+	})
 }
