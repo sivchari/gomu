@@ -110,19 +110,19 @@ func TestGetChangedLinesTargetAndWorktree(t *testing.T) {
 	}
 
 	for _, root := range []string{dir, worktree} {
-		t.Run(root, func(t *testing.T) {
-			target := filepath.Join(root, "sub")
+		for _, target := range []string{filepath.Join(root, "sub"), filepath.Join(root, "sub", "file.go")} {
+			t.Run(target, func(t *testing.T) {
+				got, err := NewGitIntegration(target).GetChangedLines("main")
+				if err != nil {
+					t.Fatal(err)
+				}
 
-			got, err := NewGitIntegration(target).GetChangedLines("main")
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			want := map[string][]LineRange{filepath.Join(target, "file.go"): {{Start: 1, End: 2}}}
-			if !reflect.DeepEqual(got, want) {
-				t.Errorf("ranges = %#v, want %#v", got, want)
-			}
-		})
+				want := map[string][]LineRange{filepath.Join(root, "sub", "file.go"): {{Start: 1, End: 2}}}
+				if !reflect.DeepEqual(got, want) {
+					t.Errorf("ranges = %#v, want %#v", got, want)
+				}
+			})
+		}
 	}
 }
 
