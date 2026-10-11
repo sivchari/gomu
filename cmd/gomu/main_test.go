@@ -189,6 +189,31 @@ func TestRunRejectsConflictingTestArgs(t *testing.T) {
 	}
 }
 
+func TestRunChangedLinesFlags(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		args []string
+		want string
+	}{
+		{name: "conflict", args: []string{"--changed-lines", "--incremental=false"}, want: "--incremental=false"},
+		{name: "requires Git", args: []string{"--changed-lines", "--dry-run"}, want: "Git repository"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Chdir(t.TempDir())
+
+			cmd := newRunCommand()
+			cmd.SetArgs(tt.args)
+			cmd.SetOut(new(bytes.Buffer))
+			cmd.SetErr(new(bytes.Buffer))
+
+			err := cmd.Execute()
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("error = %v, want %q", err, tt.want)
+			}
+		})
+	}
+}
+
 func TestRunListWarnsIgnoredFlags(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -196,6 +221,12 @@ func TestRunListWarnsIgnoredFlags(t *testing.T) {
 		wantWarning bool
 		wantFlag    string
 	}{
+		{
+			name:        "list with changed-lines warns about ignored flag",
+			args:        []string{"run", "--list", "--changed-lines"},
+			wantWarning: true,
+			wantFlag:    "--changed-lines",
+		},
 		{
 			name:        "list alone produces no warning",
 			args:        []string{"run", "--list"},

@@ -73,6 +73,7 @@ check that precedes it):
 	cmd.Flags().Int("workers", 4, "number of parallel workers")
 	cmd.Flags().Int("timeout", 30, "test timeout in seconds")
 	cmd.Flags().Bool("incremental", true, "skip files unchanged since the last run; false runs all files, ignoring history")
+	cmd.Flags().Bool("changed-lines", false, "restrict mutations to committed changed lines (requires incremental analysis)")
 	cmd.Flags().String("base-branch", "main", "base branch for incremental analysis")
 	cmd.Flags().String("base-sha", "", "base commit SHA for incremental analysis; when set, changed files are computed with a tree diff against it, so no git history is needed")
 	cmd.Flags().Bool("include-generated", false, "include files marked with the standard Go generated-code comment as mutation targets")
@@ -152,6 +153,7 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 	timeout, _ := cmd.Flags().GetInt("timeout")
 	output, _ := cmd.Flags().GetString("output")
 	incremental, _ := cmd.Flags().GetBool("incremental")
+	changedLines, _ := cmd.Flags().GetBool("changed-lines")
 	baseBranch, _ := cmd.Flags().GetString("base-branch")
 	baseSHA, _ := cmd.Flags().GetString("base-sha")
 	threshold, _ := cmd.Flags().GetFloat64("threshold")
@@ -186,6 +188,7 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 		Timeout:          timeout,
 		Output:           output,
 		Incremental:      incremental,
+		ChangedLines:     changedLines,
 		BaseBranch:       baseBranch,
 		BaseSHA:          baseSHA,
 		Threshold:        threshold,
@@ -212,7 +215,7 @@ func runMutationTesting(cmd *cobra.Command, args []string) error {
 // warnIgnoredFlags warns on stderr about flags the user explicitly set that
 // --list ignores, since --list exits before those flags take effect.
 func warnIgnoredFlags(cmd *cobra.Command) {
-	ignorable := []string{"dry-run", "ci-mode", "threshold", "output", "fail-on-gate", "workers", "timeout", "incremental", "base-branch", "base-sha", "include-generated"}
+	ignorable := []string{"dry-run", "ci-mode", "threshold", "output", "fail-on-gate", "workers", "timeout", "incremental", "changed-lines", "base-branch", "base-sha", "include-generated"}
 
 	var ignored []string
 
