@@ -690,6 +690,37 @@ func TestConvertToCISummary(t *testing.T) {
 	}
 }
 
+func TestConvertToCISummary_ExcludesNotViableFromFileScore(t *testing.T) {
+	results := []mutation.Result{
+		{Mutant: mutation.Mutant{FilePath: "a.go"}, Status: mutation.StatusKilled},
+		{Mutant: mutation.Mutant{FilePath: "a.go"}, Status: mutation.StatusSurvived},
+		{Mutant: mutation.Mutant{FilePath: "a.go"}, Status: mutation.StatusNotViable},
+		{Mutant: mutation.Mutant{FilePath: "a.go"}, Status: mutation.StatusNotViable},
+		{Mutant: mutation.Mutant{FilePath: "b.go"}, Status: mutation.StatusNotViable},
+	}
+
+	ciSummary := (&Engine{}).convertToCISummary(&report.Summary{Results: results})
+
+	a := ciSummary.Files["a.go"]
+	if a == nil {
+		t.Fatal("a.go missing from CI summary")
+	}
+
+	if a.NotViable != 2 {
+		t.Errorf("a.go NotViable = %d, want 2", a.NotViable)
+	}
+
+	// 1 killed of 2 viable (4 total - 2 not viable) = 50%, not 1/4 = 25%.
+	if math.Abs(a.MutationScore-50.0) > 1e-9 {
+		t.Errorf("a.go MutationScore = %v, want 50", a.MutationScore)
+	}
+
+	b := ciSummary.Files["b.go"]
+	if b == nil || b.NotViable != 1 || b.MutationScore != 0 {
+		t.Errorf("b.go must report NotViable 1 and score 0, got %+v", b)
+	}
+}
+
 func TestSetDefaultOptions(t *testing.T) {
 	tests := []struct {
 		name            string

@@ -646,6 +646,40 @@ func TestCalculateStatistics_UnknownMutationType(t *testing.T) {
 	}
 }
 
+func TestMutationScore(t *testing.T) {
+	tests := []struct {
+		name      string
+		killed    int
+		total     int
+		notViable int
+		want      float64
+	}{
+		{name: "no not-viable mutants", killed: 3, total: 4, notViable: 0, want: 75.0},
+		{name: "not-viable mutants leave the denominator", killed: 71, total: 191, notViable: 12, want: 71.0 / 179.0 * 100},
+		{name: "all killed", killed: 5, total: 5, notViable: 0, want: 100.0},
+		{name: "no mutants", killed: 0, total: 0, notViable: 0, want: 0},
+		{name: "every mutant not viable", killed: 0, total: 3, notViable: 3, want: 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := MutationScore(tt.killed, tt.total, tt.notViable)
+			if math.Abs(got-tt.want) > 1e-9 {
+				t.Errorf("MutationScore(%d, %d, %d) = %v, want %v", tt.killed, tt.total, tt.notViable, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMutationScore_NotViableChangesResult(t *testing.T) {
+	without := MutationScore(71, 191, 0)
+	with := MutationScore(71, 191, 12)
+
+	if with <= without {
+		t.Errorf("excluding not-viable mutants must raise the score: without=%v with=%v", without, with)
+	}
+}
+
 func TestCalculateStatistics_AllNotViable(t *testing.T) {
 	generator, err := New("json")
 	if err != nil {
