@@ -61,8 +61,25 @@ func (g *GitIntegration) GetChangedFiles(baseBranch string) ([]string, error) {
 
 	mergeBase := strings.TrimSpace(string(mergeBaseOutput))
 
-	// Get changed files since merge base
-	diffCmd := exec.CommandContext(ctx, "git", "diff", "--name-only", mergeBase, "HEAD")
+	return g.changedGoFiles(ctx, mergeBase)
+}
+
+// GetChangedFilesSince returns the Go files changed between baseSHA and HEAD.
+//
+// It compares the two trees directly, so it works on a shallow clone as long
+// as baseSHA itself has been fetched.
+func (g *GitIntegration) GetChangedFilesSince(baseSHA string) ([]string, error) {
+	if !g.IsGitRepository() {
+		return nil, fmt.Errorf("not a git repository")
+	}
+
+	return g.changedGoFiles(context.Background(), baseSHA)
+}
+
+// changedGoFiles returns the eligible Go source files changed between rev and HEAD
+// as absolute paths.
+func (g *GitIntegration) changedGoFiles(ctx context.Context, rev string) ([]string, error) {
+	diffCmd := exec.CommandContext(ctx, "git", "diff", "--name-only", rev, "HEAD")
 	diffCmd.Dir = g.workDir
 
 	output, err := diffCmd.Output()

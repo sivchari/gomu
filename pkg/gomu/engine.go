@@ -41,6 +41,7 @@ type RunOptions struct {
 	Output      string
 	Incremental bool
 	BaseBranch  string
+	BaseSHA     string // Commit to diff against for incremental analysis; takes precedence over BaseBranch
 	Threshold   float64
 	FailOnGate  bool
 	Verbose     bool
@@ -264,6 +265,7 @@ func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions, ig
 	}
 
 	e.incrementalAnalyzer.SetIncludeGenerated(opts.IncludeGenerated)
+	e.incrementalAnalyzer.SetBaseSHA(opts.BaseSHA)
 
 	// Perform incremental analysis
 	analysisResults, err := e.incrementalAnalyzer.AnalyzeFiles()
@@ -471,7 +473,12 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 func (e *Engine) dryRun(w io.Writer, files []string, opts *RunOptions) error {
 	if len(files) == 0 {
 		if opts.Incremental {
-			fmt.Fprintf(w, "Dry run: no files to analyze (no changes since %s; use --incremental=false to preview all files)\n", opts.BaseBranch)
+			base := opts.BaseBranch
+			if opts.BaseSHA != "" {
+				base = opts.BaseSHA
+			}
+
+			fmt.Fprintf(w, "Dry run: no files to analyze (no changes since %s; use --incremental=false to preview all files)\n", base)
 		} else {
 			fmt.Fprintln(w, "Dry run: no files to analyze")
 		}
