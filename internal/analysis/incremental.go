@@ -200,27 +200,15 @@ func (a *IncrementalAnalyzer) analyzeFile(filePath string) (FileAnalysisResult, 
 
 // hasTestFilesChanged checks if test files related to the given file have changed.
 func (a *IncrementalAnalyzer) hasTestFilesChanged(filePath string) bool {
-	// Find related test files
-	testFiles := FindRelatedTestFiles(filePath)
+	currentHash := a.hasher.HashRelatedTests(filePath)
 
-	for _, testFile := range testFiles {
-		if _, err := os.Stat(testFile); os.IsNotExist(err) {
-			continue
-		}
-
-		currentHash, err := a.hasher.HashFile(testFile)
-		if err != nil {
-			continue
-		}
-
-		// Check if test file hash has changed
-		entry, exists := a.history.GetEntry(filePath)
-		if !exists || entry.TestHash != currentHash {
-			return true
-		}
+	entry, exists := a.history.GetEntry(filePath)
+	if !exists {
+		// Nothing to compare against; only a file that has tests counts as changed.
+		return currentHash != ""
 	}
 
-	return false
+	return entry.TestHash != currentHash
 }
 
 // GetFilesNeedingUpdate returns only the files that need mutation testing.
