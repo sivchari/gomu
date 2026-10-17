@@ -133,7 +133,7 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
             <td>%d</td>
             <td>%d</td>
             <td>%.1f%%</td>
-        </tr>`, file.FilePath, file.TotalMutants, file.KilledMutants, score)
+        </tr>`, displayPath(file.FilePath), file.TotalMutants, file.KilledMutants, score)
 	}
 
 	var (
