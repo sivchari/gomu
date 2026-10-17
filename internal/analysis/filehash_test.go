@@ -139,3 +139,81 @@ func TestFileHasher_HashContent(t *testing.T) {
 		t.Error("Hash should be different for different content")
 	}
 }
+
+func TestFileHasher_HashRelatedTests(t *testing.T) {
+	hasher := NewFileHasher()
+
+	t.Run("one test file gives a deterministic non-empty hash", func(t *testing.T) {
+		dir := t.TempDir()
+		src := filepath.Join(dir, "foo.go")
+		testFile := filepath.Join(dir, "foo_test.go")
+
+		writeTestFile(t, src, "package foo\n")
+		writeTestFile(t, testFile, "package foo\n")
+
+		first := hasher.HashRelatedTests(src)
+		second := hasher.HashRelatedTests(src)
+
+		if first == "" {
+			t.Fatal("expected non-empty hash")
+		}
+
+		if first != second {
+			t.Errorf("hash is not deterministic: %q != %q", first, second)
+		}
+
+		writeTestFile(t, testFile, "package foo\n// changed\n")
+
+		if hasher.HashRelatedTests(src) == first {
+			t.Error("hash should change when the test file changes")
+		}
+	})
+
+	t.Run("hash changes when either of two test files changes", func(t *testing.T) {
+		dir := t.TempDir()
+		src := filepath.Join(dir, "foo.go")
+		suffixTest := filepath.Join(dir, "foo_test.go")
+		prefixTest := filepath.Join(dir, "test_foo.go")
+
+		writeTestFile(t, src, "package foo\n")
+		writeTestFile(t, suffixTest, "package foo\n")
+		writeTestFile(t, prefixTest, "package foo\n")
+
+		base := hasher.HashRelatedTests(src)
+		if base == "" {
+			t.Fatal("expected non-empty hash")
+		}
+
+		writeTestFile(t, suffixTest, "package foo\n// a\n")
+
+		afterFirst := hasher.HashRelatedTests(src)
+		if afterFirst == base {
+			t.Error("hash should change when foo_test.go changes")
+		}
+
+		writeTestFile(t, prefixTest, "package foo\n// b\n")
+
+		if hasher.HashRelatedTests(src) == afterFirst {
+			t.Error("hash should change when test_foo.go changes")
+		}
+	})
+
+	t.Run("no test files gives empty hash", func(t *testing.T) {
+		dir := t.TempDir()
+		src := filepath.Join(dir, "foo.go")
+
+		writeTestFile(t, src, "package foo\n")
+
+		if got := hasher.HashRelatedTests(src); got != "" {
+			t.Errorf("expected empty hash, got %q", got)
+		}
+	})
+}
+
+func writeTestFile(t *testing.T, path, content string) {
+	t.Helper()
+
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("failed to write %s: %v", path, err)
+	}
+}

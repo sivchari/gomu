@@ -365,10 +365,7 @@ func TestIncrementalAnalyzer_AnalyzeFile_IncrementalDisabled(t *testing.T) {
 					t.Fatalf("Failed to create test file: %v", err)
 				}
 
-				entry.TestHash, err = hasher.HashFile(testFile)
-				if err != nil {
-					t.Fatalf("Failed to hash test file: %v", err)
-				}
+				entry.TestHash = hasher.HashRelatedTests(srcFile)
 			}
 
 			history := NewMockHistoryStore()
@@ -493,10 +490,9 @@ func TestAdd(t *testing.T) {
 	}
 
 	// Add history entry with test file hash
-	testHash, _ := analyzer.hasher.HashFile(testFile)
 	mockHistory.SetEntry(mainFile, HistoryEntry{
 		FileHash: "dummy",
-		TestHash: testHash,
+		TestHash: analyzer.hasher.HashRelatedTests(mainFile),
 	})
 
 	// Second check - test file hasn't changed, should return false
@@ -578,4 +574,82 @@ func TestIncrementalAnalyzer_getFilesToAnalyze_BaseSHAWinsOverBaseBranch(t *test
 			t.Error("expected error for an invalid base SHA")
 		}
 	})
+}
+
+func TestIncrementalAnalyzer_AnalyzeFile_UnchangedTestFilesSkip(t *testing.T) {
+	tests := []struct {
+		name         string
+		modifyTest   bool
+		wantUpdate   bool
+		wantReason   string
+		withTestFile bool
+	}{
+		{
+			name:         "unchanged source and test file are skipped",
+			withTestFile: true,
+			wantUpdate:   false,
+			wantReason:   "No changes detected",
+		},
+		{
+			name:         "modified test file triggers a re-run",
+			withTestFile: true,
+			modifyTest:   true,
+			wantUpdate:   true,
+			wantReason:   "Related test files changed",
+		},
+		{
+			name:         "source without test file is skipped",
+			withTestFile: false,
+			wantUpdate:   false,
+			wantReason:   "No changes detected",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			src := filepath.Join(dir, "foo.go")
+			testFile := filepath.Join(dir, "foo_test.go")
+
+			writeTestFile(t, src, "package foo\n\nfunc Foo() {}\n")
+
+			if tt.withTestFile {
+				writeTestFile(t, testFile, "package foo\n")
+			}
+
+			store := NewMockHistoryStore()
+
+			analyzer, err := NewIncrementalAnalyzer(dir, store, true, "")
+			if err != nil {
+				t.Fatalf("Failed to create incremental analyzer: %v", err)
+			}
+
+			fileHash, err := analyzer.hasher.HashFile(src)
+			if err != nil {
+				t.Fatalf("Failed to hash file: %v", err)
+			}
+
+			store.SetEntry(src, HistoryEntry{
+				FileHash: fileHash,
+				TestHash: analyzer.hasher.HashRelatedTests(src),
+			})
+
+			if tt.modifyTest {
+				writeTestFile(t, testFile, "package foo\n// modified\n")
+			}
+
+			result, err := analyzer.analyzeFile(src)
+			if err != nil {
+				t.Fatalf("analyzeFile failed: %v", err)
+			}
+
+			if result.NeedsUpdate != tt.wantUpdate {
+				t.Errorf("NeedsUpdate = %v, want %v (reason: %s)", result.NeedsUpdate, tt.wantUpdate, result.Reason)
+			}
+
+			if result.Reason != tt.wantReason {
+				t.Errorf("Reason = %q, want %q", result.Reason, tt.wantReason)
+			}
+		})
+	}
 }
