@@ -1,5 +1,41 @@
 # Changelog
 
+## [v0.3.0](https://github.com/sivchari/gomu/compare/v0.2.1...v0.3.0) - 2026-10-17
+
+- feat: add invert negatives mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/78
+- feat: add remove self-assignments mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/79
+- feat: add break and continue mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/80
+- feat: add boundary value mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/81
+- feat: add string literal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/82
+- feat: add loop condition mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/83
+- feat: add empty block mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/84
+- feat: add assignment removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/85
+- feat: add expression removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/86
+- feat: add statement removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/87
+- feat: add `--list` and `--dry-run` flags to `gomu run` by @xen0l in https://github.com/sivchari/gomu/pull/91
+- fix: address PR #91 code review findings for --list/--dry-run by @sivchari in https://github.com/sivchari/gomu/pull/92
+- feat: skip generated Go files by default by @sivchari in https://github.com/sivchari/gomu/pull/101
+- feat: detect error returns by type instead of variable name by @sivchari in https://github.com/sivchari/gomu/pull/102
+- feat: forward go test flags after -- by @sivchari in https://github.com/sivchari/gomu/pull/103
+- feat: add switch case body removal mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/104
+- test: PR 1 - test hygiene cleanup by @sivchari in https://github.com/sivchari/gomu/pull/105
+- Add golden-driven mutator test and extract ApplyMutantToSource by @sivchari in https://github.com/sivchari/gomu/pull/106
+- test: replace per-mutator table tests with golden and contract tests by @sivchari in https://github.com/sivchari/gomu/pull/107
+- test: golden tests for pure output formatters by @sivchari in https://github.com/sivchari/gomu/pull/108
+- feat: scaffold golden test input instead of a table test file by @sivchari in https://github.com/sivchari/gomu/pull/109
+- fix: ignore only the root gomu binary by @sivchari in https://github.com/sivchari/gomu/pull/110
+- fix: only generate return mutants for bool literals and non-zero values by @sivchari in https://github.com/sivchari/gomu/pull/114
+- fix: validate node eligibility in branch and logical mutators by @sivchari in https://github.com/sivchari/gomu/pull/115
+- fix: keep literal formatting in boundary mutants and cover missing assign operators by @sivchari in https://github.com/sivchari/gomu/pull/116
+- fix: --incremental=false no longer skips files by history by @sivchari in https://github.com/sivchari/gomu/pull/124
+- fix: unique mutant IDs and no compile-check binary in the working tree by @sivchari in https://github.com/sivchari/gomu/pull/122
+- feat: incremental analysis without full git history (--base-sha) by @sivchari in https://github.com/sivchari/gomu/pull/123
+- fix: history test hash comparison always reported changes by @sivchari in https://github.com/sivchari/gomu/pull/125
+- fix: classify go test outcomes correctly and quiet CLI errors by @sivchari in https://github.com/sivchari/gomu/pull/127
+- fix: show the same mutation score in the PR comment and reports as the quality gate by @sivchari in https://github.com/sivchari/gomu/pull/126
+- fix: relative paths in the HTML report and no hardcoded cmd/ exclusion by @sivchari in https://github.com/sivchari/gomu/pull/128
+- release v0.3.0 by @sivchari in https://github.com/sivchari/gomu/pull/129
+
 ## [v0.2.1](https://github.com/sivchari/gomu/compare/v0.2.0...v0.2.1) - 2026-05-29
 - fix: scope test execution to same package by @sivchari in https://github.com/sivchari/gomu/pull/71
 - fix: distinguish compilation timeout from compilation error by @sivchari in https://github.com/sivchari/gomu/pull/73
