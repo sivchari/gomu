@@ -2,15 +2,16 @@
 
 ✅ **Quality Gate: PASSED**
 
-**Overall Mutation Score:** 75.0%
-**Total Mutants:** 20
+**Overall Mutation Score:** 83.3%
+**Total Mutants:** 30
 **Not viable:** 0
-**Killed:** 15
+**Killed:** 25
 
 ### Files with Mutations
 
 | File | Score | Mutants | Killed |
 |------|-------|---------|--------|
+| cmd/gomu/main.go | 100.0% | 10 | 10 |
 | internal/foo.go | 75.0% | 20 | 15 |
 
 
