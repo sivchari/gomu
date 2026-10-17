@@ -459,7 +459,7 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 			fileHash = ""
 		}
 
-		testHash := calculateTestHash(file, hasher)
+		testHash := hasher.HashRelatedTests(file)
 		e.history.UpdateFileWithHashes(file, mutants, results, fileHash, testHash)
 
 		processedFiles++
@@ -675,34 +675,6 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 		Duration:      summary.Duration,
 		Statistics:    summary.Statistics,
 	}
-}
-
-// calculateTestHash calculates the combined hash of test files related to the given file.
-func calculateTestHash(filePath string, hasher *analysis.FileHasher) string {
-	// Find related test files
-	testFiles := analysis.FindRelatedTestFiles(filePath)
-
-	if len(testFiles) == 0 {
-		return ""
-	}
-
-	// Calculate combined hash
-	var combinedContent []byte
-
-	for _, testFile := range testFiles {
-		content, err := hasher.HashFile(testFile)
-		if err != nil {
-			continue
-		}
-
-		combinedContent = append(combinedContent, []byte(content)...)
-	}
-
-	if len(combinedContent) == 0 {
-		return ""
-	}
-
-	return hasher.HashContent(combinedContent)
 }
 
 // historyStoreWrapper wraps history.Store to implement analysis.HistoryStore interface.
