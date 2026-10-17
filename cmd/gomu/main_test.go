@@ -213,6 +213,12 @@ func TestRunListWarnsIgnoredFlags(t *testing.T) {
 			wantWarning: true,
 			wantFlag:    "--include-generated",
 		},
+		{
+			name:        "list with base-sha warns about ignored flag",
+			args:        []string{"run", "--list", "--base-sha", "abc123"},
+			wantWarning: true,
+			wantFlag:    "--base-sha",
+		},
 	}
 
 	for _, tt := range tests {
@@ -245,6 +251,10 @@ func TestRunListWarnsIgnoredFlags(t *testing.T) {
 
 			if err := runCmd.Flags().Set("include-generated", "false"); err != nil {
 				t.Fatalf("reset include-generated flag: %v", err)
+			}
+
+			if err := runCmd.Flags().Set("base-sha", ""); err != nil {
+				t.Fatalf("reset base-sha flag: %v", err)
 			}
 
 			runCmd.Flags().Visit(func(f *pflag.Flag) {

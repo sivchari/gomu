@@ -521,3 +521,61 @@ func TestAdd(t *testing.T) {
 		t.Error("Expected hasTestFilesChanged to return false for file with no test files")
 	}
 }
+
+func TestIncrementalAnalyzer_getFilesToAnalyze_BaseSHAWinsOverBaseBranch(t *testing.T) {
+	tmpDir := t.TempDir()
+	runGit := initUnsignedRepo(t, tmpDir)
+
+	commitFiles(t, tmpDir, runGit, map[string]string{"a.go": "package main\n"})
+
+	baseSHA := headSHA(t, tmpDir)
+
+	commitFiles(t, tmpDir, runGit, map[string]string{"b.go": "package main\n"})
+	runGit("checkout", "-b", "feature")
+	commitFiles(t, tmpDir, runGit, map[string]string{"c.go": "package main\n"})
+
+	newAnalyzer := func(t *testing.T) *IncrementalAnalyzer {
+		t.Helper()
+
+		analyzer, err := NewIncrementalAnalyzer(tmpDir, NewMockHistoryStore(), true, "main")
+		if err != nil {
+			t.Fatalf("NewIncrementalAnalyzer: %v", err)
+		}
+
+		return analyzer
+	}
+
+	t.Run("uses the base branch when no SHA is set", func(t *testing.T) {
+		files, err := newAnalyzer(t).getFilesToAnalyze()
+		if err != nil {
+			t.Fatalf("getFilesToAnalyze: %v", err)
+		}
+
+		if len(files) != 1 || files[0] != filepath.Join(tmpDir, "c.go") {
+			t.Errorf("files = %v, want only c.go", files)
+		}
+	})
+
+	t.Run("uses the base SHA when set", func(t *testing.T) {
+		analyzer := newAnalyzer(t)
+		analyzer.SetBaseSHA(baseSHA)
+
+		files, err := analyzer.getFilesToAnalyze()
+		if err != nil {
+			t.Fatalf("getFilesToAnalyze: %v", err)
+		}
+
+		if len(files) != 2 {
+			t.Errorf("files = %v, want b.go and c.go", files)
+		}
+	})
+
+	t.Run("does not fall back to the base branch when the SHA is invalid", func(t *testing.T) {
+		analyzer := newAnalyzer(t)
+		analyzer.SetBaseSHA("0000000000000000000000000000000000000bad")
+
+		if _, err := analyzer.getFilesToAnalyze(); err == nil {
+			t.Error("expected error for an invalid base SHA")
+		}
+	})
+}
