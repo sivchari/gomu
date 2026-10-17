@@ -56,7 +56,12 @@ inputs:
     description: 'Base branch for incremental analysis'
     required: false
     default: 'main'
-  
+
+  base-sha:
+    description: 'Base commit SHA for incremental analysis. When set, only the base commit is fetched and no full history is needed (shallow clones work). Defaults to the pull request base SHA; takes precedence over base-branch.'
+    required: false
+    default: ${{ github.event.pull_request.base.sha }}
+
   # Output Settings
   output:
     description: 'Output format (json, html, console)'
@@ -98,12 +103,16 @@ runs:
       with:
         go-version: ${{ inputs.go-version }}
     
-    - name: Setup git for merge base
+    - name: Fetch base for incremental analysis
       shell: bash
       run: |
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
-        git fetch origin main:main || git fetch origin main || true
+        if [ -n "${{ inputs.base-sha }}" ]; then
+          git fetch --depth=1 origin "${{ inputs.base-sha }}"
+        else
+          git fetch origin main:main || git fetch origin main || true
+        fi
     
     - name: Cache Go modules
       uses: actions/cache@v3
@@ -167,6 +176,7 @@ runs:
           --threshold=${{ inputs.threshold }} \
           --incremental=${{ inputs.incremental }} \
           --base-branch=${{ inputs.base-branch }} \
+          --base-sha=${{ inputs.base-sha }} \
           --output=${{ inputs.output }} \
           --fail-on-gate=${{ inputs.fail-on-gate }}
         
