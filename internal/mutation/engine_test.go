@@ -1,6 +1,7 @@
 package mutation
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -289,5 +290,92 @@ func Add(a, b int) int {
 		if !strings.HasPrefix(mutant.ID, testFile) {
 			t.Errorf("Mutant ID should start with file path, got: %s", mutant.ID)
 		}
+	}
+}
+
+// TestGenerateMutants_IDsUniqueAndSequential verifies IDs stay unique and gap-free
+// when the type checker rejects some mutants of a node.
+func TestGenerateMutants_IDsUniqueAndSequential(t *testing.T) {
+	tests := []struct {
+		name string
+		code string
+	}{
+		{
+			name: "bool equality rejects ordered operators",
+			code: `package main
+
+func Same(a, b bool) bool {
+	return a == b
+}
+
+func Differ(a, b bool) bool {
+	return a != b
+}
+
+func Add(a, b int) int {
+	return a + b
+}
+`,
+		},
+		{
+			name: "nil comparison rejects ordered operators",
+			code: `package main
+
+import "errors"
+
+func IsNil(err error) bool {
+	return err == nil
+}
+
+func Div(a, b int) (int, error) {
+	if b == 0 {
+		return 0, errors.New("div by zero")
+	}
+
+	return a / b, nil
+}
+
+func IsEmpty(s []int) bool {
+	return s != nil
+}
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testFile := filepath.Join(t.TempDir(), "test.go")
+			if err := os.WriteFile(testFile, []byte(tt.code), 0600); err != nil {
+				t.Fatalf("Failed to write test file: %v", err)
+			}
+
+			engine, err := New()
+			if err != nil {
+				t.Fatalf("Failed to create mutation engine: %v", err)
+			}
+
+			mutants, err := engine.GenerateMutants(testFile)
+			if err != nil {
+				t.Fatalf("Failed to generate mutants: %v", err)
+			}
+
+			if len(mutants) == 0 {
+				t.Fatal("Expected mutants to be generated")
+			}
+
+			seen := make(map[string]bool, len(mutants))
+
+			for i, mutant := range mutants {
+				if seen[mutant.ID] {
+					t.Errorf("Duplicate mutant ID: %s", mutant.ID)
+				}
+
+				seen[mutant.ID] = true
+
+				if want := fmt.Sprintf("%s_%d", testFile, i); mutant.ID != want {
+					t.Errorf("mutants[%d].ID = %s, want %s", i, mutant.ID, want)
+				}
+			}
+		})
 	}
 }
