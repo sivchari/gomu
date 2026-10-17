@@ -27,6 +27,7 @@ type IncrementalAnalyzer struct {
 	history          HistoryStore
 	workDir          string
 	baseBranch       string
+	baseSHA          string
 	ignoreParser     IgnoreParser
 	incremental      bool
 	includeGenerated bool
@@ -62,6 +63,14 @@ func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore, increment
 		baseBranch:  baseBranch,
 		incremental: incremental,
 	}, nil
+}
+
+// SetBaseSHA sets the commit to diff against instead of the base branch.
+//
+// When set, changed files come from a tree diff against sha, so no git history
+// is needed and shallow clones work.
+func (a *IncrementalAnalyzer) SetBaseSHA(sha string) {
+	a.baseSHA = sha
 }
 
 // SetIgnoreParser sets the ignore parser for the analyzer.
@@ -113,7 +122,10 @@ func (a *IncrementalAnalyzer) AnalyzeFiles() ([]FileAnalysisResult, error) {
 // getFilesToAnalyze returns the list of files that should be analyzed.
 func (a *IncrementalAnalyzer) getFilesToAnalyze() ([]string, error) {
 	if a.incremental && a.git.IsGitRepository() {
-		// Use Git diff to get changed files with intelligent default base branch
+		if a.baseSHA != "" {
+			return a.git.GetChangedFilesSince(a.baseSHA)
+		}
+
 		return a.git.GetChangedFiles(a.baseBranch)
 	}
 
