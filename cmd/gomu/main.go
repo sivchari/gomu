@@ -66,7 +66,7 @@ check that precedes it):
 	cmd.Flags().Bool("fail-on-gate", true, "fail build when quality gate is not met")
 	cmd.Flags().Int("workers", 4, "number of parallel workers")
 	cmd.Flags().Int("timeout", 30, "test timeout in seconds")
-	cmd.Flags().Bool("incremental", true, "enable incremental analysis")
+	cmd.Flags().Bool("incremental", true, "skip files unchanged since the last run; false runs all files, ignoring history")
 	cmd.Flags().String("base-branch", "main", "base branch for incremental analysis")
 	cmd.Flags().Bool("include-generated", false, "include files marked with the standard Go generated-code comment as mutation targets")
 
