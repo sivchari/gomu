@@ -97,6 +97,7 @@ gomu run --threshold 85.0 --workers 8
 | `--timeout` | `30` | Test timeout in seconds |
 | `--incremental` | `true` | Only test changed files; `false` runs all files and ignores history |
 | `--base-branch` | `main` | Base branch for incremental analysis |
+| `--base-sha` | | Base commit SHA for incremental analysis. Changed files are computed with a tree diff against it, so no git history is needed; takes precedence over `--base-branch` |
 | `--output` | `console` | Output format (console, json, html, text) |
 | `--fail-on-gate` | `true` | Fail build when quality gate is not met |
 | `--include-generated` | `false` | Include files marked with the standard Go generated-code comment (`// Code generated ... DO NOT EDIT.`) as mutation targets |
@@ -252,8 +253,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+
+    - name: Fetch base commit
+      run: git fetch --depth=1 origin ${{ github.event.pull_request.base.sha }}
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -264,7 +266,7 @@ jobs:
       run: go install github.com/sivchari/gomu/cmd/gomu@latest
 
     - name: Run mutation testing
-      run: gomu run --ci-mode --threshold 80.0
+      run: gomu run --ci-mode --threshold 80.0 --base-sha ${{ github.event.pull_request.base.sha }}
 
     - name: Upload mutation report
       uses: actions/upload-artifact@v4

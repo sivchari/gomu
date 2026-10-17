@@ -17,8 +17,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Fetch full history for incremental analysis
     
     - name: Build gomu binary
       run: go build -o gomu ./cmd/gomu
