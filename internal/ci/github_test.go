@@ -345,13 +345,13 @@ func TestGitHubIntegration_formatPRComment(t *testing.T) {
 			},
 			qualityResult: &QualityGateResult{
 				Pass:          true,
-				MutationScore: 85.0,
+				MutationScore: 75.0,
 				Reason:        "Mutation score meets minimum threshold",
 			},
 		},
 		{
-			// A file path over 50 characters must be truncated in the table.
-			name: "long_path_truncated",
+			// A long relative path is shown in full; only absolute paths are shortened.
+			name: "long_path_relative",
 			summary: &report.Summary{
 				TotalMutants:  10,
 				KilledMutants: 8,
