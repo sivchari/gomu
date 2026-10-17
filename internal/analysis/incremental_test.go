@@ -259,7 +259,7 @@ func TestIncrementalAnalyzer_analyzeFile(t *testing.T) {
 
 	mockHistory := NewMockHistoryStore()
 
-	analyzer, err := NewIncrementalAnalyzer(tmpDir, mockHistory, false, "")
+	analyzer, err := NewIncrementalAnalyzer(tmpDir, mockHistory, true, "")
 	if err != nil {
 		t.Fatalf("Failed to create incremental analyzer: %v", err)
 	}
@@ -301,6 +301,105 @@ func TestIncrementalAnalyzer_analyzeFile(t *testing.T) {
 
 	if result.CurrentHash == "" {
 		t.Error("Current hash should not be empty")
+	}
+}
+
+func TestIncrementalAnalyzer_AnalyzeFile_IncrementalDisabled(t *testing.T) {
+	tests := []struct {
+		name           string
+		incremental    bool
+		withTestFile   bool
+		wantNeedUpdate bool
+		wantReason     string
+	}{
+		{
+			name:           "disabled ignores unchanged source hash",
+			incremental:    false,
+			wantNeedUpdate: true,
+			wantReason:     incrementalDisabledReason,
+		},
+		{
+			name:           "disabled ignores unchanged source and test hash",
+			incremental:    false,
+			withTestFile:   true,
+			wantNeedUpdate: true,
+			wantReason:     incrementalDisabledReason,
+		},
+		{
+			name:           "enabled skips unchanged source hash",
+			incremental:    true,
+			wantNeedUpdate: false,
+			wantReason:     "No changes detected",
+		},
+		{
+			name:           "enabled skips unchanged source and test hash",
+			incremental:    true,
+			withTestFile:   true,
+			wantNeedUpdate: false,
+			wantReason:     "No changes detected",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			srcFile := filepath.Join(tmpDir, "target.go")
+
+			if err := os.WriteFile(srcFile, []byte(testContent), 0o600); err != nil {
+				t.Fatalf("Failed to create source file: %v", err)
+			}
+
+			hasher := NewFileHasher()
+
+			srcHash, err := hasher.HashFile(srcFile)
+			if err != nil {
+				t.Fatalf("Failed to hash source file: %v", err)
+			}
+
+			entry := HistoryEntry{FileHash: srcHash}
+
+			if tt.withTestFile {
+				testFile := filepath.Join(tmpDir, "target_test.go")
+
+				if err := os.WriteFile(testFile, []byte("package main\n"), 0o600); err != nil {
+					t.Fatalf("Failed to create test file: %v", err)
+				}
+
+				entry.TestHash, err = hasher.HashFile(testFile)
+				if err != nil {
+					t.Fatalf("Failed to hash test file: %v", err)
+				}
+			}
+
+			history := NewMockHistoryStore()
+			history.SetEntry(srcFile, entry)
+
+			analyzer, err := NewIncrementalAnalyzer(tmpDir, history, tt.incremental, "")
+			if err != nil {
+				t.Fatalf("Failed to create incremental analyzer: %v", err)
+			}
+
+			result, err := analyzer.analyzeFile(srcFile)
+			if err != nil {
+				t.Fatalf("analyzeFile failed: %v", err)
+			}
+
+			if result.NeedsUpdate != tt.wantNeedUpdate {
+				t.Errorf("NeedsUpdate = %v, want %v", result.NeedsUpdate, tt.wantNeedUpdate)
+			}
+
+			if result.Reason != tt.wantReason {
+				t.Errorf("Reason = %q, want %q", result.Reason, tt.wantReason)
+			}
+
+			if result.CurrentHash != srcHash {
+				t.Errorf("CurrentHash = %q, want %q", result.CurrentHash, srcHash)
+			}
+
+			if result.PreviousHash != srcHash {
+				t.Errorf("PreviousHash = %q, want %q", result.PreviousHash, srcHash)
+			}
+		})
 	}
 }
 
