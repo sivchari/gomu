@@ -33,6 +33,10 @@ Features:
 - Parallel execution with goroutines
 - Go-specific mutations (generics, error handling, etc.)`,
 	RunE: runMutationTesting,
+	// Usage is noise once flags have parsed and RunE fails (for example on a
+	// quality-gate miss); main prints the error itself, so cobra must not too.
+	SilenceUsage:  true,
+	SilenceErrors: true,
 }
 
 var runCmd = newRunCommand()
@@ -56,6 +60,8 @@ check that precedes it):
   gomu run ./pkg -- -tags=integration`,
 		Args: validateRunArgs,
 		RunE: runMutationTesting,
+		// See rootCmd: cobra's usage dump after a RunE error is noise.
+		SilenceUsage: true,
 	}
 
 	cmd.Flags().BoolP("list", "l", false, "list supported mutators and exit")
