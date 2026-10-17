@@ -95,7 +95,7 @@ gomu run --threshold 85.0 --workers 8
 | `--threshold` | `80.0` | Minimum mutation score threshold (0-100) |
 | `--workers` | `4` | Number of parallel workers |
 | `--timeout` | `30` | Test timeout in seconds |
-| `--incremental` | `true` | Enable incremental analysis |
+| `--incremental` | `true` | Only test changed files; `false` runs all files and ignores history |
 | `--base-branch` | `main` | Base branch for incremental analysis |
 | `--output` | `console` | Output format (console, json, html, text) |
 | `--fail-on-gate` | `true` | Fail build when quality gate is not met |
@@ -120,7 +120,7 @@ gomu run --workers 8 --timeout 60
 # Run on specific package with verbose output
 gomu run ./internal/mypackage -v
 
-# Disable incremental analysis
+# Disable incremental analysis (run all files, ignoring history)
 gomu run --incremental=false
 ```
 

@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+const incrementalDisabledReason = "Incremental analysis disabled"
+
 // HistoryStore defines the interface for history storage.
 type HistoryStore interface {
 	GetEntry(filePath string) (HistoryEntry, bool)
@@ -36,6 +38,8 @@ type IgnoreParser interface {
 }
 
 // NewIncrementalAnalyzer creates a new incremental analyzer.
+//
+// When incremental is false every existing Go file is selected and history is not used to skip files.
 func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore, incremental bool, baseBranch string) (*IncrementalAnalyzer, error) {
 	// Validate that the workDir exists
 	if _, err := os.Stat(workDir); err != nil {
@@ -141,14 +145,24 @@ func (a *IncrementalAnalyzer) analyzeFile(filePath string) (FileAnalysisResult, 
 
 	// Get previous entry from history
 	entry, exists := a.history.GetEntry(filePath)
+	if exists {
+		result.PreviousHash = entry.FileHash
+	}
+
+	// History-based skipping only applies when incremental analysis is enabled.
+	if !a.incremental {
+		result.NeedsUpdate = true
+		result.Reason = incrementalDisabledReason
+
+		return result, nil
+	}
+
 	if !exists {
 		result.NeedsUpdate = true
 		result.Reason = "No previous history"
 
 		return result, nil
 	}
-
-	result.PreviousHash = entry.FileHash
 
 	// Check if file has changed
 	if a.history.HasChanged(filePath, currentHash) {
