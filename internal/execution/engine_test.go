@@ -1,7 +1,9 @@
 package execution
 
 import (
+	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -415,6 +417,65 @@ func TestCheckCompilationWithOverlay(t *testing.T) {
 			t.Errorf("unexpected compilation error: %v", err)
 		}
 	})
+}
+
+func TestCheckCompilationWithOverlay_DoesNotWriteBinary(t *testing.T) {
+	if testing.Short() {
+		t.Skip("spawns the Go toolchain")
+	}
+
+	t.Parallel()
+
+	dir := newTestModule(t, map[string]string{"main.go": validGoFileFixture})
+
+	before := listDir(t, dir)
+
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("failed to create engine: %v", err)
+	}
+	defer engine.Close()
+
+	mutant := mutation.Mutant{
+		ID:       "no-binary",
+		Type:     "arithmetic_binary",
+		FilePath: filepath.Join(dir, "main.go"),
+		Line:     4,
+		Column:   9,
+		Original: "+",
+		Mutated:  "-",
+	}
+
+	mutCtx, err := engine.overlay.PrepareMutation(mutant)
+	if err != nil {
+		t.Fatalf("failed to prepare mutation: %v", err)
+	}
+	defer engine.overlay.CleanupMutation(mutCtx)
+
+	if err := engine.checkCompilationWithOverlay(mutCtx); err != nil {
+		t.Fatalf("unexpected compilation error: %v", err)
+	}
+
+	after := listDir(t, dir)
+	if !slices.Equal(before, after) {
+		t.Errorf("compile check modified the package directory\nbefore: %v\nafter:  %v", before, after)
+	}
+}
+
+func listDir(t *testing.T, dir string) []string {
+	t.Helper()
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("failed to read %s: %v", dir, err)
+	}
+
+	names := make([]string, 0, len(entries))
+	for _, e := range entries {
+		names = append(names, e.Name())
+	}
+
+	return names
 }
 
 func TestOverlayParallelExecution(t *testing.T) {
