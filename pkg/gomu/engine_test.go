@@ -851,7 +851,7 @@ func TestLogStartupInfo(t *testing.T) {
 	}
 }
 
-func TestCalculateTestHash(t *testing.T) {
+func TestHashRelatedTests(t *testing.T) {
 	tests := []struct {
 		name       string
 		setupFiles func(t *testing.T) (string, string)
@@ -914,7 +914,7 @@ func Untested() {}
 
 			hasher := analysis.NewFileHasher()
 
-			hash := calculateTestHash(filePath, hasher)
+			hash := hasher.HashRelatedTests(filePath)
 
 			if tt.expectHash && hash == "" {
 				t.Error("expected non-empty hash")
