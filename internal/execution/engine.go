@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
@@ -135,14 +136,13 @@ func (e *Engine) runSingleMutation(mutant mutation.Mutant, timeout int) mutation
 // checkCompilationWithOverlay verifies that the mutated code compiles using overlay.
 // No timeout is applied because compilation always terminates.
 func (e *Engine) checkCompilationWithOverlay(mutCtx *MutationContext) error {
-	// Get the directory containing the original file for compilation
 	compileDir := filepath.Dir(mutCtx.OriginalPath)
 
-	// Build the entire package with overlay to properly resolve dependencies
-	args := append([]string{"build", "-overlay=" + mutCtx.OverlayPath}, splitBuildFlags(e.testArgs)...)
+	// -o discards the binary so a package main does not write into the user's working tree.
+	args := append([]string{"build", "-o", os.DevNull, "-overlay=" + mutCtx.OverlayPath}, splitBuildFlags(e.testArgs)...)
 	args = append(args, ".")
 
-	cmd := exec.Command("go", args...)
+	cmd := exec.CommandContext(context.Background(), "go", args...)
 	cmd.Dir = compileDir
 
 	output, err := cmd.CombinedOutput()
