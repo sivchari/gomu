@@ -8,6 +8,8 @@ import (
 	"io"
 	"maps"
 	"net/http"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -187,6 +189,26 @@ func sortedFiles(files map[string]*report.FileReport) []*report.FileReport {
 	return sorted
 }
 
+// displayPath returns path relative to the working directory, or path itself
+// when it is already relative or lies outside the working directory.
+func displayPath(path string) string {
+	if !filepath.IsAbs(path) {
+		return path
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return path
+	}
+
+	rel, err := filepath.Rel(wd, path)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return path
+	}
+
+	return rel
+}
+
 // formatPRComment formats the mutation testing results for PR comment.
 func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResult *QualityGateResult) string {
 	var buf strings.Builder
@@ -198,6 +220,7 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	// Calculate actual totals excluding ignored files (cmd/ directory)
 	actualTotalMutants := 0
 	actualKilledMutants := 0
+	actualNotViable := 0
 
 	// If Files is not empty, calculate from file reports
 	if len(summary.Files) > 0 {
@@ -209,11 +232,13 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 
 			actualTotalMutants += fileReport.TotalMutants
 			actualKilledMutants += fileReport.KilledMutants
+			actualNotViable += fileReport.NotViable
 		}
 	} else {
 		// Fallback to summary totals if Files is empty
 		actualTotalMutants = summary.TotalMutants
 		actualKilledMutants = summary.KilledMutants
+		actualNotViable = summary.Statistics.NotViable
 	}
 
 	// Handle nil quality result
@@ -227,16 +252,10 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 		// Use the quality result's pass/fail decision and reason
 		passed = qualityResult.Pass
 		reason = qualityResult.Reason
-
-		// Recalculate mutation score with filtered data if Files is available
-		if actualTotalMutants > 0 {
-			mutationScore = float64(actualKilledMutants) / float64(actualTotalMutants) * 100
-		} else {
-			mutationScore = qualityResult.MutationScore
-		}
+		// The gate's own score keeps the comment consistent with its verdict.
+		mutationScore = qualityResult.MutationScore
 	} else if actualTotalMutants > 0 {
-		// Calculate mutation score from filtered summary
-		mutationScore = float64(actualKilledMutants) / float64(actualTotalMutants) * 100
+		mutationScore = report.MutationScore(actualKilledMutants, actualTotalMutants, actualNotViable)
 		passed = mutationScore >= 80.0 // Default threshold
 		reason = noQualityGateMessage
 	}
@@ -251,6 +270,7 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	// Summary
 	fmt.Fprintf(&buf, "**Overall Mutation Score:** %.1f%%\n", mutationScore)
 	fmt.Fprintf(&buf, "**Total Mutants:** %d\n", actualTotalMutants)
+	fmt.Fprintf(&buf, "**Not viable:** %d\n", actualNotViable)
 	fmt.Fprintf(&buf, "**Killed:** %d\n", actualKilledMutants)
 	buf.WriteString("\n")
 
@@ -288,14 +308,8 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 				continue
 			}
 
-			// Truncate long file paths for better readability
-			displayPath := fileReport.FilePath
-			if len(displayPath) > 50 {
-				displayPath = "..." + displayPath[len(displayPath)-47:]
-			}
-
 			fmt.Fprintf(&buf, "| %s | %.1f%% | %d | %d |\n",
-				displayPath,
+				displayPath(fileReport.FilePath),
 				fileReport.MutationScore,
 				fileReport.TotalMutants,
 				fileReport.KilledMutants,

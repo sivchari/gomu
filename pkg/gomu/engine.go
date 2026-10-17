@@ -653,16 +653,19 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 		}
 
 		for _, result := range results {
-			if result.Status == mutation.StatusKilled {
+			switch result.Status {
+			case mutation.StatusKilled:
 				fileReport.KilledMutants++
 				killedMutants++
+			case mutation.StatusNotViable:
+				fileReport.NotViable++
 			}
 
 			totalMutants++
 		}
 
 		if fileReport.TotalMutants > 0 {
-			fileReport.MutationScore = float64(fileReport.KilledMutants) / float64(fileReport.TotalMutants) * 100
+			fileReport.MutationScore = report.MutationScore(fileReport.KilledMutants, fileReport.TotalMutants, fileReport.NotViable)
 			// Only add files with mutations to the report
 			files[filePath] = fileReport
 		}
