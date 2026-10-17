@@ -97,6 +97,44 @@ func TestFormatPRComment_DisplaysRepoRelativePath(t *testing.T) {
 	}
 }
 
+func TestReporter_HTMLDisplaysRepoRelativePath(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Getwd: %v", err)
+	}
+
+	rel := filepath.Join("internal", "foo.go")
+	abs := filepath.Join(wd, rel)
+
+	summary := &report.Summary{
+		TotalMutants:  10,
+		KilledMutants: 8,
+		Files: map[string]*report.FileReport{
+			abs: {FilePath: abs, TotalMutants: 10, KilledMutants: 8, MutationScore: 80},
+		},
+	}
+	dir := t.TempDir()
+
+	if err := NewReporter(dir, "html").Generate(summary, nil); err != nil {
+		t.Fatalf("html Generate: %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(dir, "mutation-report.html"))
+	if err != nil {
+		t.Fatalf("read html report: %v", err)
+	}
+
+	html := string(data)
+
+	if !strings.Contains(html, "<td>"+rel+"</td>") {
+		t.Errorf("expected repo-relative path %q in html report, got:\n%s", rel, html)
+	}
+
+	if strings.Contains(html, wd) {
+		t.Errorf("html report must not contain the absolute path %q, got:\n%s", wd, html)
+	}
+}
+
 func TestReporter_ScoreExcludesNotViableWithoutGate(t *testing.T) {
 	summary := notViableSummary()
 	dir := t.TempDir()
