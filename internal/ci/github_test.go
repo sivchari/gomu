@@ -323,8 +323,8 @@ func TestGitHubIntegration_formatPRComment(t *testing.T) {
 			},
 		},
 		{
-			// A cmd/ file must not count toward totals or appear in the table.
-			name: "cmd_filtered",
+			// cmd/ files are reported like any other; excluding them is .gomuignore's job.
+			name: "cmd_included",
 			summary: &report.Summary{
 				TotalMutants:  30,
 				KilledMutants: 25,
@@ -345,7 +345,7 @@ func TestGitHubIntegration_formatPRComment(t *testing.T) {
 			},
 			qualityResult: &QualityGateResult{
 				Pass:          true,
-				MutationScore: 75.0,
+				MutationScore: 83.3,
 				Reason:        "Mutation score meets minimum threshold",
 			},
 		},

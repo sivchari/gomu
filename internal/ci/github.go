@@ -217,7 +217,6 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 
 	files := sortedFiles(summary.Files)
 
-	// Calculate actual totals excluding ignored files (cmd/ directory)
 	actualTotalMutants := 0
 	actualKilledMutants := 0
 	actualNotViable := 0
@@ -225,11 +224,6 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	// If Files is not empty, calculate from file reports
 	if len(summary.Files) > 0 {
 		for _, fileReport := range files {
-			// Skip files in cmd/ directory (these should be ignored per .gomuignore)
-			if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
-				continue
-			}
-
 			actualTotalMutants += fileReport.TotalMutants
 			actualKilledMutants += fileReport.KilledMutants
 			actualNotViable += fileReport.NotViable
@@ -278,11 +272,6 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	hasFilesWithMutations := false
 
 	for _, fileReport := range files {
-		// Skip files in cmd/ directory
-		if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
-			continue
-		}
-
 		if fileReport.TotalMutants > 0 {
 			hasFilesWithMutations = true
 
@@ -299,12 +288,6 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 		for _, fileReport := range files {
 			// Skip files with no mutations (likely ignored by .gomuignore)
 			if fileReport.TotalMutants == 0 {
-				continue
-			}
-
-			// Skip files in cmd/ directory (these should be ignored per .gomuignore)
-			// Check if the path contains "/cmd/" to handle both absolute and relative paths
-			if strings.Contains(fileReport.FilePath, "/cmd/") || strings.HasPrefix(fileReport.FilePath, "cmd/") {
 				continue
 			}
 
