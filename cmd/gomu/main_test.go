@@ -263,3 +263,61 @@ func TestRunListWarnsIgnoredFlags(t *testing.T) {
 		})
 	}
 }
+
+func TestRunSilencesUsageOnRunEError(t *testing.T) {
+	tests := []struct {
+		name            string
+		cmd             func() *cobra.Command
+		args            []string
+		mainPrintsError bool
+	}{
+		{
+			name: "run subcommand on its own",
+			cmd:  newRunCommand,
+			args: []string{"--", "-overlay=foo.json"},
+		},
+		{
+			name: "run subcommand through the root command",
+			cmd:  func() *cobra.Command { return rootCmd },
+			// --list=false because TestRunListWarnsIgnoredFlags leaves the shared
+			// runCmd with list=true, which would short-circuit RunE.
+			args:            []string{"run", "--list=false", "--", "-overlay=foo.json"},
+			mainPrintsError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+
+			// Un-mark flags set on the shared runCmd so later tests see a clean slate.
+			t.Cleanup(func() {
+				runCmd.Flags().Visit(func(f *pflag.Flag) {
+					f.Changed = false
+				})
+			})
+
+			cmd := tt.cmd()
+			cmd.SetArgs(tt.args)
+			cmd.SetOut(&stdout)
+			cmd.SetErr(&stderr)
+
+			err := cmd.Execute()
+			if err == nil {
+				t.Fatal("expected RunE to return an error, got none")
+			}
+
+			out := stdout.String() + stderr.String()
+
+			if strings.Contains(out, "Usage:") {
+				t.Errorf("usage printed for a RunE error, not a flag-parse error: %q", out)
+			}
+
+			// main prints the returned error itself, so cobra printing it too
+			// would show it twice.
+			if tt.mainPrintsError && strings.Contains(out, "Error:") {
+				t.Errorf("cobra printed the error that main prints: %q", out)
+			}
+		})
+	}
+}
