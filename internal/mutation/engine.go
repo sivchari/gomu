@@ -132,10 +132,11 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 				// Filter mutants based on type information
 				for i := range mutants {
 					mutants[i].FilePath = filePath
-					mutants[i].ID = fmt.Sprintf("%s_%d", filePath, len(allMutants)+i)
 
-					// Only add mutant if it passes type check
+					// The ID is assigned after filtering so rejected mutants
+					// never leave gaps or duplicates.
 					if typeChecker.IsValidMutation(node, mutants[i]) {
+						mutants[i].ID = fmt.Sprintf("%s_%d", filePath, len(allMutants))
 						allMutants = append(allMutants, mutants[i])
 					}
 				}
