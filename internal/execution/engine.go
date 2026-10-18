@@ -70,8 +70,6 @@ func (e *Engine) RunMutationsWithOptions(mutants []mutation.Mutant, workers, tim
 	// Start workers - no file locks needed with overlay approach
 	for i, mutant := range mutants {
 		wg.Go(func() {
-			defer wg.Done()
-
 			semaphore <- struct{}{}
 
 			defer func() { <-semaphore }()
