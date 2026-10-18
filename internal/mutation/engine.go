@@ -23,11 +23,22 @@ type Mutant struct {
 	Line        int    `json:"line"`
 	Column      int    `json:"column"`
 	Type        string `json:"type"`
+	Mutator     string `json:"mutator,omitempty"` // Name of the mutator that produced this mutant, as listed by `gomu run --list`
 	Original    string `json:"original"`
 	Mutated     string `json:"mutated"`
 	Description string `json:"description"`
 	Context     string `json:"context,omitempty"`  // Source code context around the mutation
 	Function    string `json:"function,omitempty"` // Function name containing the mutation
+}
+
+// DisplayName returns the label shown to users for this mutant: the mutator
+// name, falling back to Type for mutants deserialized from older reports.
+func (m Mutant) DisplayName() string {
+	if m.Mutator != "" {
+		return m.Mutator
+	}
+
+	return m.Type
 }
 
 // Result represents the result of testing a mutant.
@@ -132,6 +143,7 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 				// Filter mutants based on type information
 				for i := range mutants {
 					mutants[i].FilePath = filePath
+					mutants[i].Mutator = mutator.Name()
 
 					// The ID is assigned after filtering so rejected mutants
 					// never leave gaps or duplicates.
