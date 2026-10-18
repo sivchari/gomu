@@ -379,3 +379,71 @@ func IsEmpty(s []int) bool {
 		})
 	}
 }
+
+// TestGenerateMutants_StampsMutatorName verifies every mutant carries the Name()
+// of the mutator that produced it, and that each registered mutator is
+// represented across the testdata corpus.
+func TestGenerateMutants_StampsMutatorName(t *testing.T) {
+	inputs, err := readTestdataInputs()
+	if err != nil {
+		t.Fatalf("failed to read testdata: %v", err)
+	}
+
+	engine, err := New()
+	if err != nil {
+		t.Fatalf("Failed to create mutation engine: %v", err)
+	}
+
+	registered := make(map[string]bool)
+	for _, m := range getAllMutators() {
+		registered[m.Name()] = true
+	}
+
+	stamped := make(map[string]bool)
+
+	for i, input := range inputs {
+		testFile := filepath.Join(t.TempDir(), fmt.Sprintf("input%d.go", i))
+		if err := os.WriteFile(testFile, input, 0600); err != nil {
+			t.Fatalf("Failed to write test file: %v", err)
+		}
+
+		mutants, err := engine.GenerateMutants(testFile)
+		if err != nil {
+			t.Fatalf("Failed to generate mutants for %s: %v", testFile, err)
+		}
+
+		for _, mutant := range mutants {
+			if !registered[mutant.Mutator] {
+				t.Errorf("mutant %s (type %s) has Mutator %q, not a registered mutator name", mutant.ID, mutant.Type, mutant.Mutator)
+			}
+
+			stamped[mutant.Mutator] = true
+		}
+	}
+
+	for name := range registered {
+		if !stamped[name] {
+			t.Errorf("no mutant stamped with registered mutator %q across testdata", name)
+		}
+	}
+}
+
+func TestMutant_DisplayName(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutant Mutant
+		want   string
+	}{
+		{name: "mutator preferred", mutant: Mutant{Mutator: "arithmetic", Type: "arithmetic_binary"}, want: "arithmetic"},
+		{name: "falls back to type", mutant: Mutant{Type: "arithmetic_binary"}, want: "arithmetic_binary"},
+		{name: "both empty", mutant: Mutant{}, want: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.mutant.DisplayName(); got != tt.want {
+				t.Errorf("DisplayName() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}

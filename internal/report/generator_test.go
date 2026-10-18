@@ -24,12 +24,13 @@ func TestCalculateStatistics(t *testing.T) {
 	}
 
 	results := []mutation.Result{
-		{Mutant: mutation.Mutant{ID: "1", Type: "arithmetic"}, Status: mutation.StatusKilled},
-		{Mutant: mutation.Mutant{ID: "2", Type: "arithmetic"}, Status: mutation.StatusKilled},
-		{Mutant: mutation.Mutant{ID: "3", Type: "conditional"}, Status: mutation.StatusSurvived},
-		{Mutant: mutation.Mutant{ID: "4", Type: "logical"}, Status: mutation.StatusTimedOut},
+		{Mutant: mutation.Mutant{ID: "1", Mutator: "arithmetic", Type: "arithmetic_binary"}, Status: mutation.StatusKilled},
+		{Mutant: mutation.Mutant{ID: "2", Mutator: "arithmetic", Type: "arithmetic_assign"}, Status: mutation.StatusKilled},
+		{Mutant: mutation.Mutant{ID: "3", Mutator: "conditional", Type: "conditional_binary"}, Status: mutation.StatusSurvived},
+		{Mutant: mutation.Mutant{ID: "4", Mutator: "logical", Type: "logical_binary"}, Status: mutation.StatusTimedOut},
+		// Empty Mutator (results deserialized from older JSON) falls back to Type.
 		{Mutant: mutation.Mutant{ID: "5", Type: "arithmetic"}, Status: mutation.StatusError},
-		{Mutant: mutation.Mutant{ID: "6", Type: "conditional"}, Status: mutation.StatusNotViable},
+		{Mutant: mutation.Mutant{ID: "6", Mutator: "conditional", Type: "conditional_binary"}, Status: mutation.StatusNotViable},
 	}
 
 	stats := generator.calculateStatistics(results)
@@ -462,7 +463,8 @@ func TestGenerateHTML(t *testing.T) {
 					FilePath:    "test.go",
 					Line:        10,
 					Column:      5,
-					Type:        "arithmetic",
+					Type:        "arithmetic_binary",
+					Mutator:     "arithmetic",
 					Original:    "+",
 					Mutated:     "-",
 					Description: "Replace + with -",
@@ -501,7 +503,8 @@ func TestGenerateHTML(t *testing.T) {
 					FilePath:    "test.go",
 					Line:        15,
 					Column:      8,
-					Type:        "conditional",
+					Type:        "conditional_binary",
+					Mutator:     "conditional",
 					Original:    "==",
 					Mutated:     "!=",
 					Description: "Replace == with !=",
@@ -526,6 +529,20 @@ func TestGenerateHTML(t *testing.T) {
 						Duration: 18,
 					},
 				},
+			},
+			{
+				// Empty Mutator (results deserialized from older JSON) falls back to Type.
+				Mutant: mutation.Mutant{
+					ID:          "test3",
+					FilePath:    "test.go",
+					Line:        20,
+					Column:      3,
+					Type:        "logical_binary",
+					Original:    "&&",
+					Mutated:     "||",
+					Description: "Replace && with ||",
+				},
+				Status: mutation.StatusKilled,
 			},
 		},
 		Duration: time.Second * 5,
@@ -572,11 +589,27 @@ func TestGenerateHTML(t *testing.T) {
 		"Survived",
 		"test.go:15:8",
 		"Replace == with !=",
+		// Mutator names, so the type filter buttons (data-filter) match data-type.
+		`data-filter="arithmetic"`,
+		`data-type="arithmetic"`,
+		`<div class="mutant-type">arithmetic</div>`,
+		`data-filter="conditional"`,
+		`data-type="conditional"`,
+		`<div class="mutant-type">conditional</div>`,
+		// Fallback to Type when Mutator is empty.
+		`data-type="logical_binary"`,
+		`<div class="mutant-type">logical_binary</div>`,
 	}
 
 	for _, element := range expectedElements {
 		if !strings.Contains(content, element) {
 			t.Errorf("Expected element '%s' not found in HTML report", element)
+		}
+	}
+
+	for _, unwanted := range []string{`data-type="arithmetic_binary"`, `data-type="conditional_binary"`} {
+		if strings.Contains(content, unwanted) {
+			t.Errorf("HTML report should not contain Type-based label %s", unwanted)
 		}
 	}
 }

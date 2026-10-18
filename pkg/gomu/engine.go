@@ -531,7 +531,7 @@ func writeDryRunFile(w io.Writer, file string, mutants []mutation.Mutant) error 
 
 	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
 	for _, m := range mutants {
-		fmt.Fprintf(tw, "  L%d:%d\t%s\t%s\n", m.Line, m.Column, m.Type, m.Description)
+		fmt.Fprintf(tw, "  L%d:%d\t%s\t%s\n", m.Line, m.Column, m.Mutator, m.Description)
 	}
 
 	if err := tw.Flush(); err != nil {

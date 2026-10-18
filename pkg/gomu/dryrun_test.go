@@ -22,8 +22,8 @@ func TestWriteDryRunFile(t *testing.T) {
 			name: "two_mutants",
 			file: "foo.go",
 			mutants: []mutation.Mutant{
-				{Line: 12, Column: 7, Type: "arithmetic_binary", Description: "Replace + with -"},
-				{Line: 20, Column: 3, Type: "conditional_binary", Description: "Replace < with <="},
+				{Line: 12, Column: 7, Mutator: "arithmetic", Type: "arithmetic_binary", Description: "Replace + with -"},
+				{Line: 20, Column: 3, Mutator: "conditional", Type: "conditional_binary", Description: "Replace < with <="},
 			},
 		},
 		{
@@ -32,13 +32,13 @@ func TestWriteDryRunFile(t *testing.T) {
 			mutants: nil,
 		},
 		{
-			// Mixes short and long Type strings so tabwriter padding is locked.
+			// Mixes short and long Mutator names so tabwriter padding is locked.
 			name: "alignment",
 			file: "bar.go",
 			mutants: []mutation.Mutant{
-				{Line: 3, Column: 1, Type: "op", Description: "short"},
-				{Line: 120, Column: 45, Type: "arithmetic_binary_assignment_removal", Description: "a much longer description to test column padding"},
-				{Line: 7, Column: 2, Type: "logical", Description: "mid length description"},
+				{Line: 3, Column: 1, Mutator: "op", Type: "op_binary", Description: "short"},
+				{Line: 120, Column: 45, Mutator: "arithmetic_binary_assignment_removal", Type: "arithmetic_assign", Description: "a much longer description to test column padding"},
+				{Line: 7, Column: 2, Mutator: "logical", Type: "logical_binary", Description: "mid length description"},
 			},
 		},
 	}
@@ -208,6 +208,11 @@ func Sub(a, b int) int {
 
 			if !strings.Contains(out, "arithmetic") {
 				t.Errorf("expected arithmetic mutator name in output, got: %q", out)
+			}
+
+			// The mutator name matches `gomu run --list`; the finer-grained Type does not appear.
+			if strings.Contains(out, "arithmetic_binary") {
+				t.Errorf("output should show the mutator name, not the mutant type: %q", out)
 			}
 		})
 	}

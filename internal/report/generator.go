@@ -129,7 +129,7 @@ func (g *Generator) calculateStatistics(results []mutation.Result) Statistics {
 		}
 
 		// Track mutation type statistics
-		mutationType := result.Mutant.Type
+		mutationType := result.Mutant.DisplayName()
 		if mutationType == "" {
 			mutationType = "unknown"
 		}
@@ -1062,11 +1062,11 @@ const htmlTemplate = `<!DOCTYPE html>
                 </div>
                 <div class="mutant-list">
                     {{range .Results}}
-                    <div class="mutant-item {{.Status}}" data-type="{{.Mutant.Type}}" data-status="{{.Status}}">
+                    <div class="mutant-item {{.Status}}" data-type="{{.Mutant.DisplayName}}" data-status="{{.Status}}">
                         <div class="mutant-header">
                             <div class="mutant-location">{{.Mutant.FilePath}}:{{.Mutant.Line}}:{{.Mutant.Column}}</div>
                             <div class="mutant-badges">
-                                <div class="mutant-type">{{.Mutant.Type}}</div>
+                                <div class="mutant-type">{{.Mutant.DisplayName}}</div>
                                 <div class="mutant-status {{.Status}}">{{.Status}}</div>
                             </div>
                         </div>
