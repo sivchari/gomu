@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.3.1](https://github.com/sivchari/gomu/compare/v0.3.0...v0.3.1) - 2026-10-18
+
+- update Go1.26 by @sivchari in https://github.com/sivchari/gomu/pull/130
+- fix Waitgroup.Go by @sivchari in https://github.com/sivchari/gomu/pull/132
+- fix: display mutator names in run output and HTML report by @sivchari in https://github.com/sivchari/gomu/pull/133
+
 ## [v0.3.0](https://github.com/sivchari/gomu/compare/v0.2.1...v0.3.0) - 2026-10-17
 
 - feat: add invert negatives mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/78
