@@ -90,6 +90,7 @@ const gomuVersion = "0.1.0"
 func (g *Generator) Generate(summary *Summary) error {
 	// Calculate statistics
 	summary.Statistics = g.calculateStatistics(summary.Results)
+	summary.KilledMutants = summary.Statistics.Killed
 	summary.Timestamp = time.Now()
 	summary.Version = gomuVersion
 
