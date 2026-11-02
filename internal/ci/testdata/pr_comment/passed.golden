@@ -2,17 +2,19 @@
 
 ✅ **Quality Gate: PASSED**
 
-**Overall Mutation Score:** 85.0%
+**Overall Mutation Score:** 85.0% ((killed + timed out) / (total - not viable - errors))
 **Total Mutants:** 100
 **Not viable:** 0
+**Errors:** 0
 **Killed:** 85
+**Timed out:** 0
 
 ### Files with Mutations
 
-| File | Score | Mutants | Killed |
-|------|-------|---------|--------|
-| example.go | 90.0% | 50 | 45 |
-| utils.go | 80.0% | 50 | 40 |
+| File | Score | Mutants | Killed | Timed Out | Not Viable | Errors |
+|------|-------|---------|--------|-----------|------------|--------|
+| example.go | 90.0% | 50 | 45 | 0 | 0 | 0 |
+| utils.go | 80.0% | 50 | 40 | 0 | 0 | 0 |
 
 
 ---

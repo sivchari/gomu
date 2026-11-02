@@ -36,6 +36,8 @@ type FileReport struct {
 	FilePath      string  `json:"filePath"`
 	TotalMutants  int     `json:"totalMutants"`
 	KilledMutants int     `json:"killedMutants"`
+	TimedOut      int     `json:"timedOut"`
+	Errors        int     `json:"errors"`
 	NotViable     int     `json:"notViable"`
 	MutationScore float64 `json:"mutationScore"`
 }
@@ -59,17 +61,31 @@ type TypeStatistics struct {
 	Survived int `json:"survived"`
 }
 
-// MutationScore returns killed as a percentage of the viable mutants.
+// ScoreFormula describes how MutationScore is computed, for display next to a score.
+const ScoreFormula = "(killed + timed out) / (total - not viable - errors)"
+
+// ScoreInput holds the mutant counts MutationScore needs.
+type ScoreInput struct {
+	Killed    int
+	TimedOut  int
+	Total     int
+	NotViable int
+	Errors    int
+}
+
+// MutationScore returns (Killed + TimedOut) / (Total - NotViable - Errors) as a percentage.
 //
-// NOT_VIABLE mutants fail to compile and cannot be killed or survive, so they
-// are excluded from the denominator. It returns 0 when no viable mutants exist.
-func MutationScore(killed, total, notViable int) float64 {
-	viable := total - notViable
-	if viable <= 0 {
+// NOT_VIABLE mutants fail to compile and ERROR mutants never ran any test, so
+// neither says anything about the tests and both leave the denominator.
+// TIMED_OUT mutants count as detected because the tests did not let them through.
+// It returns 0 when no mutants remain in the denominator.
+func MutationScore(in ScoreInput) float64 {
+	evaluated := in.Total - in.NotViable - in.Errors
+	if evaluated <= 0 {
 		return 0
 	}
 
-	return float64(killed) / float64(viable) * 100
+	return float64(in.Killed+in.TimedOut) / float64(evaluated) * 100
 }
 
 // New creates a new report generator with the specified output format.
@@ -147,7 +163,13 @@ func (g *Generator) calculateStatistics(results []mutation.Result) Statistics {
 		stats.MutationTypes[mutationType] = typeStats
 	}
 
-	stats.Score = MutationScore(stats.Killed, len(results), stats.NotViable)
+	stats.Score = MutationScore(ScoreInput{
+		Killed:    stats.Killed,
+		TimedOut:  stats.TimedOut,
+		Total:     len(results),
+		NotViable: stats.NotViable,
+		Errors:    stats.Errors,
+	})
 
 	return stats
 }
@@ -200,7 +222,7 @@ Results:
   Errors:     %d (%.1f%%)
   Not viable: %d (%.1f%%)
 
-Mutation Score: %.1f%%
+Mutation Score: %.1f%% (%s)
 
 `,
 		summary.ProcessedFiles, summary.TotalFiles,
@@ -211,7 +233,7 @@ Mutation Score: %.1f%%
 		stats.TimedOut, percentage(stats.TimedOut, summary.TotalMutants),
 		stats.Errors, percentage(stats.Errors, summary.TotalMutants),
 		stats.NotViable, percentage(stats.NotViable, summary.TotalMutants),
-		stats.Score,
+		stats.Score, ScoreFormula,
 	)
 
 	// Add details for survived mutants
@@ -238,7 +260,8 @@ Mutation Score: %.1f%%
 
 func (g *Generator) generateHTML(summary *Summary) error {
 	funcMap := template.FuncMap{
-		"percentage": percentage,
+		"percentage":   percentage,
+		"scoreFormula": func() string { return ScoreFormula },
 	}
 
 	tmpl, err := template.New("html_report").Funcs(funcMap).Parse(htmlTemplate)
@@ -378,6 +401,11 @@ const htmlTemplate = `<!DOCTYPE html>
             font-weight: bold;
             margin: 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .score-formula {
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
         }
         .score-indicator {
             display: inline-block;
@@ -973,6 +1001,7 @@ const htmlTemplate = `<!DOCTYPE html>
             <div class="mutation-score">
                 <h2>🎯 Mutation Score</h2>
                 <div class="score-value">{{printf "%.1f" .Statistics.Score}}%</div>
+                <p class="score-formula">{{scoreFormula}}</p>
             </div>
             
             <div class="statistics">
@@ -1142,7 +1171,7 @@ func (g *Generator) generateConsole(summary *Summary) error {
 	fmt.Printf("Errors:     %d (%.1f%%)\n", stats.Errors, percentage(stats.Errors, summary.TotalMutants))
 	fmt.Printf("Not viable: %d (%.1f%%)\n", stats.NotViable, percentage(stats.NotViable, summary.TotalMutants))
 	fmt.Println()
-	fmt.Printf("Mutation Score: %.1f%%\n", stats.Score)
+	fmt.Printf("Mutation Score: %.1f%% (%s)\n", stats.Score, ScoreFormula)
 
 	return nil
 }

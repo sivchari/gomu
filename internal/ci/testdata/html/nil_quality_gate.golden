@@ -15,11 +15,15 @@
     <div class="header">
         <h1>Mutation Testing Report</h1>
         <div class="score">Overall Score: 85.0%</div>
+        <p>Score formula: (killed + timed out) / (total - not viable - errors)</p>
         <p>Quality Gate: No quality gate configured</p>
     </div>
     <h2>Summary</h2>
     <p>Total Mutants: 100</p>
     <p>Killed: 85</p>
+    <p>Timed out: 0</p>
+    <p>Not viable: 0</p>
+    <p>Errors: 0</p>
     <p>Files Analyzed: 1</p>
     <h2>File Details</h2>
     <table>
@@ -27,12 +31,18 @@
             <th>File</th>
             <th>Total Mutants</th>
             <th>Killed</th>
+            <th>Timed Out</th>
+            <th>Not Viable</th>
+            <th>Errors</th>
             <th>Score</th>
         </tr>
         <tr>
             <td>example.go</td>
             <td>50</td>
             <td>45</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
             <td>90.0%</td>
         </tr>
     </table>

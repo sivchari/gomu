@@ -193,7 +193,7 @@ runs:
           echo "survived-mutants=$survived_mutants" >> $GITHUB_OUTPUT
           
           echo "✅ Mutation testing completed"
-          echo "📊 Mutation Score: $mutation_score%"
+          echo "📊 Mutation Score: $mutation_score% ((killed + timed out) / (total - not viable - errors))"
           echo "🧬 Total Mutants: $total_mutants"
           echo "⚰️  Killed: $killed_mutants"
           echo "🏃 Survived: $survived_mutants"
