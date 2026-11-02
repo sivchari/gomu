@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/sivchari/gomu/internal/mutation"
+	"github.com/sivchari/gomu/internal/report"
 )
 
 // Store manages mutation testing history for incremental analysis.
@@ -106,19 +107,19 @@ func (s *Store) UpdateFile(filePath string, mutants []mutation.Mutant, results [
 
 // UpdateFileWithHashes updates the history entry for a file with specific hashes.
 func (s *Store) UpdateFileWithHashes(filePath string, mutants []mutation.Mutant, results []mutation.Result, fileHash, testHash string) {
-	// Calculate mutation score
-	var killed, total int
+	in := report.ScoreInput{Total: len(results)}
+
 	for _, result := range results {
-		total++
-
-		if result.Status == mutation.StatusKilled {
-			killed++
+		switch result.Status {
+		case mutation.StatusKilled:
+			in.Killed++
+		case mutation.StatusTimedOut:
+			in.TimedOut++
+		case mutation.StatusNotViable:
+			in.NotViable++
+		case mutation.StatusError:
+			in.Errors++
 		}
-	}
-
-	var score float64
-	if total > 0 {
-		score = float64(killed) / float64(total) * 100
 	}
 
 	entry := Entry{
@@ -127,7 +128,7 @@ func (s *Store) UpdateFileWithHashes(filePath string, mutants []mutation.Mutant,
 		Mutants:       mutants,
 		Results:       results,
 		Timestamp:     time.Now(),
-		MutationScore: score,
+		MutationScore: report.MutationScore(in),
 	}
 
 	s.entries[filePath] = entry

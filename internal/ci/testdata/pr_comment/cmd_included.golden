@@ -2,17 +2,19 @@
 
 ✅ **Quality Gate: PASSED**
 
-**Overall Mutation Score:** 83.3%
+**Overall Mutation Score:** 83.3% ((killed + timed out) / (total - not viable - errors))
 **Total Mutants:** 30
 **Not viable:** 0
+**Errors:** 0
 **Killed:** 25
+**Timed out:** 0
 
 ### Files with Mutations
 
-| File | Score | Mutants | Killed |
-|------|-------|---------|--------|
-| cmd/gomu/main.go | 100.0% | 10 | 10 |
-| internal/foo.go | 75.0% | 20 | 15 |
+| File | Score | Mutants | Killed | Timed Out | Not Viable | Errors |
+|------|-------|---------|--------|-----------|------------|--------|
+| cmd/gomu/main.go | 100.0% | 10 | 10 | 0 | 0 | 0 |
+| internal/foo.go | 75.0% | 20 | 15 | 0 | 0 | 0 |
 
 
 ---

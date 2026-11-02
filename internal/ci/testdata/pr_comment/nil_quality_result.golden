@@ -2,16 +2,18 @@
 
 ❌ **Quality Gate: FAILED**
 
-**Overall Mutation Score:** 75.0%
+**Overall Mutation Score:** 75.0% ((killed + timed out) / (total - not viable - errors))
 **Total Mutants:** 100
 **Not viable:** 0
+**Errors:** 0
 **Killed:** 75
+**Timed out:** 0
 
 ### Files with Mutations
 
-| File | Score | Mutants | Killed |
-|------|-------|---------|--------|
-| test.go | 75.0% | 100 | 75 |
+| File | Score | Mutants | Killed | Timed Out | Not Viable | Errors |
+|------|-------|---------|--------|-----------|------------|--------|
+| test.go | 75.0% | 100 | 75 | 0 | 0 | 0 |
 
 **Failure Reason:** No quality gate configured
 

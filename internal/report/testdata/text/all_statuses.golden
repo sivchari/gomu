@@ -14,7 +14,7 @@ Results:
   Errors:     1 (20.0%)
   Not viable: 1 (20.0%)
 
-Mutation Score: 25.0%
+Mutation Score: 66.7% ((killed + timed out) / (total - not viable - errors))
 
 
 Survived Mutants:

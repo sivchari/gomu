@@ -3,6 +3,7 @@ package ci
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -85,6 +86,17 @@ func (r *Reporter) Generate(summary *report.Summary, qualityGate *QualityGateEva
 	}
 }
 
+// summaryScore computes the overall score from the summary when no quality gate supplied one.
+func summaryScore(summary *report.Summary) float64 {
+	return report.MutationScore(report.ScoreInput{
+		Killed:    summary.KilledMutants,
+		TimedOut:  summary.Statistics.TimedOut,
+		Total:     summary.TotalMutants,
+		NotViable: summary.Statistics.NotViable,
+		Errors:    summary.Statistics.Errors,
+	})
+}
+
 // generateJSONReport generates a JSON report.
 func (r *Reporter) generateJSONReport(summary *report.Summary, qualityResult *QualityGateResult) error {
 	data := map[string]any{
@@ -100,7 +112,7 @@ func (r *Reporter) generateJSONReport(summary *report.Summary, qualityResult *Qu
 		data["qualityGatePassed"] = qualityResult.Pass
 		data["qualityGateReason"] = qualityResult.Reason
 	} else {
-		data["mutationScore"] = report.MutationScore(summary.KilledMutants, summary.TotalMutants, summary.Statistics.NotViable)
+		data["mutationScore"] = summaryScore(summary)
 		data["qualityGatePassed"] = "N/A"
 		data["qualityGateReason"] = noQualityGateMessage
 	}
@@ -125,15 +137,25 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
 	fileDetailsHTML := ""
 
 	for _, file := range sortedFiles(summary.Files) {
-		score := report.MutationScore(file.KilledMutants, file.TotalMutants, file.NotViable)
+		score := report.MutationScore(report.ScoreInput{
+			Killed:    file.KilledMutants,
+			TimedOut:  file.TimedOut,
+			Total:     file.TotalMutants,
+			NotViable: file.NotViable,
+			Errors:    file.Errors,
+		})
 
 		fileDetailsHTML += fmt.Sprintf(`
         <tr>
             <td>%s</td>
             <td>%d</td>
             <td>%d</td>
+            <td>%d</td>
+            <td>%d</td>
+            <td>%d</td>
             <td>%.1f%%</td>
-        </tr>`, displayPath(file.FilePath), file.TotalMutants, file.KilledMutants, score)
+        </tr>`, displayPath(file.FilePath), file.TotalMutants, file.KilledMutants,
+			file.TimedOut, file.NotViable, file.Errors, score)
 	}
 
 	var (
@@ -149,7 +171,7 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
 			qualityGateStatus = fmt.Sprintf("FAILED - %s", qualityResult.Reason)
 		}
 	} else {
-		mutationScore = report.MutationScore(summary.KilledMutants, summary.TotalMutants, summary.Statistics.NotViable)
+		mutationScore = summaryScore(summary)
 		qualityGateStatus = noQualityGateMessage
 	}
 
@@ -170,11 +192,15 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
     <div class="header">
         <h1>Mutation Testing Report</h1>
         <div class="score">Overall Score: %.1f%%</div>
+        <p>Score formula: %s</p>
         <p>Quality Gate: %s</p>
     </div>
     <h2>Summary</h2>
     <p>Total Mutants: %d</p>
     <p>Killed: %d</p>
+    <p>Timed out: %d</p>
+    <p>Not viable: %d</p>
+    <p>Errors: %d</p>
     <p>Files Analyzed: %d</p>
     <h2>File Details</h2>
     <table>
@@ -182,6 +208,9 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
             <th>File</th>
             <th>Total Mutants</th>
             <th>Killed</th>
+            <th>Timed Out</th>
+            <th>Not Viable</th>
+            <th>Errors</th>
             <th>Score</th>
         </tr>%s
     </table>
@@ -189,9 +218,13 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
 </html>`,
 		r.getScoreColor(mutationScore),
 		mutationScore,
+		report.ScoreFormula,
 		qualityGateStatus,
 		summary.TotalMutants,
 		summary.KilledMutants,
+		summary.Statistics.TimedOut,
+		summary.Statistics.NotViable,
+		summary.Statistics.Errors,
 		len(summary.Files),
 		fileDetailsHTML,
 	)
@@ -207,10 +240,29 @@ func (r *Reporter) generateHTMLReport(summary *report.Summary, qualityResult *Qu
 
 // generateConsoleReport prints a console report.
 func (r *Reporter) generateConsoleReport(summary *report.Summary, qualityResult *QualityGateResult) {
-	fmt.Printf("Mutation Score: %.1f%%\n", qualityResult.MutationScore)
-	fmt.Printf("Quality Gate: %s\n", map[bool]string{true: "PASSED", false: "FAILED"}[qualityResult.Pass])
-	fmt.Printf("Total Mutants: %d\n", summary.TotalMutants)
-	fmt.Printf("Killed: %d\n", summary.KilledMutants)
+	writeConsoleReport(os.Stdout, summary, qualityResult)
+}
+
+// writeConsoleReport writes the console report to w.
+//
+// A nil qualityResult prints the score computed from the summary and omits the gate line.
+func writeConsoleReport(w io.Writer, summary *report.Summary, qualityResult *QualityGateResult) {
+	score := summaryScore(summary)
+	if qualityResult != nil {
+		score = qualityResult.MutationScore
+	}
+
+	fmt.Fprintf(w, "Mutation Score: %.1f%% (%s)\n", score, report.ScoreFormula)
+
+	if qualityResult != nil {
+		fmt.Fprintf(w, "Quality Gate: %s\n", map[bool]string{true: "PASSED", false: "FAILED"}[qualityResult.Pass])
+	}
+
+	fmt.Fprintf(w, "Total Mutants: %d\n", summary.TotalMutants)
+	fmt.Fprintf(w, "Killed: %d\n", summary.KilledMutants)
+	fmt.Fprintf(w, "Timed out: %d\n", summary.Statistics.TimedOut)
+	fmt.Fprintf(w, "Not viable: %d\n", summary.Statistics.NotViable)
+	fmt.Fprintf(w, "Errors: %d\n", summary.Statistics.Errors)
 }
 
 // getScoreColor returns color based on score.

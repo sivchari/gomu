@@ -611,7 +611,7 @@ func TestConvertToCISummary(t *testing.T) {
 			expectedTotal:  5,
 			expectedScores: map[string]float64{
 				"file1.go": 50.0,
-				"file2.go": 66.66666666666667,
+				"file2.go": 100.0, // timed out counts as detected
 			},
 		},
 		{
@@ -718,6 +718,71 @@ func TestConvertToCISummary_ExcludesNotViableFromFileScore(t *testing.T) {
 	b := ciSummary.Files["b.go"]
 	if b == nil || b.NotViable != 1 || b.MutationScore != 0 {
 		t.Errorf("b.go must report NotViable 1 and score 0, got %+v", b)
+	}
+}
+
+func TestConvertToCISummary_FileScoreFormula(t *testing.T) {
+	tests := []struct {
+		name          string
+		statuses      []mutation.Status
+		wantTimedOut  int
+		wantErrors    int
+		wantNotViable int
+		wantScore     float64
+	}{
+		{
+			name:       "errors leave the denominator",
+			statuses:   []mutation.Status{mutation.StatusKilled, mutation.StatusSurvived, mutation.StatusError, mutation.StatusError},
+			wantErrors: 2,
+			wantScore:  50.0,
+		},
+		{
+			name:         "timed out counts as detected but stays in the denominator",
+			statuses:     []mutation.Status{mutation.StatusKilled, mutation.StatusTimedOut, mutation.StatusSurvived, mutation.StatusSurvived},
+			wantTimedOut: 1,
+			wantScore:    50.0,
+		},
+		{
+			name: "every status together",
+			statuses: []mutation.Status{
+				mutation.StatusKilled, mutation.StatusKilled, mutation.StatusTimedOut, mutation.StatusSurvived,
+				mutation.StatusError, mutation.StatusNotViable,
+			},
+			wantTimedOut:  1,
+			wantErrors:    1,
+			wantNotViable: 1,
+			wantScore:     75.0,
+		},
+		{
+			name:          "every mutant errored or not viable",
+			statuses:      []mutation.Status{mutation.StatusError, mutation.StatusNotViable},
+			wantErrors:    1,
+			wantNotViable: 1,
+			wantScore:     0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			results := make([]mutation.Result, 0, len(tt.statuses))
+			for _, status := range tt.statuses {
+				results = append(results, mutation.Result{Mutant: mutation.Mutant{FilePath: "a.go"}, Status: status})
+			}
+
+			a := (&Engine{}).convertToCISummary(&report.Summary{Results: results}).Files["a.go"]
+			if a == nil {
+				t.Fatal("a.go missing from CI summary")
+			}
+
+			if a.TimedOut != tt.wantTimedOut || a.Errors != tt.wantErrors || a.NotViable != tt.wantNotViable {
+				t.Errorf("a.go TimedOut/Errors/NotViable = %d/%d/%d, want %d/%d/%d",
+					a.TimedOut, a.Errors, a.NotViable, tt.wantTimedOut, tt.wantErrors, tt.wantNotViable)
+			}
+
+			if math.Abs(a.MutationScore-tt.wantScore) > 1e-9 {
+				t.Errorf("a.go MutationScore = %v, want %v", a.MutationScore, tt.wantScore)
+			}
+		})
 	}
 }
 

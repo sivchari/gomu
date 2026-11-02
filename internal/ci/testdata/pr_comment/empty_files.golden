@@ -2,10 +2,12 @@
 
 ❌ **Quality Gate: FAILED**
 
-**Overall Mutation Score:** 0.0%
+**Overall Mutation Score:** 0.0% ((killed + timed out) / (total - not viable - errors))
 **Total Mutants:** 0
 **Not viable:** 0
+**Errors:** 0
 **Killed:** 0
+**Timed out:** 0
 
 No files analyzed.
 
