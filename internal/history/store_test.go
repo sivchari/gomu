@@ -1,6 +1,7 @@
 package history
 
 import (
+	"math"
 	"os"
 	"path/filepath"
 	"testing"
@@ -411,5 +412,58 @@ func TestGetStats_EmptyStore(t *testing.T) {
 
 	if stats.LastUpdated.IsZero() {
 		t.Error("Expected LastUpdated to be set")
+	}
+}
+
+func TestUpdateFile_ScoreFormula(t *testing.T) {
+	tests := []struct {
+		name     string
+		statuses []mutation.Status
+		want     float64
+	}{
+		{
+			name:     "errors leave the denominator",
+			statuses: []mutation.Status{mutation.StatusKilled, mutation.StatusSurvived, mutation.StatusError, mutation.StatusError},
+			want:     50.0,
+		},
+		{
+			name:     "timed out counts as detected",
+			statuses: []mutation.Status{mutation.StatusTimedOut, mutation.StatusSurvived},
+			want:     50.0,
+		},
+		{
+			name: "every status together",
+			statuses: []mutation.Status{
+				mutation.StatusKilled, mutation.StatusKilled, mutation.StatusTimedOut, mutation.StatusSurvived,
+				mutation.StatusError, mutation.StatusNotViable,
+			},
+			want: 75.0,
+		},
+		{
+			name:     "every mutant errored or not viable",
+			statuses: []mutation.Status{mutation.StatusError, mutation.StatusNotViable},
+			want:     0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store, err := New(filepath.Join(t.TempDir(), "history.json"))
+			if err != nil {
+				t.Fatalf("Failed to create store: %v", err)
+			}
+
+			results := make([]mutation.Result, 0, len(tt.statuses))
+			for _, status := range tt.statuses {
+				results = append(results, mutation.Result{Status: status})
+			}
+
+			store.UpdateFile("test.go", nil, results)
+
+			entry, _ := store.GetEntry("test.go")
+			if math.Abs(entry.MutationScore-tt.want) > 1e-9 {
+				t.Errorf("MutationScore = %v, want %v", entry.MutationScore, tt.want)
+			}
+		})
 	}
 }

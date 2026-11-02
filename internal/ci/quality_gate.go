@@ -37,7 +37,7 @@ func (e *QualityGateEvaluator) Evaluate(summary *report.Summary) *QualityGateRes
 		}
 	}
 
-	// Use the correctly calculated mutation score from statistics (excludes NOT_VIABLE mutants)
+	// Use the mutation score from statistics (see report.MutationScore for the formula)
 	mutationScore := summary.Statistics.Score
 
 	if !e.enabled {

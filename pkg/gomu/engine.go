@@ -595,9 +595,9 @@ func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary,
 	var qualityResult *ci.QualityGateResult
 	if e.qualityGate != nil {
 		qualityResult = e.qualityGate.Evaluate(ciSummary)
-		fmt.Printf("Quality Gate: %s (Score: %.1f%%)\n",
+		fmt.Printf("Quality Gate: %s (Score: %.1f%%, %s)\n",
 			map[bool]string{true: "PASSED", false: "FAILED"}[qualityResult.Pass],
-			qualityResult.MutationScore)
+			qualityResult.MutationScore, report.ScoreFormula)
 
 		if !qualityResult.Pass {
 			fmt.Printf("Reason: %s\n", qualityResult.Reason)
@@ -657,6 +657,10 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 			case mutation.StatusKilled:
 				fileReport.KilledMutants++
 				killedMutants++
+			case mutation.StatusTimedOut:
+				fileReport.TimedOut++
+			case mutation.StatusError:
+				fileReport.Errors++
 			case mutation.StatusNotViable:
 				fileReport.NotViable++
 			}
@@ -665,7 +669,13 @@ func (e *Engine) convertToCISummary(summary *report.Summary) *report.Summary {
 		}
 
 		if fileReport.TotalMutants > 0 {
-			fileReport.MutationScore = report.MutationScore(fileReport.KilledMutants, fileReport.TotalMutants, fileReport.NotViable)
+			fileReport.MutationScore = report.MutationScore(report.ScoreInput{
+				Killed:    fileReport.KilledMutants,
+				TimedOut:  fileReport.TimedOut,
+				Total:     fileReport.TotalMutants,
+				NotViable: fileReport.NotViable,
+				Errors:    fileReport.Errors,
+			})
 			// Only add files with mutations to the report
 			files[filePath] = fileReport
 		}

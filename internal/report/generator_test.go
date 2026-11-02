@@ -55,8 +55,8 @@ func TestCalculateStatistics(t *testing.T) {
 		t.Errorf("Expected NotViable 1, got %d", stats.NotViable)
 	}
 
-	// Score should be 2/5 * 100 = 40.0 (excluding NOT_VIABLE)
-	expectedScore := 2.0 / 5.0 * 100
+	// Score should be (2 killed + 1 timed out) / (6 total - 1 error - 1 not viable) * 100 = 75.0
+	expectedScore := 3.0 / 4.0 * 100
 	if abs(stats.Score-expectedScore) > 0.000001 {
 		t.Errorf("Expected Score %f, got %f", expectedScore, stats.Score)
 	}
@@ -403,7 +403,7 @@ func TestFormatTextReport(t *testing.T) {
 					TimedOut:  1,
 					Errors:    1,
 					NotViable: 1,
-					Score:     25.0,
+					Score:     66.7,
 				},
 			},
 		},
@@ -585,6 +585,7 @@ func TestGenerateHTML(t *testing.T) {
 		"Total Mutants",
 		"Duration",
 		"Mutation Score",
+		"(killed + timed out) / (total - not viable - errors)",
 		"Killed",
 		"Survived",
 		"test.go:15:8",
@@ -681,35 +682,102 @@ func TestCalculateStatistics_UnknownMutationType(t *testing.T) {
 
 func TestMutationScore(t *testing.T) {
 	tests := []struct {
-		name      string
-		killed    int
-		total     int
-		notViable int
-		want      float64
+		name string
+		in   ScoreInput
+		want float64
 	}{
-		{name: "no not-viable mutants", killed: 3, total: 4, notViable: 0, want: 75.0},
-		{name: "not-viable mutants leave the denominator", killed: 71, total: 191, notViable: 12, want: 71.0 / 179.0 * 100},
-		{name: "all killed", killed: 5, total: 5, notViable: 0, want: 100.0},
-		{name: "no mutants", killed: 0, total: 0, notViable: 0, want: 0},
-		{name: "every mutant not viable", killed: 0, total: 3, notViable: 3, want: 0},
+		{name: "only killed and survived", in: ScoreInput{Killed: 3, Total: 4}, want: 75.0},
+		{name: "not-viable mutants leave the denominator", in: ScoreInput{Killed: 71, Total: 191, NotViable: 12}, want: 71.0 / 179.0 * 100},
+		{name: "errors leave the denominator", in: ScoreInput{Killed: 6, Total: 14, Errors: 4}, want: 60.0},
+		{name: "not-viable and errors both leave the denominator", in: ScoreInput{Killed: 3, Total: 10, NotViable: 2, Errors: 2}, want: 50.0},
+		{name: "timed-out counts as detected", in: ScoreInput{Killed: 1, TimedOut: 1, Total: 4}, want: 50.0},
+		{name: "timed-out stays in the denominator", in: ScoreInput{Killed: 0, TimedOut: 2, Total: 4}, want: 50.0},
+		{name: "all formula terms together", in: ScoreInput{Killed: 4, TimedOut: 2, Total: 12, NotViable: 1, Errors: 1}, want: 60.0},
+		{name: "all killed", in: ScoreInput{Killed: 5, Total: 5}, want: 100.0},
+		{name: "no mutants", in: ScoreInput{}, want: 0},
+		{name: "every mutant not viable", in: ScoreInput{Total: 3, NotViable: 3}, want: 0},
+		{name: "every mutant errored", in: ScoreInput{Total: 3, Errors: 3}, want: 0},
+		{name: "every mutant errored or not viable", in: ScoreInput{Total: 5, NotViable: 2, Errors: 3}, want: 0},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := MutationScore(tt.killed, tt.total, tt.notViable)
+			got := MutationScore(tt.in)
 			if math.Abs(got-tt.want) > 1e-9 {
-				t.Errorf("MutationScore(%d, %d, %d) = %v, want %v", tt.killed, tt.total, tt.notViable, got, tt.want)
+				t.Errorf("MutationScore(%+v) = %v, want %v", tt.in, got, tt.want)
 			}
 		})
 	}
 }
 
-func TestMutationScore_NotViableChangesResult(t *testing.T) {
-	without := MutationScore(71, 191, 0)
-	with := MutationScore(71, 191, 12)
+func TestMutationScore_ExclusionsChangeResult(t *testing.T) {
+	base := MutationScore(ScoreInput{Killed: 71, Total: 191})
 
-	if with <= without {
-		t.Errorf("excluding not-viable mutants must raise the score: without=%v with=%v", without, with)
+	tests := []struct {
+		name string
+		in   ScoreInput
+	}{
+		{name: "not viable", in: ScoreInput{Killed: 71, Total: 191, NotViable: 12}},
+		{name: "errors", in: ScoreInput{Killed: 71, Total: 191, Errors: 12}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := MutationScore(tt.in); got <= base {
+				t.Errorf("excluding %s must raise the score: base=%v got=%v", tt.name, base, got)
+			}
+		})
+	}
+}
+
+func TestCalculateStatistics_Score(t *testing.T) {
+	generator, err := New("json")
+	if err != nil {
+		t.Fatalf("Failed to create generator: %v", err)
+	}
+
+	tests := []struct {
+		name     string
+		statuses []mutation.Status
+		want     float64
+	}{
+		{
+			name:     "errors are excluded from the denominator",
+			statuses: []mutation.Status{mutation.StatusKilled, mutation.StatusSurvived, mutation.StatusError, mutation.StatusError},
+			want:     50.0,
+		},
+		{
+			name:     "timed out counts as detected and stays in the denominator",
+			statuses: []mutation.Status{mutation.StatusKilled, mutation.StatusTimedOut, mutation.StatusSurvived, mutation.StatusSurvived},
+			want:     50.0,
+		},
+		{
+			name: "every status together",
+			statuses: []mutation.Status{
+				mutation.StatusKilled, mutation.StatusKilled, mutation.StatusTimedOut, mutation.StatusSurvived,
+				mutation.StatusError, mutation.StatusNotViable,
+			},
+			want: 75.0,
+		},
+		{
+			name:     "every mutant errored or not viable",
+			statuses: []mutation.Status{mutation.StatusError, mutation.StatusError, mutation.StatusNotViable},
+			want:     0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			results := make([]mutation.Result, 0, len(tt.statuses))
+			for _, status := range tt.statuses {
+				results = append(results, mutation.Result{Status: status})
+			}
+
+			stats := generator.calculateStatistics(results)
+			if math.Abs(stats.Score-tt.want) > 1e-9 {
+				t.Errorf("Score = %v, want %v", stats.Score, tt.want)
+			}
+		})
 	}
 }
 
@@ -913,6 +981,33 @@ func TestNew_AlwaysSucceeds(t *testing.T) {
 
 		if generator == nil {
 			t.Error("New() should always return a non-nil generator")
+		}
+	}
+}
+
+func TestFormatTextReport_ScoreFormula(t *testing.T) {
+	generator, err := New("text")
+	if err != nil {
+		t.Fatalf("Failed to create generator: %v", err)
+	}
+
+	got := generator.formatTextReport(&Summary{TotalMutants: 1, Statistics: Statistics{Killed: 1, Score: 100}})
+
+	want := "Mutation Score: 100.0% ((killed + timed out) / (total - not viable - errors))"
+	if !strings.Contains(got, want) {
+		t.Errorf("text report must describe the score formula %q, got:\n%s", want, got)
+	}
+}
+
+func TestFileReport_JSONIncludesErrorsAndTimedOut(t *testing.T) {
+	data, err := json.Marshal(FileReport{FilePath: "a.go", TotalMutants: 5, Errors: 2, TimedOut: 1})
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+
+	for _, want := range []string{`"errors":2`, `"timedOut":1`} {
+		if !strings.Contains(string(data), want) {
+			t.Errorf("FileReport JSON must contain %s, got %s", want, data)
 		}
 	}
 }

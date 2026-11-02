@@ -220,6 +220,8 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	actualTotalMutants := 0
 	actualKilledMutants := 0
 	actualNotViable := 0
+	actualErrors := 0
+	actualTimedOut := 0
 
 	// If Files is not empty, calculate from file reports
 	if len(summary.Files) > 0 {
@@ -227,12 +229,16 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 			actualTotalMutants += fileReport.TotalMutants
 			actualKilledMutants += fileReport.KilledMutants
 			actualNotViable += fileReport.NotViable
+			actualErrors += fileReport.Errors
+			actualTimedOut += fileReport.TimedOut
 		}
 	} else {
 		// Fallback to summary totals if Files is empty
 		actualTotalMutants = summary.TotalMutants
 		actualKilledMutants = summary.KilledMutants
 		actualNotViable = summary.Statistics.NotViable
+		actualErrors = summary.Statistics.Errors
+		actualTimedOut = summary.Statistics.TimedOut
 	}
 
 	// Handle nil quality result
@@ -249,7 +255,13 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 		// The gate's own score keeps the comment consistent with its verdict.
 		mutationScore = qualityResult.MutationScore
 	} else if actualTotalMutants > 0 {
-		mutationScore = report.MutationScore(actualKilledMutants, actualTotalMutants, actualNotViable)
+		mutationScore = report.MutationScore(report.ScoreInput{
+			Killed:    actualKilledMutants,
+			TimedOut:  actualTimedOut,
+			Total:     actualTotalMutants,
+			NotViable: actualNotViable,
+			Errors:    actualErrors,
+		})
 		passed = mutationScore >= 80.0 // Default threshold
 		reason = noQualityGateMessage
 	}
@@ -262,10 +274,12 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 	}
 
 	// Summary
-	fmt.Fprintf(&buf, "**Overall Mutation Score:** %.1f%%\n", mutationScore)
+	fmt.Fprintf(&buf, "**Overall Mutation Score:** %.1f%% (%s)\n", mutationScore, report.ScoreFormula)
 	fmt.Fprintf(&buf, "**Total Mutants:** %d\n", actualTotalMutants)
 	fmt.Fprintf(&buf, "**Not viable:** %d\n", actualNotViable)
+	fmt.Fprintf(&buf, "**Errors:** %d\n", actualErrors)
 	fmt.Fprintf(&buf, "**Killed:** %d\n", actualKilledMutants)
+	fmt.Fprintf(&buf, "**Timed out:** %d\n", actualTimedOut)
 	buf.WriteString("\n")
 
 	// File details - only show files with mutations
@@ -281,8 +295,8 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 
 	if hasFilesWithMutations {
 		buf.WriteString("### Files with Mutations\n\n")
-		buf.WriteString("| File | Score | Mutants | Killed |\n")
-		buf.WriteString("|------|-------|---------|--------|\n")
+		buf.WriteString("| File | Score | Mutants | Killed | Timed Out | Not Viable | Errors |\n")
+		buf.WriteString("|------|-------|---------|--------|-----------|------------|--------|\n")
 
 		// Sort and filter files
 		for _, fileReport := range files {
@@ -291,11 +305,14 @@ func (g *GitHubIntegration) formatPRComment(summary *report.Summary, qualityResu
 				continue
 			}
 
-			fmt.Fprintf(&buf, "| %s | %.1f%% | %d | %d |\n",
+			fmt.Fprintf(&buf, "| %s | %.1f%% | %d | %d | %d | %d | %d |\n",
 				displayPath(fileReport.FilePath),
 				fileReport.MutationScore,
 				fileReport.TotalMutants,
 				fileReport.KilledMutants,
+				fileReport.TimedOut,
+				fileReport.NotViable,
+				fileReport.Errors,
 			)
 		}
 
