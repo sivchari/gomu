@@ -282,6 +282,7 @@ jobs:
 
 Quality gates automatically fail the build when mutation score falls below threshold:
 
+- Mutation score = (killed + timed out) / (total - not viable - errors); `NOT_VIABLE` and `ERROR` mutants never exercised the tests, so they are excluded
 - Configurable minimum mutation score via `--threshold`
 - Fail or continue build via `--fail-on-gate`
 - Detailed failure reporting in CI output
@@ -311,7 +312,7 @@ Summary: 2 files need testing, 3 files skipped
 Performance improvement: 60.0% files skipped
 
 Running mutation testing on 2 files...
-Quality Gate: PASSED (Score: 84.4%)
+Quality Gate: PASSED (Score: 84.4%, (killed + timed out) / (total - not viable - errors))
 
 Mutation testing completed successfully
 ```
