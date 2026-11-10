@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/sivchari/gomu/internal/buildflags"
 	"github.com/sivchari/gomu/internal/mutation"
 )
 
@@ -136,7 +137,7 @@ func (e *Engine) checkCompilationWithOverlay(mutCtx *MutationContext) error {
 	compileDir := filepath.Dir(mutCtx.OriginalPath)
 
 	// -o discards the binary so a package main does not write into the user's working tree.
-	args := append([]string{"build", "-o", os.DevNull, "-overlay=" + mutCtx.OverlayPath}, splitBuildFlags(e.testArgs)...)
+	args := append([]string{"build", "-o", os.DevNull, "-overlay=" + mutCtx.OverlayPath}, buildflags.Build(e.testArgs)...)
 	args = append(args, ".")
 
 	cmd := exec.CommandContext(context.Background(), "go", args...)
