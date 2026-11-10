@@ -721,6 +721,18 @@ func TestConvertToCISummary_ExcludesNotViableFromFileScore(t *testing.T) {
 	}
 }
 
+// TestConvertToCISummary_PreservesStatistics guards the survived count that the CI
+// JSON report exposes as survivedMutants for action.yaml.
+func TestConvertToCISummary_PreservesStatistics(t *testing.T) {
+	stats := report.Statistics{Killed: 1, Survived: 2, TimedOut: 3}
+
+	ciSummary := (&Engine{}).convertToCISummary(&report.Summary{Statistics: stats})
+
+	if ciSummary.Statistics.Survived != stats.Survived {
+		t.Errorf("Statistics.Survived = %d, want %d", ciSummary.Statistics.Survived, stats.Survived)
+	}
+}
+
 func TestConvertToCISummary_FileScoreFormula(t *testing.T) {
 	tests := []struct {
 		name          string
