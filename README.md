@@ -142,8 +142,10 @@ gomu run ./pkg -- -run '^TestUnit'
 gomu run ./pkg -- -tags=integration
 ```
 
-Mutant discovery parses every `*.go` file in a package regardless of build tags; `-tags`
-only affects compilation and test execution, not which mutants are found.
+Mutant discovery follows the same build configuration: files that `-tags`, `-race`, `GOOS`,
+`GOARCH` or a `_windows.go`-style filename exclude from the build are not mutated and do not
+count toward the score. Flags that only select tests, such as `-run`, do not change which
+production files are mutated.
 
 The following flags conflict with gomu's mutation overlay execution and are rejected before
 any mutation runs: `-overlay` (gomu manages the overlay), `-c` and `-o` (would compile instead
