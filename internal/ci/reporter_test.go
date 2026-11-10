@@ -149,6 +149,70 @@ func TestReporter_generateJSONReport(t *testing.T) {
 	}
 }
 
+// TestReporter_generateJSONReport_ActionKeys pins the top-level keys that action.yaml
+// reads from mutation-report.json to populate its step outputs.
+func TestReporter_generateJSONReport_ActionKeys(t *testing.T) {
+	summary := &report.Summary{
+		TotalMutants:  100,
+		KilledMutants: 85,
+		Statistics: report.Statistics{
+			Killed:   85,
+			Survived: 12,
+			TimedOut: 3,
+		},
+	}
+
+	tests := []struct {
+		name          string
+		qualityResult *QualityGateResult
+		wantScore     float64
+	}{
+		{
+			name:          "with quality gate",
+			qualityResult: &QualityGateResult{Pass: true, MutationScore: 85.0, Reason: "ok"},
+			wantScore:     85.0,
+		},
+		{
+			name:          "without quality gate",
+			qualityResult: nil,
+			wantScore:     report.MutationScore(report.ScoreInput{Killed: 85, TimedOut: 3, Total: 100}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+
+			if err := NewReporter(tmpDir, "json").generateJSONReport(summary, tt.qualityResult); err != nil {
+				t.Fatalf("generateJSONReport() error = %v", err)
+			}
+
+			content, err := os.ReadFile(filepath.Join(tmpDir, "mutation-report.json"))
+			if err != nil {
+				t.Fatalf("failed to read JSON report: %v", err)
+			}
+
+			var got map[string]any
+			if err := json.Unmarshal(content, &got); err != nil {
+				t.Fatalf("generated JSON is invalid: %v", err)
+			}
+
+			want := map[string]any{
+				"mutationScore":   tt.wantScore,
+				"totalMutants":    float64(100),
+				"killedMutants":   float64(85),
+				"survivedMutants": float64(12),
+			}
+
+			for key, wantValue := range want {
+				if got[key] != wantValue {
+					t.Errorf("%s = %v, want %v", key, got[key], wantValue)
+				}
+			}
+		})
+	}
+}
+
 func TestReporter_generateHTMLReport(t *testing.T) {
 	tests := []struct {
 		name          string
