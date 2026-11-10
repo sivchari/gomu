@@ -184,8 +184,8 @@ runs:
         if [ -f "mutation-report.json" ]; then
           mutation_score=$(jq -r '.mutationScore // 0' mutation-report.json)
           total_mutants=$(jq -r '.totalMutants // 0' mutation-report.json)
-          killed_mutants=$(jq -r '.killed // 0' mutation-report.json)
-          survived_mutants=$(jq -r '.survived // 0' mutation-report.json)
+          killed_mutants=$(jq -r '.killedMutants // 0' mutation-report.json)
+          survived_mutants=$(jq -r '.survivedMutants // 0' mutation-report.json)
           
           echo "mutation-score=$mutation_score" >> $GITHUB_OUTPUT
           echo "total-mutants=$total_mutants" >> $GITHUB_OUTPUT
