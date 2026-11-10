@@ -100,10 +100,11 @@ func summaryScore(summary *report.Summary) float64 {
 // generateJSONReport generates a JSON report.
 func (r *Reporter) generateJSONReport(summary *report.Summary, qualityResult *QualityGateResult) error {
 	data := map[string]any{
-		"totalMutants":  summary.TotalMutants,
-		"killedMutants": summary.KilledMutants,
-		"files":         summary.Files,
-		"timestamp":     time.Now(),
+		"totalMutants":    summary.TotalMutants,
+		"killedMutants":   summary.KilledMutants,
+		"survivedMutants": summary.Statistics.Survived,
+		"files":           summary.Files,
+		"timestamp":       time.Now(),
 	}
 
 	// Add quality gate results if available
