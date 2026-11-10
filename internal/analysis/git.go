@@ -14,6 +14,7 @@ type GitIntegration struct {
 	workDir          string
 	ignoreParser     IgnoreParser
 	includeGenerated bool
+	buildContext     *BuildContext
 }
 
 // NewGitIntegration creates a new Git integration.
@@ -33,6 +34,12 @@ func (g *GitIntegration) SetIgnoreParser(parser IgnoreParser) {
 // default.
 func (g *GitIntegration) SetIncludeGenerated(include bool) {
 	g.includeGenerated = include
+}
+
+// SetBuildContext restricts discovered files to those the active Go build
+// configuration includes. A nil context imposes no restriction.
+func (g *GitIntegration) SetBuildContext(bc *BuildContext) {
+	g.buildContext = bc
 }
 
 // IsGitRepository checks if the current directory is a Git repository.
@@ -102,23 +109,30 @@ func (g *GitIntegration) changedGoFiles(ctx context.Context, rev string) ([]stri
 				continue
 			}
 
-			// Check if file should be ignored by .gomuignore
-			if g.ignoreParser != nil && g.ignoreParser.ShouldIgnore(file) {
-				continue
-			}
-
-			// Convert to absolute path
 			absPath := filepath.Join(g.workDir, file)
 
-			if !g.includeGenerated && IsGeneratedFile(absPath) {
-				continue
+			if g.isMutationTarget(file, absPath) {
+				goFiles = append(goFiles, absPath)
 			}
-
-			goFiles = append(goFiles, absPath)
 		}
 	}
 
 	return goFiles, nil
+}
+
+// isMutationTarget reports whether a Go source file passes .gomuignore, the
+// generated-file exclusion and the active build configuration. relPath is
+// relative to the work directory; absPath is the same file's absolute path.
+func (g *GitIntegration) isMutationTarget(relPath, absPath string) bool {
+	if g.ignoreParser != nil && g.ignoreParser.ShouldIgnore(relPath) {
+		return false
+	}
+
+	if !g.includeGenerated && IsGeneratedFile(absPath) {
+		return false
+	}
+
+	return g.buildContext.IsActive(absPath)
 }
 
 // GetCurrentBranch returns the current Git branch name.
@@ -166,19 +180,7 @@ func (g *GitIntegration) GetAllGoFiles() ([]string, error) {
 		}
 
 		// Only include Go source files (not test files)
-		if IsGoSourceFile(path) {
-			// Check if file should be ignored by .gomuignore
-			if g.ignoreParser != nil {
-				relPath := GetRelativePath(g.workDir, path)
-				if g.ignoreParser.ShouldIgnore(relPath) {
-					return nil
-				}
-			}
-
-			if !g.includeGenerated && IsGeneratedFile(path) {
-				return nil
-			}
-
+		if IsGoSourceFile(path) && g.isMutationTarget(GetRelativePath(g.workDir, path), path) {
 			goFiles = append(goFiles, path)
 		}
 

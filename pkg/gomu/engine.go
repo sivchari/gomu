@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/sivchari/gomu/internal/analysis"
+	"github.com/sivchari/gomu/internal/buildflags"
 	"github.com/sivchari/gomu/internal/ci"
 	"github.com/sivchari/gomu/internal/execution"
 	"github.com/sivchari/gomu/internal/history"
@@ -266,6 +267,16 @@ func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions, ig
 
 	e.incrementalAnalyzer.SetIncludeGenerated(opts.IncludeGenerated)
 	e.incrementalAnalyzer.SetBaseSHA(opts.BaseSHA)
+
+	// The same build flags reach discovery, type analysis, the compile check
+	// and go test, so a file the build excludes is never mutated.
+	buildCtx, err := analysis.LoadBuildContext(absPath, buildflags.Discovery(opts.TestArgs), os.Environ())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to load build configuration: %w", err)
+	}
+
+	e.incrementalAnalyzer.SetBuildContext(buildCtx)
+	e.mutator.SetBuildContext(buildCtx)
 
 	// Perform incremental analysis
 	analysisResults, err := e.incrementalAnalyzer.AnalyzeFiles()
