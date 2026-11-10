@@ -220,6 +220,56 @@ func Sub(a, b int) int {
 	}
 }
 
+// TestRunDryRunHonorsBuildTags proves the forwarded -tags decide which
+// production files are mutation targets in a dry run, and that test-selection
+// flags do not.
+func TestRunDryRunHonorsBuildTags(t *testing.T) {
+	tests := []struct {
+		name     string
+		testArgs []string
+		want     string
+		unwanted string
+	}{
+		{name: "tag selects active.go", testArgs: []string{"-tags=unit"}, want: "/active.go (", unwanted: "/inactive.go ("},
+		{name: "no tag selects inactive.go", testArgs: nil, want: "/inactive.go (", unwanted: "/active.go ("},
+		{name: "test selection keeps production code", testArgs: []string{"-run", "^TestValue$", "-count=1"}, want: "/inactive.go (", unwanted: "/active.go ("},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			if err := os.CopyFS(dir, os.DirFS(filepath.Join("..", "..", "internal", "analysis", "testdata", "buildtags"))); err != nil {
+				t.Fatalf("copy fixture: %v", err)
+			}
+
+			opts := &RunOptions{DryRun: true, Incremental: false, TestArgs: tt.testArgs}
+
+			engine, err := NewEngine(opts)
+			if err != nil {
+				t.Fatalf("NewEngine: %v", err)
+			}
+
+			out := captureStdout(t, func() {
+				if err := engine.Run(context.Background(), dir, opts); err != nil {
+					t.Fatalf("Run: %v", err)
+				}
+			})
+
+			if !strings.Contains(out, tt.want) {
+				t.Errorf("expected %q as a target, got: %q", tt.want, out)
+			}
+
+			if strings.Contains(out, tt.unwanted) {
+				t.Errorf("did not expect %q as a target, got: %q", tt.unwanted, out)
+			}
+
+			if !strings.Contains(out, "across 1 file(s)") {
+				t.Errorf("expected exactly one target file, got: %q", out)
+			}
+		})
+	}
+}
+
 // captureStdout redirects os.Stdout for the duration of fn and returns what
 // was written to it.
 func captureStdout(t *testing.T, fn func()) string {
