@@ -1,11 +1,11 @@
-package execution
+package buildflags
 
 import (
 	"reflect"
 	"testing"
 )
 
-func TestSplitBuildFlags(t *testing.T) {
+func TestBuild(t *testing.T) {
 	tests := []struct {
 		name     string
 		testArgs []string
@@ -65,9 +65,34 @@ func TestSplitBuildFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := splitBuildFlags(tt.testArgs)
+			got := Build(tt.testArgs)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("splitBuildFlags(%v) = %v, want %v", tt.testArgs, got, tt.want)
+				t.Errorf("Build(%v) = %v, want %v", tt.testArgs, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDiscovery(t *testing.T) {
+	tests := []struct {
+		name     string
+		testArgs []string
+		want     []string
+	}{
+		{"no args", nil, nil},
+		{"tags equals form", []string{"-tags=unit"}, []string{"-tags=unit"}},
+		{"tags separate form", []string{"-tags", "unit", "-count=1"}, []string{"-tags", "unit"}},
+		{"race", []string{"-race", "-short"}, []string{"-race"}},
+		{"test selection is dropped", []string{"-run", "^TestUnit", "-v", "-count=1"}, nil},
+		{"compile-only flags are dropped", []string{"-gcflags=-N", "-ldflags", "-s", "-cover", "-x"}, nil},
+		{"module flags are kept", []string{"-mod=vendor", "-modfile", "alt.mod"}, []string{"-mod=vendor", "-modfile", "alt.mod"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Discovery(tt.testArgs)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Discovery(%v) = %v, want %v", tt.testArgs, got, tt.want)
 			}
 		})
 	}
