@@ -3,33 +3,34 @@ package analysis
 import (
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
-// FindRelatedTestFiles finds test files related to the given file.
-// This is a shared utility function used by multiple components.
-func FindRelatedTestFiles(filePath string) []string {
-	var testFiles []string
-
-	// Get directory and base name
+// packageTestFiles returns the sorted paths of every *_test.go file in the directory of filePath.
+//
+// Tests exercise production code through the package API, so a test file does not need to be
+// named after the file it covers. External test packages (package x_test) live in the same
+// directory and are included.
+func packageTestFiles(filePath string) []string {
 	dir := filepath.Dir(filePath)
-	base := filepath.Base(filePath)
 
-	// Remove .go extension
-	nameWithoutExt := strings.TrimSuffix(base, ".go")
-
-	// Common test file patterns
-	patterns := []string{
-		nameWithoutExt + "_test.go",
-		"test_" + nameWithoutExt + ".go",
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
 	}
 
-	for _, pattern := range patterns {
-		testFile := filepath.Join(dir, pattern)
-		if _, err := os.Stat(testFile); err == nil {
-			testFiles = append(testFiles, testFile)
+	testFiles := make([]string, 0, len(entries))
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), "_test.go") {
+			continue
 		}
+
+		testFiles = append(testFiles, filepath.Join(dir, entry.Name()))
 	}
+
+	sort.Strings(testFiles)
 
 	return testFiles
 }
