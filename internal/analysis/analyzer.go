@@ -23,6 +23,7 @@ type Analyzer struct {
 	typeInfo         *types.Info
 	ignoreParser     *ignore.Parser
 	includeGenerated bool
+	buildContext     *BuildContext
 }
 
 // Option is a functional option for configuring an Analyzer.
@@ -61,6 +62,12 @@ func New(opts ...Option) (*Analyzer, error) {
 	}
 
 	return a, nil
+}
+
+// SetBuildContext makes type analysis use the package files the active Go
+// build configuration includes, instead of every file in the directory.
+func (a *Analyzer) SetBuildContext(bc *BuildContext) {
+	a.buildContext = bc
 }
 
 // FileInfo represents information about a Go source file.
@@ -215,12 +222,28 @@ func (a *Analyzer) parseAndTypeCheck(filePath string) (*ast.File, *types.Info, e
 	return targetAST, info, nil
 }
 
+// packageSourceFiles returns the Go files to type check for the package in
+// pkgDir: the active build's files when known, otherwise every *.go file in
+// the directory. Test files are filtered out by the caller.
+func (a *Analyzer) packageSourceFiles(pkgDir string) ([]string, error) {
+	if files, ok := a.buildContext.PackageFiles(pkgDir); ok {
+		return files, nil
+	}
+
+	files, err := filepath.Glob(filepath.Join(pkgDir, "*.go"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to glob files: %w", err)
+	}
+
+	return files, nil
+}
+
 // parsePackageFiles parses all non-test Go files in a package directory.
 // Returns the AST slice and a map from file path to its AST.
 func (a *Analyzer) parsePackageFiles(pkgDir string) ([]*ast.File, map[string]*ast.File, error) {
-	files, err := filepath.Glob(filepath.Join(pkgDir, "*.go"))
+	files, err := a.packageSourceFiles(pkgDir)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to glob files: %w", err)
+		return nil, nil, err
 	}
 
 	astFiles := make([]*ast.File, 0, len(files))

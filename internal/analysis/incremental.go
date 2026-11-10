@@ -87,6 +87,12 @@ func (a *IncrementalAnalyzer) SetIncludeGenerated(include bool) {
 	a.git.SetIncludeGenerated(include)
 }
 
+// SetBuildContext restricts mutation targets to files the active Go build
+// configuration includes. A nil context imposes no restriction.
+func (a *IncrementalAnalyzer) SetBuildContext(bc *BuildContext) {
+	a.git.SetBuildContext(bc)
+}
+
 // FileAnalysisResult represents the result of file analysis.
 type FileAnalysisResult struct {
 	FilePath     string

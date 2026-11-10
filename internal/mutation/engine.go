@@ -111,6 +111,12 @@ func New() (*Engine, error) {
 	return engine, nil
 }
 
+// SetBuildContext makes type analysis follow the active Go build
+// configuration. A nil context imposes no restriction.
+func (e *Engine) SetBuildContext(bc *analysis.BuildContext) {
+	e.analyzer.SetBuildContext(bc)
+}
+
 // GenerateMutants generates all possible mutants for a given file.
 func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 	fileInfo, err := e.analyzer.ParseFile(filePath)
