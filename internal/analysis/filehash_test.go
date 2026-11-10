@@ -173,11 +173,11 @@ func TestFileHasher_HashRelatedTests(t *testing.T) {
 		dir := t.TempDir()
 		src := filepath.Join(dir, "foo.go")
 		suffixTest := filepath.Join(dir, "foo_test.go")
-		prefixTest := filepath.Join(dir, "test_foo.go")
+		otherTest := filepath.Join(dir, "contract_test.go")
 
 		writeTestFile(t, src, "package foo\n")
 		writeTestFile(t, suffixTest, "package foo\n")
-		writeTestFile(t, prefixTest, "package foo\n")
+		writeTestFile(t, otherTest, "package foo_test\n")
 
 		base := hasher.HashRelatedTests(src)
 		if base == "" {
@@ -191,10 +191,123 @@ func TestFileHasher_HashRelatedTests(t *testing.T) {
 			t.Error("hash should change when foo_test.go changes")
 		}
 
-		writeTestFile(t, prefixTest, "package foo\n// b\n")
+		writeTestFile(t, otherTest, "package foo_test\n// b\n")
 
 		if hasher.HashRelatedTests(src) == afterFirst {
-			t.Error("hash should change when test_foo.go changes")
+			t.Error("hash should change when contract_test.go changes")
+		}
+	})
+
+	t.Run("a test file with an unrelated name invalidates every file in the package", func(t *testing.T) {
+		dir := t.TempDir()
+		value := filepath.Join(dir, "value.go")
+		other := filepath.Join(dir, "other.go")
+		contract := filepath.Join(dir, "contract_test.go")
+
+		writeTestFile(t, value, "package example\n")
+		writeTestFile(t, other, "package example\n")
+		writeTestFile(t, contract, "package example_test\n")
+
+		valueBefore := hasher.HashRelatedTests(value)
+		otherBefore := hasher.HashRelatedTests(other)
+
+		if valueBefore == "" {
+			t.Fatal("expected contract_test.go to count as a test of value.go")
+		}
+
+		if valueBefore != otherBefore {
+			t.Error("every production file in the package should share the package test hash")
+		}
+
+		writeTestFile(t, contract, "package example_test\n// changed\n")
+
+		if hasher.HashRelatedTests(value) == valueBefore {
+			t.Error("value.go hash should change when contract_test.go changes")
+		}
+
+		if hasher.HashRelatedTests(other) == otherBefore {
+			t.Error("other.go hash should change when contract_test.go changes")
+		}
+	})
+
+	t.Run("adding, deleting and renaming a test file changes the hash", func(t *testing.T) {
+		dir := t.TempDir()
+		src := filepath.Join(dir, "foo.go")
+		first := filepath.Join(dir, "a_test.go")
+		second := filepath.Join(dir, "b_test.go")
+
+		writeTestFile(t, src, "package foo\n")
+		writeTestFile(t, first, "package foo\n")
+
+		withOne := hasher.HashRelatedTests(src)
+
+		writeTestFile(t, second, "package foo\n")
+
+		withTwo := hasher.HashRelatedTests(src)
+		if withTwo == withOne {
+			t.Error("hash should change when a test file is added")
+		}
+
+		if err := os.Remove(second); err != nil {
+			t.Fatalf("remove: %v", err)
+		}
+
+		if hasher.HashRelatedTests(src) != withOne {
+			t.Error("hash should return to its previous value once the added file is deleted")
+		}
+
+		if err := os.Remove(first); err != nil {
+			t.Fatalf("remove: %v", err)
+		}
+
+		if got := hasher.HashRelatedTests(src); got != "" {
+			t.Errorf("hash should be empty once every test file is deleted, got %q", got)
+		}
+
+		writeTestFile(t, first, "package foo\n")
+
+		renamed := filepath.Join(dir, "c_test.go")
+		if err := os.Rename(first, renamed); err != nil {
+			t.Fatalf("rename: %v", err)
+		}
+
+		if hasher.HashRelatedTests(src) == withOne {
+			t.Error("hash should change when a test file is renamed, even with identical content")
+		}
+	})
+
+	t.Run("files that are not Go test files are ignored", func(t *testing.T) {
+		dir := t.TempDir()
+		src := filepath.Join(dir, "foo.go")
+
+		writeTestFile(t, src, "package foo\n")
+		writeTestFile(t, filepath.Join(dir, "test_foo.go"), "package foo\n")
+		writeTestFile(t, filepath.Join(dir, "helper.go"), "package foo\n")
+		writeTestFile(t, filepath.Join(dir, "notes_test.txt"), "x\n")
+
+		if err := os.Mkdir(filepath.Join(dir, "sub_test.go"), 0o750); err != nil {
+			t.Fatalf("mkdir: %v", err)
+		}
+
+		if got := hasher.HashRelatedTests(src); got != "" {
+			t.Errorf("expected empty hash, got %q", got)
+		}
+	})
+
+	t.Run("test files in other directories are ignored", func(t *testing.T) {
+		dir := t.TempDir()
+		sub := filepath.Join(dir, "sub")
+		src := filepath.Join(dir, "foo.go")
+
+		if err := os.Mkdir(sub, 0o750); err != nil {
+			t.Fatalf("mkdir: %v", err)
+		}
+
+		writeTestFile(t, src, "package foo\n")
+		writeTestFile(t, filepath.Join(sub, "foo_test.go"), "package sub\n")
+
+		if got := hasher.HashRelatedTests(src); got != "" {
+			t.Errorf("expected empty hash, got %q", got)
 		}
 	})
 

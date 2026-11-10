@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/sivchari/gomu/internal/analysis"
+	"github.com/sivchari/gomu/internal/history"
 	"github.com/sivchari/gomu/internal/mutation"
 )
 
@@ -252,5 +254,62 @@ func writeFile(t *testing.T, path, content string) {
 
 	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatalf("write %s: %v", path, err)
+	}
+}
+
+// TestDryRunSeesPackageTestChange proves dry run and a normal run select the
+// same files, because both go through performIncrementalAnalysis: a change to a
+// test file whose name does not match the production file makes the unchanged
+// production file eligible again.
+func TestDryRunSeesPackageTestChange(t *testing.T) {
+	tempDir := t.TempDir()
+	value := filepath.Join(tempDir, "value.go")
+	contract := filepath.Join(tempDir, "contract_test.go")
+
+	writeFile(t, value, "package example\n\nfunc Value() int { return 1 }\n")
+	writeFile(t, contract, "package example_test\n")
+
+	store, err := history.New(filepath.Join(tempDir, "history.json"))
+	if err != nil {
+		t.Fatalf("history.New: %v", err)
+	}
+
+	hasher := analysis.NewFileHasher()
+
+	fileHash, err := hasher.HashFile(value)
+	if err != nil {
+		t.Fatalf("HashFile: %v", err)
+	}
+
+	store.UpdateFileWithHashes(value, nil, nil, fileHash, hasher.HashRelatedTests(value))
+
+	engine := &Engine{history: store}
+
+	for _, dryRun := range []bool{false, true} {
+		opts := &RunOptions{DryRun: dryRun, Incremental: true}
+
+		_, files, err := engine.performIncrementalAnalysis(tempDir, opts, nil)
+		if err != nil {
+			t.Fatalf("performIncrementalAnalysis(dryRun=%v): %v", dryRun, err)
+		}
+
+		if len(files) != 0 {
+			t.Errorf("dryRun=%v: unchanged package should be skipped, got %v", dryRun, files)
+		}
+	}
+
+	writeFile(t, contract, "package example_test\n\n// stronger assertions\n")
+
+	for _, dryRun := range []bool{false, true} {
+		opts := &RunOptions{DryRun: dryRun, Incremental: true}
+
+		_, files, err := engine.performIncrementalAnalysis(tempDir, opts, nil)
+		if err != nil {
+			t.Fatalf("performIncrementalAnalysis(dryRun=%v): %v", dryRun, err)
+		}
+
+		if len(files) != 1 || files[0] != value {
+			t.Errorf("dryRun=%v: want [%s] after contract_test.go changed, got %v", dryRun, value, files)
+		}
 	}
 }

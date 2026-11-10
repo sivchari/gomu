@@ -400,52 +400,169 @@ func TestIncrementalAnalyzer_AnalyzeFile_IncrementalDisabled(t *testing.T) {
 	}
 }
 
-func TestIncrementalAnalyzer_findRelatedTestFiles(t *testing.T) {
-	tmpDir := t.TempDir()
-	// The test now uses the standalone function FindRelatedTestFiles
-	// instead of the method on IncrementalAnalyzer
+// storedAnalyzer builds an incremental analyzer whose history already holds
+// the current file and test hashes for each of srcFiles, as after a full run.
+func storedAnalyzer(t *testing.T, dir string, srcFiles ...string) *IncrementalAnalyzer {
+	t.Helper()
 
-	// Create main file and related test files
-	mainFile := filepath.Join(tmpDir, "utils.go")
-	testFile1 := filepath.Join(tmpDir, "utils_test.go")
-	testFile2 := filepath.Join(tmpDir, "test_utils.go")
+	history := NewMockHistoryStore()
 
-	files := []string{mainFile, testFile1, testFile2}
-	for _, file := range files {
-		if err := os.WriteFile(file, []byte("package main"), 0600); err != nil {
-			t.Fatalf("Failed to create file %s: %v", file, err)
+	analyzer, err := NewIncrementalAnalyzer(dir, history, true, "")
+	if err != nil {
+		t.Fatalf("Failed to create incremental analyzer: %v", err)
+	}
+
+	for _, src := range srcFiles {
+		fileHash, err := analyzer.hasher.HashFile(src)
+		if err != nil {
+			t.Fatalf("Failed to hash %s: %v", src, err)
 		}
+
+		history.SetEntry(src, HistoryEntry{
+			FileHash: fileHash,
+			TestHash: analyzer.hasher.HashRelatedTests(src),
+		})
 	}
 
-	relatedFiles := FindRelatedTestFiles(mainFile)
+	return analyzer
+}
 
-	if len(relatedFiles) != 2 {
-		t.Errorf("Expected 2 related test files, got %d", len(relatedFiles))
+func requireAnalysis(t *testing.T, analyzer *IncrementalAnalyzer, src string, wantUpdate bool, wantReason string) {
+	t.Helper()
+
+	result, err := analyzer.analyzeFile(src)
+	if err != nil {
+		t.Fatalf("analyzeFile failed: %v", err)
 	}
 
-	// Check that both test files are found
-	foundFiles := make(map[string]bool)
-	for _, file := range relatedFiles {
-		foundFiles[file] = true
+	if result.NeedsUpdate != wantUpdate || result.Reason != wantReason {
+		t.Errorf("got NeedsUpdate=%v Reason=%q, want NeedsUpdate=%v Reason=%q",
+			result.NeedsUpdate, result.Reason, wantUpdate, wantReason)
+	}
+}
+
+// A test file whose name does not match the production file still exercises it
+// through the package API, so changing it must make the file eligible again.
+func TestIncrementalAnalyzer_UnrelatedNamedTestFileInvalidates(t *testing.T) {
+	dir := t.TempDir()
+	value := filepath.Join(dir, "value.go")
+	contract := filepath.Join(dir, "contract_test.go")
+
+	writeTestFile(t, value, "package example\n\nfunc Value() int { return 1 }\n")
+	writeTestFile(t, contract, "package example_test\n")
+
+	analyzer := storedAnalyzer(t, dir, value)
+
+	requireAnalysis(t, analyzer, value, false, "No changes detected")
+
+	writeTestFile(t, contract, "package example_test\n\n// stronger assertions\n")
+
+	requireAnalysis(t, analyzer, value, true, "Related test files changed")
+}
+
+func TestIncrementalAnalyzer_TestFileSetChangeInvalidates(t *testing.T) {
+	dir := t.TempDir()
+	value := filepath.Join(dir, "value.go")
+	contract := filepath.Join(dir, "contract_test.go")
+
+	writeTestFile(t, value, "package example\n")
+	writeTestFile(t, contract, "package example_test\n")
+
+	tests := []struct {
+		name   string
+		mutate func(t *testing.T)
+	}{
+		{"add", func(t *testing.T) {
+			t.Helper()
+			writeTestFile(t, filepath.Join(dir, "extra_test.go"), "package example\n")
+		}},
+		{"delete", func(t *testing.T) {
+			t.Helper()
+
+			if err := os.Remove(contract); err != nil {
+				t.Fatalf("remove: %v", err)
+			}
+		}},
+		{"rename", func(t *testing.T) {
+			t.Helper()
+
+			if err := os.Rename(contract, filepath.Join(dir, "renamed_test.go")); err != nil {
+				t.Fatalf("rename: %v", err)
+			}
+		}},
 	}
 
-	if !foundFiles[testFile1] {
-		t.Error("Expected to find utils_test.go")
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset the package to a single contract_test.go.
+			entries, err := os.ReadDir(dir)
+			if err != nil {
+				t.Fatalf("readdir: %v", err)
+			}
 
-	if !foundFiles[testFile2] {
-		t.Error("Expected to find test_utils.go")
-	}
+			for _, e := range entries {
+				if e.Name() != "value.go" {
+					if err := os.Remove(filepath.Join(dir, e.Name())); err != nil {
+						t.Fatalf("remove: %v", err)
+					}
+				}
+			}
 
-	// A file with no test file counterpart has no related files.
-	lonelyFile := filepath.Join(tmpDir, "lonely.go")
-	if err := os.WriteFile(lonelyFile, []byte("package main"), 0600); err != nil {
-		t.Fatalf("Failed to create file %s: %v", lonelyFile, err)
-	}
+			writeTestFile(t, contract, "package example_test\n")
 
-	if got := FindRelatedTestFiles(lonelyFile); len(got) != 0 {
-		t.Errorf("Expected 0 related test files, got %d", len(got))
+			analyzer := storedAnalyzer(t, dir, value)
+
+			requireAnalysis(t, analyzer, value, false, "No changes detected")
+
+			tt.mutate(t)
+
+			requireAnalysis(t, analyzer, value, true, "Related test files changed")
+		})
 	}
+}
+
+// A sibling production file is invalidated by a change to the shared package
+// tests, and a package without test files stays skipped.
+func TestIncrementalAnalyzer_ChangeInvalidatesEveryFileInPackage(t *testing.T) {
+	dir := t.TempDir()
+	value := filepath.Join(dir, "value.go")
+	other := filepath.Join(dir, "other.go")
+	contract := filepath.Join(dir, "contract_test.go")
+
+	writeTestFile(t, value, "package example\n")
+	writeTestFile(t, other, "package example\n")
+	writeTestFile(t, contract, "package example_test\n")
+
+	analyzer := storedAnalyzer(t, dir, value, other)
+
+	writeTestFile(t, contract, "package example_test\n// changed\n")
+
+	requireAnalysis(t, analyzer, value, true, "Related test files changed")
+	requireAnalysis(t, analyzer, other, true, "Related test files changed")
+
+	bare := t.TempDir()
+	lonely := filepath.Join(bare, "lonely.go")
+	writeTestFile(t, lonely, "package lonely\n")
+
+	requireAnalysis(t, storedAnalyzer(t, bare, lonely), lonely, false, "No changes detected")
+}
+
+// Tests named after the production file keep working.
+func TestIncrementalAnalyzer_MatchingTestFileStillInvalidates(t *testing.T) {
+	dir := t.TempDir()
+	value := filepath.Join(dir, "value.go")
+	matching := filepath.Join(dir, "value_test.go")
+
+	writeTestFile(t, value, "package example\n")
+	writeTestFile(t, matching, "package example\n")
+
+	analyzer := storedAnalyzer(t, dir, value)
+
+	requireAnalysis(t, analyzer, value, false, "No changes detected")
+
+	writeTestFile(t, matching, "package example\n// changed\n")
+
+	requireAnalysis(t, analyzer, value, true, "Related test files changed")
 }
 
 func TestIncrementalAnalyzer_hasTestFilesChanged(t *testing.T) {
@@ -511,9 +628,9 @@ func TestAdd(t *testing.T) {
 		t.Error("Expected hasTestFilesChanged to return true when test file has changed")
 	}
 
-	// Test with non-existent test file
-	nonExistentFile := filepath.Join(tmpDir, "nonexistent.go")
-	if analyzer.hasTestFilesChanged(nonExistentFile) {
+	// A file in a package without any test file has nothing to compare.
+	untestedFile := filepath.Join(t.TempDir(), "untested.go")
+	if analyzer.hasTestFilesChanged(untestedFile) {
 		t.Error("Expected hasTestFilesChanged to return false for file with no test files")
 	}
 }
