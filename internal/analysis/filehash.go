@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 // FileHasher provides file hashing functionality.
@@ -48,18 +49,23 @@ func (h *FileHasher) HashFiles(filePaths []string) (map[string]string, error) {
 	return hashes, nil
 }
 
-// HashRelatedTests calculates the combined hash of the test files related to filePath.
-// It is the single source of truth for the TestHash stored in history and the one
-// compared against it. It returns "" when there is no hashable related test file.
+// HashRelatedTests calculates the combined hash of every *_test.go file in the package directory of filePath.
+//
+// It is the single source of truth for the TestHash stored in history and the one compared
+// against it. File names are part of the hash so that adding, deleting or renaming a test file
+// changes it. It returns "" when the directory has no hashable test file.
 func (h *FileHasher) HashRelatedTests(filePath string) string {
-	var combined []byte
+	testFiles := packageTestFiles(filePath)
+	combined := make([]byte, 0, len(testFiles)*sha256.Size*2)
 
-	for _, testFile := range FindRelatedTestFiles(filePath) {
+	for _, testFile := range testFiles {
 		hash, err := h.HashFile(testFile)
 		if err != nil {
 			continue
 		}
 
+		combined = append(combined, filepath.Base(testFile)...)
+		combined = append(combined, 0)
 		combined = append(combined, hash...)
 	}
 
