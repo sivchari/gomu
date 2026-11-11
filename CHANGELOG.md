@@ -1,9 +1,5 @@
 # Changelog
 
-## Unreleased
-
-- fix: exclude `ERROR` mutants from the mutation score denominator and count `TIMED_OUT` mutants as detected, so the score is (killed + timed out) / (total - not viable - errors)
-
 ## [v0.3.0](https://github.com/sivchari/gomu/compare/v0.2.1...v0.3.0) - 2026-10-17
 
 - feat: add invert negatives mutation operator by @sivchari in https://github.com/sivchari/gomu/pull/78
