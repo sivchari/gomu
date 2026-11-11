@@ -333,7 +333,12 @@ func TestDryRunSeesPackageTestChange(t *testing.T) {
 
 	store.UpdateFileWithHashes(value, nil, nil, fileHash, hasher.HashRelatedTests(value))
 
-	engine := &Engine{history: store}
+	mutator, err := mutation.New()
+	if err != nil {
+		t.Fatalf("mutation.New: %v", err)
+	}
+
+	engine := &Engine{history: store, mutator: mutator}
 
 	for _, dryRun := range []bool{false, true} {
 		opts := &RunOptions{DryRun: dryRun, Incremental: true}
