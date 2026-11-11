@@ -678,6 +678,7 @@ func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary,
 	ciSummary := e.convertToCISummary(summary)
 
 	var qualityResult *ci.QualityGateResult
+
 	if e.qualityGate != nil {
 		if opts.ChangedLines && ciSummary.TotalMutants == 0 {
 			fmt.Println("Quality Gate: SKIPPED (no mutants selected)")

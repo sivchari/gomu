@@ -11,6 +11,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/sivchari/gomu/internal/ignore"
 )
 
 // LineRange is an inclusive range of physical source lines.
@@ -90,52 +92,71 @@ func (g *GitIntegration) getChangedLines(baseRef string, findMergeBase bool) (ma
 	}
 
 	base := strings.TrimSpace(string(baseOutput))
-	diffOptions := []string{"diff", "--no-renames", "--no-ext-diff", "--no-textconv", "--no-color", "--text"}
-	nameArgs := append(append([]string{}, diffOptions...), "--name-only", "-z", "--diff-filter=AM", base, "HEAD", "--", filepath.ToSlash(relTarget))
 
-	names, err := changedLinesGit(root, nameArgs...)
+	ignoreBase := target
+	if !info.IsDir() {
+		ignoreBase = filepath.Dir(target)
+	}
+
+	if g.ignoreParser != nil {
+		ignoreFile, err := ignore.FindIgnoreFile(target)
+		if err != nil {
+			return nil, fmt.Errorf("find changed-lines ignore file: %w", err)
+		}
+
+		if ignoreFile != "" {
+			ignoreBase = filepath.Dir(ignoreFile)
+		}
+	}
+
+	patch, err := changedLinesGit(root, "diff",
+		"--no-renames", "--no-ext-diff", "--no-textconv", "--no-color", "--text",
+		"--no-relative", "--src-prefix=a/", "--dst-prefix=b/",
+		"--unified=0", "--inter-hunk-context=0", "--diff-filter=AMT",
+		base, "HEAD", "--", filepath.ToSlash(relTarget))
 	if err != nil {
-		return nil, fmt.Errorf("discover changed source files: %w", err)
+		return nil, fmt.Errorf("read changed lines: %w", err)
+	}
+
+	changed, err := parseChangedFiles(patch)
+	if err != nil {
+		return nil, err
+	}
+
+	status, err := changedLinesGit(root, "status", "--porcelain=v1", "-z", "--no-renames", "--untracked-files=no", "--", filepath.ToSlash(relTarget))
+	if err != nil {
+		return nil, fmt.Errorf("check changed source files: %w", err)
+	}
+
+	dirty := make(map[string]bool)
+
+	for _, entry := range bytes.Split(status, []byte{0}) {
+		if len(entry) >= 3 {
+			dirty[string(entry[3:])] = true
+		}
 	}
 
 	selection := make(map[string][]LineRange)
-	for _, name := range bytes.Split(names, []byte{0}) {
-		file := string(name)
-		if !IsGoSourceFile(file) || IsExcludedPath(file) {
+
+	for file, ranges := range changed {
+		if !IsGoSourceFile(file) || IsExcludedPath(file) || len(ranges) == 0 {
 			continue
 		}
 
 		absPath := filepath.Join(root, filepath.FromSlash(file))
-		if !g.isMutationTarget(GetRelativePath(target, absPath), absPath) {
+
+		relative := GetRelativePath(ignoreBase, absPath)
+		if g.ignoreParser != nil && g.ignoreParser.ShouldIgnore(relative) {
 			continue
 		}
 
-		diffArgs := append(append([]string{}, diffOptions...), "--unified=0", "--inter-hunk-context=0", base, "HEAD", "--", file)
-
-		patch, err := changedLinesGit(root, diffArgs...)
-		if err != nil {
-			return nil, fmt.Errorf("read changed lines for %q: %w", file, err)
-		}
-
-		ranges, err := parseChangedLineRanges(patch)
-		if err != nil {
-			return nil, fmt.Errorf("read changed lines for %q: %w", file, err)
-		}
-
-		if len(ranges) == 0 {
-			continue
-		}
-
-		status, err := changedLinesGit(root, "status", "--porcelain=v1", "-z", "--untracked-files=no", "--", file)
-		if err != nil {
-			return nil, fmt.Errorf("check source file %q: %w", file, err)
-		}
-
-		if len(status) != 0 {
+		if dirty[file] {
 			return nil, fmt.Errorf("changed-lines source file %q has staged or unstaged changes; commit or restore it so its lines match HEAD", file)
 		}
 
-		selection[absPath] = ranges
+		if g.isMutationTarget(relative, absPath) {
+			selection[absPath] = ranges
+		}
 	}
 
 	return selection, nil
@@ -191,4 +212,47 @@ func parseChangedLineRanges(patch []byte) ([]LineRange, error) {
 	}
 
 	return ranges, nil
+}
+
+// parseChangedFiles reads destination paths only from patch headers.
+// Content resembling a header inside a hunk is handled by the range parser.
+func parseChangedFiles(patch []byte) (map[string][]LineRange, error) {
+	files := make(map[string][]LineRange)
+
+	for _, section := range bytes.Split(patch, []byte("\ndiff --git ")) {
+		header, _, _ := bytes.Cut(section, []byte("\n@@ "))
+		for _, line := range bytes.Split(header, []byte{'\n'}) {
+			if !bytes.HasPrefix(line, []byte("+++ ")) {
+				continue
+			}
+
+			path := strings.TrimSuffix(string(line[4:]), "\t")
+			if strings.HasPrefix(path, "\"") {
+				decoded, err := strconv.Unquote(path)
+				if err != nil {
+					return nil, fmt.Errorf("decode diff path: %w", err)
+				}
+
+				path = decoded
+			}
+
+			if path == "/dev/null" {
+				continue
+			}
+
+			if !strings.HasPrefix(path, "b/") {
+				return nil, fmt.Errorf("invalid diff destination %q", path)
+			}
+
+			ranges, err := parseChangedLineRanges(section)
+			if err != nil {
+				return nil, err
+			}
+
+			path = strings.TrimPrefix(path, "b/")
+			files[path] = append(files[path], ranges...)
+		}
+	}
+
+	return files, nil
 }

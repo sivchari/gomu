@@ -1,6 +1,8 @@
 package analysis
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -45,6 +47,7 @@ func TestGetChangedLines(t *testing.T) {
 		"delete.go":         "package example\n\n",
 		"space name.go":     "package example\n\nvar New = 1\n",
 		"line\nname.go":     "package example\n",
+		"tab\tname.go":      "package example\n",
 		"literal[1].go":     "package example\n",
 		"ignored.go":        "package example\n",
 		"vendor/lib.go":     "package example\n",
@@ -73,6 +76,7 @@ func TestGetChangedLines(t *testing.T) {
 		filepath.Join(dir, "renamed.go"):    {{Start: 1, End: 3}},
 		filepath.Join(dir, "space name.go"): {{Start: 1, End: 3}},
 		filepath.Join(dir, "line\nname.go"): {{Start: 1, End: 1}},
+		filepath.Join(dir, "tab\tname.go"):  {{Start: 1, End: 1}},
 		filepath.Join(dir, "literal[1].go"): {{Start: 1, End: 1}},
 		filepath.Join(dir, "attribute.go"):  {{Start: 1, End: 2}},
 	}
@@ -188,5 +192,119 @@ func TestGetChangedLinesErrorsAndEmpty(t *testing.T) {
 
 	if _, err := g.GetChangedLines("main"); err == nil || !strings.Contains(err.Error(), "merge base") {
 		t.Errorf("missing merge base error = %v", err)
+	}
+}
+
+func TestChangedLinesTypeChange(t *testing.T) {
+	dir, git := changedLinesRepository(t)
+	commitFiles(t, dir, git, map[string]string{"source.txt": "package example\nvar A = 1\n"})
+
+	if err := os.Symlink("source.txt", filepath.Join(dir, "source.go")); err != nil {
+		t.Skip(err)
+	}
+
+	git("add", ".")
+	git("commit", "-m", "symlink")
+	git("checkout", "-b", "feature")
+
+	if err := os.Remove(filepath.Join(dir, "source.go")); err != nil {
+		t.Fatal(err)
+	}
+
+	commitFiles(t, dir, git, map[string]string{"source.go": "package example\nvar A = 2\n"})
+
+	got, err := NewGitIntegration(dir).GetChangedLines("main")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(got[filepath.Join(dir, "source.go")], []LineRange{{Start: 1, End: 2}}) {
+		t.Fatalf("ranges = %v", got)
+	}
+}
+
+func TestChangedLinesBatchedGit(t *testing.T) {
+	for _, count := range []int{1, 10} {
+		t.Run(fmt.Sprint(count), func(t *testing.T) {
+			dir, git := changedLinesRepository(t)
+			commitFiles(t, dir, git, map[string]string{"base.go": "package example\n"})
+			git("checkout", "-b", "feature")
+
+			files := make(map[string]string)
+			for i := range count {
+				files[fmt.Sprintf("file%d.go", i)] = "package example\nvar A = 1\n"
+			}
+
+			commitFiles(t, dir, git, files)
+			trace := filepath.Join(t.TempDir(), "trace.json")
+			t.Setenv("GIT_TRACE2_EVENT", trace)
+
+			got, err := NewGitIntegration(dir).GetChangedLines("main")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if len(got) != count {
+				t.Fatalf("files = %d", len(got))
+			}
+
+			data, err := os.ReadFile(trace)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			calls := 0
+
+			for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {
+				var event struct{ Event string }
+				if err := json.Unmarshal([]byte(line), &event); err != nil {
+					t.Fatal(err)
+				}
+
+				if event.Event == "start" {
+					calls++
+				}
+			}
+
+			if calls != 4 {
+				t.Fatalf("Git calls = %d, want 4", calls)
+			}
+		})
+	}
+}
+
+func TestChangedFilesHeaderLikeContent(t *testing.T) {
+	patch := []byte("diff --git a/source.go b/source.go\n--- a/source.go\n+++ b/source.go\n@@ -1 +1,2 @@\n-old\n+++ b/fake.go\n+new\n")
+
+	got, err := parseChangedFiles(patch)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := map[string][]LineRange{"source.go": {{Start: 1, End: 2}}}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("ranges = %v", got)
+	}
+}
+
+func TestChangedLinesNestedIgnore(t *testing.T) {
+	dir, git := changedLinesRepository(t)
+	commitFiles(t, dir, git, map[string]string{"base.go": "package example\n"})
+	git("checkout", "-b", "feature")
+	commitFiles(t, dir, git, map[string]string{"sub/file.go": "package sub\nvar A = 1\n", ".gomuignore": "sub/\n"})
+
+	parser := ignore.New()
+	if err := parser.LoadFromFile(filepath.Join(dir, ".gomuignore")); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, target := range []string{dir, filepath.Join(dir, "sub"), filepath.Join(dir, "sub", "file.go")} {
+		g := NewGitIntegration(target)
+		g.SetIgnoreParser(parser)
+
+		got, err := g.GetChangedLines("main")
+		if err != nil || len(got) != 0 {
+			t.Fatalf("target %s: %v, %v", target, got, err)
+		}
 	}
 }

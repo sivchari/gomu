@@ -158,8 +158,10 @@ New files are eligible throughout. Deleted files and deletion-only hunks have no
 executable target lines. Renames are treated as deletion plus addition, so the
 destination file is eligible throughout, even for a rename without content edits.
 
-Selected source files must have no staged or unstaged edits; commit or restore
-them before running so diff coordinates match the source being parsed. Other
+Changed Go candidates passing path and ignore filters must have no staged or
+unstaged edits, including candidates excluded by generated-code or build-tag
+filters. Commit or restore these candidates before running so diff coordinates
+match the source being parsed. Other
 local changes are allowed. Tests run against the current working tree; test and
 dependency changes are not included in the mutation selection. Support for
 selecting staged or unstaged source edits is outside this mode's current scope.
