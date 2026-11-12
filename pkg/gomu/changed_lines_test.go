@@ -289,7 +289,7 @@ func TestChangedLinesUsesBaseSHAAndBuildTags(t *testing.T) {
 		want     string
 	}{
 		{name: "inactive", want: noChangedLineMutants},
-		{name: "active", testArgs: []string{"-tags=changedlines"}, want: "/tagged.go ("},
+		{name: "active", testArgs: []string{"-tags=changedlines"}, want: "tagged.go ("},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := &RunOptions{
@@ -302,7 +302,7 @@ func TestChangedLinesUsesBaseSHAAndBuildTags(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if !strings.Contains(out, tt.want) || strings.Contains(out, "/source.go (") {
+			if !strings.Contains(out, tt.want) || strings.Contains(out, "source.go (") {
 				t.Errorf("dry run = %q, want %q and no source.go mutations", out, tt.want)
 			}
 		})
