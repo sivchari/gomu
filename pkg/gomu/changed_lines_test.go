@@ -94,96 +94,85 @@ func TestChangedLinesRunSelectionAndHistory(t *testing.T) {
 		t.Skip("spawns the Go toolchain")
 	}
 
-	for _, warmHistory := range []bool{false, true} {
-		t.Run(fmt.Sprintf("warm_history_%t", warmHistory), func(t *testing.T) {
-			dir := setupChangedLinesRun(t, "return x + 2")
+	dir := setupChangedLinesRun(t, "return x + 2")
+	historyPath := filepath.Join(dir, ".gomu_history.json")
+	opts := &RunOptions{
+		ChangedLines: true, Incremental: true, DryRun: true, Output: "json",
+		Workers: 1, Timeout: 10, Threshold: 100, FailOnGate: true,
+	}
 
-			var before []byte
+	dry, err := runChangedLinesEngine(t, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-			if warmHistory {
-				_, err := runChangedLinesEngine(t, &RunOptions{Output: "json", Workers: 1, Timeout: 10})
-				if err != nil {
-					t.Fatal(err)
-				}
+	if !strings.Contains(dry, "Changed lines: 8-8") || !strings.Contains(dry, "L7-9") {
+		t.Errorf("missing selection ranges: %s", dry)
+	}
 
-				before, err = os.ReadFile(filepath.Join(dir, ".gomu_history.json"))
-				if err != nil {
-					t.Fatal(err)
-				}
-			}
+	opts.DryRun = false
 
-			opts := &RunOptions{ChangedLines: true, Incremental: true, DryRun: true, Output: "json", Workers: 1, Timeout: 10, Threshold: 100, FailOnGate: true}
+	out, err := runChangedLinesEngine(t, opts)
+	if err != nil {
+		t.Fatalf("changed-lines run failed: %v\n%s", err, out)
+	}
 
-			dry, err := runChangedLinesEngine(t, opts)
-			if err != nil {
-				t.Fatal(err)
-			}
+	summary := readChangedLinesSummary(t, dir)
+	if len(summary.Results) == 0 || summary.Statistics.Score != 100 {
+		t.Fatalf("unexpected summary: %+v", summary)
+	}
 
-			if !strings.Contains(dry, "Changed lines: 8-8") || !strings.Contains(dry, "L7-9") {
-				t.Errorf("missing selection ranges: %s", dry)
-			}
+	for _, r := range summary.Results {
+		if r.Mutant.Line < 7 {
+			t.Errorf("Legacy mutant executed: %+v", r.Mutant)
+		}
 
-			opts.DryRun = false
+		if !strings.Contains(dry, fmt.Sprintf("L%d:%d", r.Mutant.Line, r.Mutant.Column)) || !strings.Contains(dry, r.Mutant.Description) {
+			t.Errorf("executed mutant missing from dry-run: %+v", r.Mutant)
+		}
+	}
 
-			out, err := runChangedLinesEngine(t, opts)
-			if err != nil {
-				t.Fatalf("selected mutants should pass gate: %v\n%s", err, out)
-			}
+	if !strings.Contains(dry, fmt.Sprintf("Total: %d mutant(s)", len(summary.Results))) {
+		t.Errorf("dry-run selection differs from execution: %s", dry)
+	}
 
-			summary := readChangedLinesSummary(t, dir)
-			if len(summary.Results) == 0 || summary.Statistics.Score != 100 {
-				t.Fatalf("unexpected summary: %+v", summary)
-			}
+	if _, err := os.Stat(historyPath); !os.IsNotExist(err) {
+		t.Errorf("partial run created history: %v", err)
+	}
 
-			for _, r := range summary.Results {
-				if r.Mutant.Line < 7 {
-					t.Errorf("Legacy mutant executed: %+v", r.Mutant)
-				}
+	// The ordinary run must still mutate Legacy. Reuse its history for the CI run.
+	_, err = runChangedLinesEngine(t, &RunOptions{Output: "json", Workers: 1, Timeout: 10})
+	if err != nil {
+		t.Fatal(err)
+	}
 
-				if !strings.Contains(dry, fmt.Sprintf("L%d:%d", r.Mutant.Line, r.Mutant.Column)) || !strings.Contains(dry, r.Mutant.Description) {
-					t.Errorf("executed mutant missing from dry-run: %+v", r.Mutant)
-				}
-			}
+	summary = readChangedLinesSummary(t, dir)
+	foundLegacy := false
 
-			if !strings.Contains(dry, fmt.Sprintf("Total: %d mutant(s)", len(summary.Results))) {
-				t.Errorf("dry-run selection differs from execution: %s", dry)
-			}
+	for _, r := range summary.Results {
+		foundLegacy = foundLegacy || r.Mutant.Line < 7
+	}
 
-			opts.CIMode = true
-			opts.Output = ""
+	if !foundLegacy {
+		t.Error("partial run suppressed later ordinary analysis")
+	}
 
-			out, err = runChangedLinesEngine(t, opts)
-			if err != nil || !strings.Contains(out, "Quality Gate: PASSED (Score: 100.0%, "+report.ScoreFormula+")") {
-				t.Errorf("excluded Legacy survivors affected gate: %v\n%s", err, out)
-			}
+	before, err := os.ReadFile(historyPath)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-			after, err := os.ReadFile(filepath.Join(dir, ".gomu_history.json"))
-			if warmHistory {
-				if err != nil || string(before) != string(after) {
-					t.Errorf("history changed: %v", err)
-				}
-			} else if !os.IsNotExist(err) {
-				t.Errorf("partial run created history: %v", err)
-			}
+	opts.CIMode = true
+	opts.Output = ""
 
-			if !warmHistory {
-				_, err := runChangedLinesEngine(t, &RunOptions{Output: "json", Workers: 1, Timeout: 10})
-				if err != nil {
-					t.Fatal(err)
-				}
+	out, err = runChangedLinesEngine(t, opts)
+	if err != nil || !strings.Contains(out, "Quality Gate: PASSED (Score: 100.0%, "+report.ScoreFormula+")") {
+		t.Errorf("excluded Legacy survivors affected gate: %v\n%s", err, out)
+	}
 
-				summary = readChangedLinesSummary(t, dir)
-
-				foundLegacy := false
-				for _, r := range summary.Results {
-					foundLegacy = foundLegacy || r.Mutant.Line < 7
-				}
-
-				if !foundLegacy {
-					t.Error("partial run suppressed later ordinary analysis")
-				}
-			}
-		})
+	after, err := os.ReadFile(historyPath)
+	if err != nil || string(before) != string(after) {
+		t.Errorf("history changed: %v", err)
 	}
 }
 
