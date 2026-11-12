@@ -49,7 +49,7 @@ func TestWriteDryRunFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
 
-			if err := writeDryRunFile(&buf, tt.file, tt.mutants); err != nil {
+			if err := writeDryRunFile(&buf, tt.file, tt.mutants, nil); err != nil {
 				t.Fatalf("writeDryRunFile: %v", err)
 			}
 
@@ -68,7 +68,7 @@ func TestDryRunNoFiles(t *testing.T) {
 		var buf bytes.Buffer
 
 		opts := &RunOptions{Incremental: true, BaseBranch: "main"}
-		if err := engine.dryRun(&buf, nil, opts); err != nil {
+		if err := engine.dryRun(&buf, nil, opts, nil); err != nil {
 			t.Fatalf("dryRun: %v", err)
 		}
 
@@ -84,7 +84,7 @@ func TestDryRunNoFiles(t *testing.T) {
 		var buf bytes.Buffer
 
 		opts := &RunOptions{Incremental: false}
-		if err := engine.dryRun(&buf, nil, opts); err != nil {
+		if err := engine.dryRun(&buf, nil, opts, nil); err != nil {
 			t.Fatalf("dryRun: %v", err)
 		}
 

@@ -29,6 +29,11 @@ type Mutant struct {
 	Description string `json:"description"`
 	Context     string `json:"context,omitempty"`  // Source code context around the mutation
 	Function    string `json:"function,omitempty"` // Function name containing the mutation
+
+	// SelectionStartLine and SelectionEndLine bound the generating AST node
+	// in physical source coordinates. Application positions above are unchanged.
+	SelectionStartLine int `json:"-"`
+	SelectionEndLine   int `json:"-"`
 }
 
 // DisplayName returns the label shown to users for this mutant: the mutator
@@ -150,6 +155,8 @@ func (e *Engine) GenerateMutants(filePath string) ([]Mutant, error) {
 				for i := range mutants {
 					mutants[i].FilePath = filePath
 					mutants[i].Mutator = mutator.Name()
+					mutants[i].SelectionStartLine = e.analyzer.GetFileSet().PositionFor(node.Pos(), false).Line
+					mutants[i].SelectionEndLine = e.analyzer.GetFileSet().PositionFor(node.End()-1, false).Line
 
 					// The ID is assigned after filtering so rejected mutants
 					// never leave gaps or duplicates.

@@ -96,6 +96,7 @@ gomu run --threshold 85.0 --workers 8
 | `--workers` | `4` | Number of parallel workers |
 | `--timeout` | `30` | Test timeout in seconds |
 | `--incremental` | `true` | Only test changed files; `false` runs all files and ignores history |
+| `--changed-lines` | `false` | Restrict mutations to committed changed lines; requires incremental analysis |
 | `--base-branch` | `main` | Base branch for incremental analysis |
 | `--base-sha` | | Base commit SHA for incremental analysis. Changed files are computed with a tree diff against it, so no git history is needed; takes precedence over `--base-branch` |
 | `--output` | `console` | Output format (console, json, html, text) |
@@ -124,6 +125,53 @@ gomu run ./internal/mypackage -v
 # Disable incremental analysis (run all files, ignoring history)
 gomu run --incremental=false
 ```
+
+### Mutation testing of changed lines
+
+Use changed-lines mode to introduce mutation testing gradually without making a
+small change responsible for unrelated survivors elsewhere in a legacy file:
+
+```bash
+# Inspect the selected mutants before running tests
+gomu run ./pkg --changed-lines --base-branch main --dry-run
+
+# Score and gate only the selected mutants
+gomu run ./pkg --changed-lines --base-branch origin/main --ci-mode --threshold 85
+```
+
+The comparison is from the merge base of `HEAD` and the base branch to committed
+`HEAD`, with `main` as the default base branch. With `--base-sha`, gomu compares
+that commit directly with `HEAD`, including in shallow clones with the base commit
+available. This mode requires Git and incremental analysis. Repository
+subdirectories and worktrees are supported. The requested path, active Go build
+configuration, and existing source-file exclusions determine eligible files.
+
+A mutant is selected when the inclusive physical line range of its generating
+AST node overlaps an added or modified line. This is a conservative rule: changing
+the body of an `if` can select mutations of its unchanged condition, and changing
+a statement inside a block can select removal of the entire block. Comments or
+whitespace inside an eligible node can also select mutants. Dry-run shows both
+the changed lines and each selected mutant's AST range alongside its usual
+application location. Mutants confined to another unchanged function are excluded.
+
+New files are eligible throughout. Deleted files and deletion-only hunks have no
+executable target lines. Renames are treated as deletion plus addition, so the
+destination file is eligible throughout, even for a rename without content edits.
+
+Changed Go candidates passing path and ignore filters must have no staged or
+unstaged edits, including candidates excluded by generated-code or build-tag
+filters. Commit or restore these candidates before running so diff coordinates
+match the source being parsed. Other
+local changes are allowed. Tests run against the current working tree; test and
+dependency changes are not included in the mutation selection. Support for
+selecting staged or unstaged source edits is outside this mode's current scope.
+
+Changed-lines runs bypass history-based skipping and do not update or save
+`.gomu_history.json`. Existing history is still loaded during engine initialization,
+so errors loading it are reported as usual. An empty selection prints
+`No mutants selected from changed lines; skipped` and succeeds without producing
+score reports; the CI quality gate is skipped. The existing file-level mode remains
+the default.
 
 ### Forwarding flags to go test
 

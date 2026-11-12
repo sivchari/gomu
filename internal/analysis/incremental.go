@@ -52,7 +52,7 @@ func NewIncrementalAnalyzer(workDir string, historyStore HistoryStore, increment
 	}
 
 	if baseBranch == "" {
-		baseBranch = "main"
+		baseBranch = defaultBaseBranch
 	}
 
 	return &IncrementalAnalyzer{

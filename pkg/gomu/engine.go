@@ -50,6 +50,9 @@ type RunOptions struct {
 	DryRun      bool     // Discover mutants per file without executing any mutation
 	TestArgs    []string // Flags forwarded to go test (and, where applicable, go build)
 
+	// ChangedLines restricts mutation testing to committed changed-line ranges.
+	ChangedLines bool
+
 	// IncludeGenerated makes files carrying the standard Go generated-code
 	// marker eligible as mutation targets. They are excluded by default.
 	IncludeGenerated bool
@@ -304,6 +307,13 @@ func (e *Engine) performIncrementalAnalysis(absPath string, opts *RunOptions, ig
 // Run executes mutation testing on the specified path.
 func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 	opts = e.setDefaultOptions(opts)
+	if opts.ChangedLines {
+		defer e.cleanupAndSave(opts)
+
+		if !opts.Incremental {
+			return fmt.Errorf("--changed-lines cannot be combined with --incremental=false")
+		}
+	}
 
 	if err := ValidateTestArgs(opts.TestArgs); err != nil {
 		return err
@@ -346,7 +356,17 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		ignoreParser = parser
 	}
 
-	analysisResults, files, err := e.performIncrementalAnalysis(absPath, opts, ignoreParser)
+	var (
+		analysisResults []analysis.FileAnalysisResult
+		files           []string
+		ranges          map[string][]analysis.LineRange
+	)
+	if opts.ChangedLines {
+		analysisResults, files, ranges, err = e.discoverChangedLines(absPath, opts, ignoreParser)
+	} else {
+		analysisResults, files, err = e.performIncrementalAnalysis(absPath, opts, ignoreParser)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -354,10 +374,16 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 	// Dry run stops after discovery: report the mutants that would be generated
 	// per file without applying any mutation, running tests, or reporting.
 	if opts.DryRun {
-		return e.dryRun(os.Stdout, files, opts)
+		return e.dryRun(os.Stdout, files, opts, ranges)
 	}
 
 	if len(files) == 0 {
+		if opts.ChangedLines {
+			fmt.Println(noChangedLineMutants)
+
+			return e.handleCIWorkflow(ctx, &report.Summary{}, opts)
+		}
+
 		if opts.Verbose {
 			log.Println("No files need processing - all files are up to date")
 		}
@@ -365,10 +391,19 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 		return nil
 	}
 
-	allResults, totalMutants, processedFiles := e.processFiles(files, opts)
-
-	if err := e.cleanupAndSave(opts); err != nil {
+	allResults, totalMutants, processedFiles, err := e.processFiles(files, opts, ranges)
+	if err != nil {
 		return err
+	}
+
+	if opts.ChangedLines && totalMutants == 0 {
+		fmt.Println(noChangedLineMutants)
+
+		return e.handleCIWorkflow(ctx, e.buildSummary(analysisResults, totalMutants, allResults, processedFiles, start), opts)
+	}
+
+	if !opts.ChangedLines {
+		e.cleanupAndSave(opts)
 	}
 
 	summary := e.buildSummary(analysisResults, totalMutants, allResults, processedFiles, start)
@@ -389,7 +424,7 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 }
 
 // processFiles processes all files for mutation testing.
-func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Result, int, int) {
+func (e *Engine) processFiles(files []string, opts *RunOptions, ranges map[string][]analysis.LineRange) ([]mutation.Result, int, int, error) {
 	var (
 		allResults     []mutation.Result
 		totalMutants   int
@@ -408,8 +443,12 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 			log.Printf("Processing file: %s", file)
 		}
 
-		mutants, err := e.mutator.GenerateMutants(file)
+		mutants, err := e.generateSelectedMutants(file, ranges)
 		if err != nil {
+			if opts.ChangedLines {
+				return nil, 0, 0, fmt.Errorf("generate mutants for %s: %w", file, err)
+			}
+
 			fmt.Printf("(error: %v)\n", err)
 
 			if opts.Verbose {
@@ -439,6 +478,10 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 
 		results, err := e.executor.RunMutationsWithOptions(mutants, opts.Workers, opts.Timeout)
 		if err != nil {
+			if opts.ChangedLines {
+				return nil, 0, 0, fmt.Errorf("execute mutants for %s: %w", file, err)
+			}
+
 			fmt.Printf("(execution error: %v)\n", err)
 
 			if opts.Verbose {
@@ -460,6 +503,11 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 		fmt.Printf("-> %d/%d killed\n", killed, len(mutants))
 
 		allResults = append(allResults, results...)
+		processedFiles++
+
+		if opts.ChangedLines {
+			continue
+		}
 
 		fileHash, err := hasher.HashFile(file)
 		if err != nil {
@@ -472,25 +520,26 @@ func (e *Engine) processFiles(files []string, opts *RunOptions) ([]mutation.Resu
 
 		testHash := hasher.HashRelatedTests(file)
 		e.history.UpdateFileWithHashes(file, mutants, results, fileHash, testHash)
-
-		processedFiles++
 	}
 
-	return allResults, totalMutants, processedFiles
+	return allResults, totalMutants, processedFiles, nil
 }
 
 // dryRun reports the mutants that would be generated for each file without
 // applying any mutation, running any tests, or producing reports.
-func (e *Engine) dryRun(w io.Writer, files []string, opts *RunOptions) error {
+func (e *Engine) dryRun(w io.Writer, files []string, opts *RunOptions, ranges map[string][]analysis.LineRange) error {
 	if len(files) == 0 {
-		if opts.Incremental {
+		switch {
+		case opts.ChangedLines:
+			fmt.Fprintln(w, noChangedLineMutants)
+		case opts.Incremental:
 			base := opts.BaseBranch
 			if opts.BaseSHA != "" {
 				base = opts.BaseSHA
 			}
 
 			fmt.Fprintf(w, "Dry run: no files to analyze (no changes since %s; use --incremental=false to preview all files)\n", base)
-		} else {
+		default:
 			fmt.Fprintln(w, "Dry run: no files to analyze")
 		}
 
@@ -510,10 +559,14 @@ func (e *Engine) dryRun(w io.Writer, files []string, opts *RunOptions) error {
 	filesWithMutants := 0
 
 	for _, file := range files {
-		mutants, err := e.mutator.GenerateMutants(file)
+		mutants, err := e.generateSelectedMutants(file, ranges)
 		displayPath := analysis.GetRelativePath(wd, file)
 
 		if err != nil {
+			if opts.ChangedLines {
+				return fmt.Errorf("generate mutants for %s: %w", file, err)
+			}
+
 			fmt.Fprintf(w, "\n%s (error: %v)\n", displayPath, err)
 
 			continue
@@ -526,23 +579,42 @@ func (e *Engine) dryRun(w io.Writer, files []string, opts *RunOptions) error {
 		filesWithMutants++
 		totalMutants += len(mutants)
 
-		if err := writeDryRunFile(w, displayPath, mutants); err != nil {
+		if err := writeDryRunFile(w, displayPath, mutants, ranges[file]); err != nil {
 			return err
 		}
 	}
 
 	fmt.Fprintf(w, "\nTotal: %d mutant(s) across %d file(s)\n", totalMutants, filesWithMutants)
 
+	if opts.ChangedLines && totalMutants == 0 {
+		fmt.Fprintln(w, noChangedLineMutants)
+	}
+
 	return nil
 }
 
 // writeDryRunFile renders a file's discovered mutants as an aligned table.
-func writeDryRunFile(w io.Writer, file string, mutants []mutation.Mutant) error {
+func writeDryRunFile(w io.Writer, file string, mutants []mutation.Mutant, ranges []analysis.LineRange) error {
 	fmt.Fprintf(w, "\n%s (%d mutants)\n", file, len(mutants))
+
+	if ranges != nil {
+		labels := make([]string, 0, len(ranges))
+		for _, r := range ranges {
+			labels = append(labels, fmt.Sprintf("%d-%d", r.Start, r.End))
+		}
+
+		fmt.Fprintf(w, "  Changed lines: %s\n", strings.Join(labels, ", "))
+	}
 
 	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
 	for _, m := range mutants {
-		fmt.Fprintf(tw, "  L%d:%d\t%s\t%s\n", m.Line, m.Column, m.Mutator, m.Description)
+		fmt.Fprintf(tw, "  L%d:%d\t", m.Line, m.Column)
+
+		if ranges != nil {
+			fmt.Fprintf(tw, "L%d-%d\t", m.SelectionStartLine, m.SelectionEndLine)
+		}
+
+		fmt.Fprintf(tw, "%s\t%s\n", m.Mutator, m.Description)
 	}
 
 	if err := tw.Flush(); err != nil {
@@ -553,11 +625,15 @@ func writeDryRunFile(w io.Writer, file string, mutants []mutation.Mutant) error 
 }
 
 // cleanupAndSave handles cleanup and saving operations.
-func (e *Engine) cleanupAndSave(opts *RunOptions) error {
+func (e *Engine) cleanupAndSave(opts *RunOptions) {
 	if err := e.executor.Close(); err != nil {
 		if opts.Verbose {
 			log.Printf("Warning: failed to cleanup execution engine: %v", err)
 		}
+	}
+
+	if opts.ChangedLines {
+		return
 	}
 
 	if err := e.history.Save(); err != nil {
@@ -565,8 +641,6 @@ func (e *Engine) cleanupAndSave(opts *RunOptions) error {
 			log.Printf("Warning: failed to save history: %v", err)
 		}
 	}
-
-	return nil
 }
 
 // buildSummary builds the mutation testing summary.
@@ -604,7 +678,14 @@ func (e *Engine) processCIWorkflow(ctx context.Context, summary *report.Summary,
 	ciSummary := e.convertToCISummary(summary)
 
 	var qualityResult *ci.QualityGateResult
+
 	if e.qualityGate != nil {
+		if opts.ChangedLines && ciSummary.TotalMutants == 0 {
+			fmt.Println("Quality Gate: SKIPPED (no mutants selected)")
+
+			return nil
+		}
+
 		qualityResult = e.qualityGate.Evaluate(ciSummary)
 		fmt.Printf("Quality Gate: %s (Score: %.1f%%, %s)\n",
 			map[bool]string{true: "PASSED", false: "FAILED"}[qualityResult.Pass],
