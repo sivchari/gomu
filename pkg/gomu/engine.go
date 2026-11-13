@@ -37,8 +37,8 @@ type Engine struct {
 
 // RunOptions contains options for running mutation testing.
 type RunOptions struct {
-	Workers     int
-	Timeout     int
+	Workers     int // Number of parallel workers; must be at least 1
+	Timeout     int // Test timeout in seconds; must be at least 1
 	Output      string
 	Incremental bool
 	BaseBranch  string
@@ -307,6 +307,10 @@ func (e *Engine) Run(ctx context.Context, path string, opts *RunOptions) error {
 
 	if err := ValidateTestArgs(opts.TestArgs); err != nil {
 		return err
+	}
+
+	if err := execution.ValidateOptions(opts.Workers, opts.Timeout); err != nil {
+		return fmt.Errorf("invalid run options: %w", err)
 	}
 
 	start := time.Now()

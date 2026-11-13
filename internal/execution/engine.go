@@ -55,8 +55,26 @@ func (e *Engine) RunMutations(mutants []mutation.Mutant) ([]mutation.Result, err
 	return e.RunMutationsWithOptions(mutants, 4, 30)
 }
 
+// ValidateOptions checks that the worker count and timeout in seconds are positive.
+func ValidateOptions(workers, timeout int) error {
+	if workers < 1 {
+		return fmt.Errorf("workers must be at least 1 (got %d)", workers)
+	}
+
+	if timeout < 1 {
+		return fmt.Errorf("timeout must be at least 1 second (got %d)", timeout)
+	}
+
+	return nil
+}
+
 // RunMutationsWithOptions executes tests for all mutants in parallel with custom options.
+// Workers and timeout (in seconds) must both be at least 1, even with no mutants.
 func (e *Engine) RunMutationsWithOptions(mutants []mutation.Mutant, workers, timeout int) ([]mutation.Result, error) {
+	if err := ValidateOptions(workers, timeout); err != nil {
+		return nil, err
+	}
+
 	if len(mutants) == 0 {
 		return nil, nil
 	}

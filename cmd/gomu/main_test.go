@@ -189,6 +189,38 @@ func TestRunRejectsConflictingTestArgs(t *testing.T) {
 	}
 }
 
+func TestRunRejectsInvalidExecutionOptions(t *testing.T) {
+	tests := []struct {
+		name    string
+		flag    string
+		value   string
+		wantErr string
+	}{
+		{name: "zero workers", flag: "--workers", value: "0", wantErr: "workers must be at least 1 (got 0)"},
+		{name: "negative workers", flag: "--workers", value: "-1", wantErr: "workers must be at least 1 (got -1)"},
+		{name: "zero timeout", flag: "--timeout", value: "0", wantErr: "timeout must be at least 1 second (got 0)"},
+		{name: "negative timeout", flag: "--timeout", value: "-1", wantErr: "timeout must be at least 1 second (got -1)"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Chdir(t.TempDir())
+
+			var stdout, stderr bytes.Buffer
+
+			cmd := newRunCommand()
+			cmd.SetArgs([]string{tt.flag, tt.value, "--ci-mode", "--incremental=false"})
+			cmd.SetOut(&stdout)
+			cmd.SetErr(&stderr)
+
+			err := cmd.Execute()
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Fatalf("error = %v, want it to contain %q", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestRunListWarnsIgnoredFlags(t *testing.T) {
 	tests := []struct {
 		name        string
