@@ -183,7 +183,7 @@ func Sub(a, b int) int {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			opts := &RunOptions{DryRun: true, Incremental: false, IncludeGenerated: tt.includeGenerated}
+			opts := &RunOptions{DryRun: true, Incremental: false, IncludeGenerated: tt.includeGenerated, Workers: 1, Timeout: 5}
 
 			engine, err := NewEngine(opts)
 			if err != nil {
@@ -242,7 +242,7 @@ func TestRunDryRunHonorsBuildTags(t *testing.T) {
 				t.Fatalf("copy fixture: %v", err)
 			}
 
-			opts := &RunOptions{DryRun: true, Incremental: false, TestArgs: tt.testArgs}
+			opts := &RunOptions{DryRun: true, Incremental: false, TestArgs: tt.testArgs, Workers: 1, Timeout: 5}
 
 			engine, err := NewEngine(opts)
 			if err != nil {

@@ -356,6 +356,7 @@ func IsPositive(n int) bool {
 			},
 			opts: &RunOptions{
 				Workers: 1,
+				Timeout: 5,
 			},
 			setupContext: func() context.Context {
 				ctx, cancel := context.WithCancel(context.Background())
